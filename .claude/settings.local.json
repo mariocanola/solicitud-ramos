@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/tmp/**)",
+      "Bash(unzip -o phpmailer.zip)",
+      "Bash(mysql:*)",
+      "Bash(curl -s http://localhost/flores/public/)",
+      "Bash(cmd //c \"mklink /J C:\\\\\\\\laragon\\\\\\\\www\\\\\\\\flores \\\\\"C:\\\\\\\\Users\\\\\\\\Mario Cañola\\\\\\\\Desktop\\\\\\\\flores\\\\\"\" 2>&1)",
+      "Bash(curl:*)"
+    ]
+  }
+}
