@@ -1,19 +1,33 @@
 <?php
 require_once BASE_PATH . '/app/models/Configuracion.php';
+require_once BASE_PATH . '/app/models/Sede.php';
+require_once BASE_PATH . '/app/models/CupoSede.php';
+require_once BASE_PATH . '/app/services/CupoService.php';
+require_once BASE_PATH . '/app/helpers/DateHelper.php';
 
 class ConfigController
 {
     public function index()
     {
         $configModel = new Configuracion();
+        $sedeModel = new Sede();
+        $cupoService = new CupoService();
+
         $configuraciones = $configModel->getAllWithDescriptions();
-        $pageTitle = 'Configuración';
+        $sedes = $sedeModel->getActivas();
+        $todasSedes = $sedeModel->getAll();
+        $cupos = $cupoService->getResumen();
+        $periodoActual = DateHelper::currentPeriod();
+        $periodoTexto = DateHelper::mesAnio($periodoActual);
+
+        $pageTitle = 'Configuracion';
         $csrfField = Csrf::field();
         $flash = Session::getFlash('mensaje');
         $flashTipo = Session::getFlash('tipo');
+        $tabActiva = $_GET['tab'] ?? 'general';
 
         ob_start();
-        require BASE_PATH . '/app/views/configuracion/general.php';
+        require BASE_PATH . '/app/views/configuracion/index.php';
         $content = ob_get_clean();
         require BASE_PATH . '/app/views/layouts/main.php';
     }
@@ -33,7 +47,7 @@ class ConfigController
             }
         }
 
-        Session::flash('mensaje', 'Configuración guardada exitosamente');
+        Session::flash('mensaje', 'Configuracion guardada exitosamente');
         Session::flash('tipo', 'success');
         Response::redirect('configuracion');
     }

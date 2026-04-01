@@ -1,178 +1,506 @@
-<!-- Listado de Solicitudes -->
-
 <?php if (!empty($flash)): ?>
 <div class="alert alert-<?= $flashTipo ?? 'info' ?>"><?= htmlspecialchars($flash) ?></div>
 <?php endif; ?>
 
-<!-- Filtros -->
-<div class="card">
-    <div class="card-header">
-        <span>Filtros de Busqueda</span>
-        <?php
-            $hayFiltros = !empty($filtros['fecha_desde']) || !empty($filtros['fecha_hasta'])
-                       || !empty($filtros['id_sede']) || !empty($filtros['id_estado'])
-                       || !empty($filtros['busqueda']);
-        ?>
-        <?php if ($hayFiltros): ?>
-            <a href="<?= BASE_URL ?>/solicitudes" class="btn btn-outline btn-sm">Limpiar filtros</a>
-        <?php endif; ?>
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-btn <?= $tabActiva === 'listado' ? 'active' : '' ?>" onclick="cambiarTab('listado')">Listado de Solicitudes</button>
+    <button class="tab-btn <?= $tabActiva === 'reportes' ? 'active' : '' ?>" onclick="cambiarTab('reportes')">Reportes / PDF</button>
+</div>
+
+<!-- ==================== TAB: LISTADO ==================== -->
+<div class="tab-content <?= $tabActiva === 'listado' ? 'active' : '' ?>" id="tab_listado">
+
+    <!-- Filtros -->
+    <div class="card">
+        <div class="card-header">
+            <span>Filtros de Busqueda</span>
+            <?php
+                $hayFiltros = !empty($filtros['fecha_desde']) || !empty($filtros['fecha_hasta'])
+                           || !empty($filtros['id_sede']) || !empty($filtros['id_estado'])
+                           || !empty($filtros['busqueda']);
+            ?>
+            <?php if ($hayFiltros): ?>
+                <a href="<?= BASE_URL ?>/solicitudes" class="btn btn-outline btn-sm">Limpiar filtros</a>
+            <?php endif; ?>
+        </div>
+        <div class="card-body">
+            <form id="form_filtros" method="GET" action="<?= BASE_URL ?>/solicitudes">
+                <input type="hidden" name="tab" value="listado">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Buscar por documento o nombre</label>
+                            <input type="text" name="busqueda" class="form-control"
+                                   placeholder="Ej: 1234567890 o Juan Perez"
+                                   value="<?= htmlspecialchars($filtros['busqueda'] ?? '') ?>">
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Fecha desde</label>
+                            <input type="date" name="fecha_desde" class="form-control"
+                                   value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Fecha hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control"
+                                   value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Sede</label>
+                            <select name="id_sede" class="form-control">
+                                <option value="">-- Todas --</option>
+                                <?php foreach ($sedes as $sede): ?>
+                                <option value="<?= $sede['id'] ?>" <?= ($filtros['id_sede'] ?? '') == $sede['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($sede['nombre']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select name="id_estado" class="form-control">
+                                <option value="">-- Todos --</option>
+                                <?php foreach ($estados as $estado): ?>
+                                <option value="<?= $estado['id'] ?>" <?= ($filtros['id_estado'] ?? '') == $estado['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($estado['nombre']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-6" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:16px">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                        <?php if ($hayFiltros): ?>
+                            <a href="<?= BASE_URL ?>/solicitudes" class="btn btn-outline">Limpiar</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="card-body">
-        <form id="form_filtros" method="GET" action="<?= BASE_URL ?>/solicitudes">
-            <div class="row">
-                <div class="col-6">
-                    <div class="form-group">
-                        <label>Buscar por documento o nombre</label>
-                        <input type="text" name="busqueda" class="form-control"
-                               placeholder="Ej: 1234567890 o Juan Perez"
-                               value="<?= htmlspecialchars($filtros['busqueda'] ?? '') ?>">
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <label>Fecha desde</label>
-                        <input type="date" name="fecha_desde" class="form-control"
-                               value="<?= htmlspecialchars($filtros['fecha_desde'] ?? '') ?>">
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <label>Fecha hasta</label>
-                        <input type="date" name="fecha_hasta" class="form-control"
-                               value="<?= htmlspecialchars($filtros['fecha_hasta'] ?? '') ?>">
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-3">
-                    <div class="form-group">
-                        <label>Sede</label>
-                        <select name="id_sede" class="form-control">
-                            <option value="">-- Todas --</option>
-                            <?php foreach ($sedes as $sede): ?>
-                            <option value="<?= $sede['id'] ?>" <?= ($filtros['id_sede'] ?? '') == $sede['id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($sede['nombre']) ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select name="id_estado" class="form-control">
-                            <option value="">-- Todos --</option>
-                            <?php foreach ($estados as $estado): ?>
-                            <option value="<?= $estado['id'] ?>" <?= ($filtros['id_estado'] ?? '') == $estado['id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($estado['nombre']) ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-6" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:16px">
-                    <button type="submit" class="btn btn-primary">Buscar</button>
+
+    <!-- Tabla -->
+    <div class="card mt-2">
+        <div class="card-header">
+            <span>Solicitudes (<?= $totalRegistros ?> resultado<?= $totalRegistros != 1 ? 's' : '' ?>)</span>
+            <button class="btn btn-success btn-sm" onclick="abrirModalSolicitud()">+ Nueva Solicitud</button>
+        </div>
+        <div class="card-body">
+            <?php if (empty($solicitudes)): ?>
+                <div class="text-center" style="padding:40px 20px">
+                    <div style="font-size:48px;margin-bottom:10px;opacity:0.3">&#128269;</div>
                     <?php if ($hayFiltros): ?>
-                        <a href="<?= BASE_URL ?>/solicitudes" class="btn btn-outline">Limpiar</a>
+                        <p style="font-size:16px;color:#555;margin-bottom:8px">No se encontraron solicitudes con los filtros aplicados.</p>
+                        <a href="<?= BASE_URL ?>/solicitudes" class="btn btn-outline">Limpiar filtros</a>
+                    <?php else: ?>
+                        <p style="font-size:16px;color:#555;margin-bottom:8px">No hay solicitudes registradas aun.</p>
+                        <button class="btn btn-success" onclick="abrirModalSolicitud()">Crear primera solicitud</button>
                     <?php endif; ?>
                 </div>
+            <?php else: ?>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Fecha</th>
+                            <th>Solicitante</th>
+                            <th>Documento</th>
+                            <th>Destinatario</th>
+                            <th>Sede</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    $contador = ($paginaActual - 1) * ITEMS_PER_PAGE + 1;
+                    foreach ($solicitudes as $s):
+                    ?>
+                        <tr>
+                            <td><?= $contador ?></td>
+                            <td style="white-space:nowrap"><?= $s['fecha_solicitud'] ?></td>
+                            <td><?= htmlspecialchars(Persona::getNombreCompleto($s)) ?></td>
+                            <td><?= htmlspecialchars($s['documento']) ?></td>
+                            <td><?= htmlspecialchars($s['nombre_destinatario'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($s['sede_nombre']) ?></td>
+                            <td><?= htmlspecialchars($s['motivo_nombre']) ?></td>
+                            <td>
+                                <span class="badge" style="background:<?= htmlspecialchars($s['estado_color']) ?>">
+                                    <?= htmlspecialchars($s['estado_nombre']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="<?= BASE_URL ?>/solicitudes/ver?id=<?= $s['id'] ?>" class="btn btn-primary btn-sm">Ver</a>
+                            </td>
+                        </tr>
+                    <?php
+                    $contador++;
+                    endforeach;
+                    ?>
+                    </tbody>
+                </table>
             </div>
-        </form>
+
+            <?php if ($totalPaginas > 1): ?>
+            <div class="pagination">
+                <?php if ($paginaActual > 1): ?>
+                    <?php $params = $_GET; $params['pagina'] = $paginaActual - 1; ?>
+                    <a href="<?= BASE_URL ?>/solicitudes?<?= http_build_query($params) ?>">&laquo; Anterior</a>
+                <?php endif; ?>
+                <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                    <?php $params = $_GET; $params['pagina'] = $i; $qs = http_build_query($params); ?>
+                    <?php if ($i == $paginaActual): ?>
+                        <span class="active"><?= $i ?></span>
+                    <?php else: ?>
+                        <a href="<?= BASE_URL ?>/solicitudes?<?= $qs ?>"><?= $i ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+                <?php if ($paginaActual < $totalPaginas): ?>
+                    <?php $params = $_GET; $params['pagina'] = $paginaActual + 1; ?>
+                    <a href="<?= BASE_URL ?>/solicitudes?<?= http_build_query($params) ?>">Siguiente &raquo;</a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
-<!-- Tabla -->
-<div class="card mt-2">
-    <div class="card-header">
-        <span>Solicitudes (<?= $totalRegistros ?> resultado<?= $totalRegistros != 1 ? 's' : '' ?>)</span>
-        <a href="<?= BASE_URL ?>/solicitudes/crear" class="btn btn-success btn-sm">+ Nueva Solicitud</a>
-    </div>
-    <div class="card-body">
-        <?php if (empty($solicitudes)): ?>
-            <div class="text-center" style="padding:40px 20px">
-                <div style="font-size:48px;margin-bottom:10px;opacity:0.3">&#128269;</div>
-                <?php if ($hayFiltros): ?>
-                    <p style="font-size:16px;color:#555;margin-bottom:8px">No se encontraron solicitudes con los filtros aplicados.</p>
-                    <a href="<?= BASE_URL ?>/solicitudes" class="btn btn-outline">Limpiar filtros</a>
-                <?php else: ?>
-                    <p style="font-size:16px;color:#555;margin-bottom:8px">No hay solicitudes registradas aun.</p>
-                    <a href="<?= BASE_URL ?>/solicitudes/crear" class="btn btn-success">Crear primera solicitud</a>
-                <?php endif; ?>
-            </div>
-        <?php else: ?>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Fecha</th>
-                        <th>Solicitante</th>
-                        <th>Documento</th>
-                        <th>Destinatario</th>
-                        <th>Sede</th>
-                        <th>Motivo</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php
-                $contador = ($paginaActual - 1) * ITEMS_PER_PAGE + 1;
-                foreach ($solicitudes as $s):
-                ?>
-                    <tr>
-                        <td><?= $contador ?></td>
-                        <td style="white-space:nowrap"><?= $s['fecha_solicitud'] ?></td>
-                        <td><?= htmlspecialchars(Persona::getNombreCompleto($s)) ?></td>
-                        <td><?= htmlspecialchars($s['documento']) ?></td>
-                        <td><?= htmlspecialchars($s['nombre_destinatario'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($s['sede_nombre']) ?></td>
-                        <td><?= htmlspecialchars($s['motivo_nombre']) ?></td>
-                        <td>
-                            <span class="badge" style="background:<?= htmlspecialchars($s['estado_color']) ?>">
-                                <?= htmlspecialchars($s['estado_nombre']) ?>
-                            </span>
-                        </td>
-                        <td>
-                            <a href="<?= BASE_URL ?>/solicitudes/ver?id=<?= $s['id'] ?>" class="btn btn-primary btn-sm">Ver detalle</a>
-                        </td>
-                    </tr>
-                <?php
-                $contador++;
-                endforeach;
-                ?>
-                </tbody>
-            </table>
+<!-- ==================== TAB: REPORTES ==================== -->
+<div class="tab-content <?= $tabActiva === 'reportes' ? 'active' : '' ?>" id="tab_reportes">
+    <div class="card">
+        <div class="card-header">Generar Reporte PDF Consolidado</div>
+        <div class="card-body">
+            <form id="form_reporte" method="POST" action="<?= BASE_URL ?>/reportes/generar-pdf">
+                <?= $csrfField ?>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Fecha Desde *</label>
+                            <input type="date" name="fecha_desde" class="form-control" required value="<?= date('Y-m-01') ?>">
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Fecha Hasta *</label>
+                            <input type="date" name="fecha_hasta" class="form-control" required value="<?= date('Y-m-d') ?>">
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Sede</label>
+                            <select name="id_sede" class="form-control">
+                                <option value="">Todas las sedes</option>
+                                <?php foreach ($sedes as $sede): ?>
+                                <option value="<?= $sede['id'] ?>"><?= htmlspecialchars($sede['nombre']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select name="id_estado" class="form-control">
+                                <option value="">Todos</option>
+                                <?php foreach ($estados as $estado): ?>
+                                <option value="<?= $estado['id'] ?>"><?= htmlspecialchars($estado['nombre']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-dark btn-lg">Descargar PDF</button>
+                    <button type="button" class="btn btn-primary btn-lg" onclick="enviarPorCorreo()">Enviar por Correo</button>
+                </div>
+            </form>
+            <div id="reporte_msg" class="mt-2"></div>
         </div>
-
-        <!-- Paginacion -->
-        <?php if ($totalPaginas > 1): ?>
-        <div class="pagination">
-            <?php if ($paginaActual > 1): ?>
-                <?php $params = $_GET; $params['pagina'] = $paginaActual - 1; ?>
-                <a href="<?= BASE_URL ?>/solicitudes?<?= http_build_query($params) ?>">&laquo; Anterior</a>
-            <?php endif; ?>
-
-            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                <?php
-                $params = $_GET;
-                $params['pagina'] = $i;
-                $qs = http_build_query($params);
-                ?>
-                <?php if ($i == $paginaActual): ?>
-                    <span class="active"><?= $i ?></span>
-                <?php else: ?>
-                    <a href="<?= BASE_URL ?>/solicitudes?<?= $qs ?>"><?= $i ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-
-            <?php if ($paginaActual < $totalPaginas): ?>
-                <?php $params = $_GET; $params['pagina'] = $paginaActual + 1; ?>
-                <a href="<?= BASE_URL ?>/solicitudes?<?= http_build_query($params) ?>">Siguiente &raquo;</a>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
-
-        <?php endif; ?>
     </div>
 </div>
+
+<!-- ==================== MODAL: NUEVA SOLICITUD ==================== -->
+<div class="modal-overlay" id="modal_solicitud">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <h3>Nueva Solicitud</h3>
+            <button class="modal-close" onclick="cerrarModalSolicitud()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Scanner -->
+            <div class="form-group">
+                <label>Escanee o digite el numero de documento:</label>
+                <div class="d-flex gap-1">
+                    <input type="text" id="scanner_input" class="form-control scanner-input"
+                           placeholder="Escanee el codigo de barras o escriba el documento..." autocomplete="off" style="flex:1">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="buscarManual()">Buscar</button>
+                </div>
+            </div>
+            <div id="scanner_status" class="text-muted mt-1" style="font-size:13px"></div>
+
+            <!-- Persona info -->
+            <div id="persona_info" class="persona-info hidden">
+                <h4 id="persona_nombre"></h4>
+                <p><strong>Documento:</strong> <span id="persona_doc"></span></p>
+                <p><strong>Sede:</strong> <span id="persona_sede"></span></p>
+                <p><strong>Telefono:</strong> <span id="persona_tel"></span></p>
+            </div>
+
+            <!-- Form -->
+            <form id="form_solicitud" method="POST" action="<?= BASE_URL ?>/solicitudes/crear">
+                <?= $csrfField ?>
+                <input type="hidden" name="persona_id" id="persona_id" value="">
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Fecha de Solicitud</label>
+                            <input type="date" name="fecha_solicitud" id="fecha_solicitud"
+                                   class="form-control" value="<?= $hoy ?>" readonly>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Sede *</label>
+                            <select name="id_sede" id="id_sede" class="form-control" required>
+                                <option value="">-- Seleccione --</option>
+                                <?php foreach ($sedes as $sede): ?>
+                                <option value="<?= $sede['id'] ?>"><?= htmlspecialchars($sede['nombre']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <small id="sede_nota" class="text-muted" style="font-size:11px;margin-top:4px;display:none">
+                                La sede corresponde a la persona seleccionada
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre del Destinatario *</label>
+                    <input type="text" name="nombre_destinatario" id="nombre_destinatario"
+                           class="form-control" maxlength="150" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Motivo *</label>
+                            <select name="id_motivo" id="id_motivo" class="form-control" required>
+                                <option value="">-- Seleccione --</option>
+                                <?php foreach ($motivos as $motivo): ?>
+                                <option value="<?= $motivo['id'] ?>" data-requiere-detalle="<?= $motivo['requiere_detalle'] ?>">
+                                    <?= htmlspecialchars($motivo['nombre']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group hidden" id="grupo_motivo_otro">
+                            <label>Especifique el motivo *</label>
+                            <input type="text" name="motivo_otro" id="motivo_otro" class="form-control" maxlength="200">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea name="observaciones" id="observaciones" class="form-control" maxlength="500"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline mr-1" onclick="cerrarModalSolicitud()">Cancelar</button>
+            <button class="btn btn-success btn-lg" id="btn_guardar" disabled onclick="enviarSolicitud()">Guardar Solicitud</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: CREAR PERSONA ==================== -->
+<div class="modal-overlay" id="modal_persona">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Registrar Nueva Persona</h3>
+            <button class="modal-close" onclick="cerrarModalPersona()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form_persona">
+                <input type="hidden" name="_csrf_token" value="<?= Session::getCsrfToken() ?>">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Tipo Documento *</label>
+                            <select name="tipo_documento" id="p_tipo_documento" class="form-control" required>
+                                <option value="CC">CC - Cedula</option>
+                                <option value="CE">CE - Cedula Extranjeria</option>
+                                <option value="TI">TI - Tarjeta Identidad</option>
+                                <option value="PA">PA - Pasaporte</option>
+                                <option value="NIT">NIT</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Documento *</label>
+                            <input type="text" name="documento" id="p_documento" class="form-control" maxlength="20">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Primer Nombre *</label>
+                            <input type="text" name="primer_nombre" id="p_primer_nombre" class="form-control" required maxlength="50">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Segundo Nombre</label>
+                            <input type="text" name="segundo_nombre" id="p_segundo_nombre" class="form-control" maxlength="50">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Primer Apellido *</label>
+                            <input type="text" name="primer_apellido" id="p_primer_apellido" class="form-control" required maxlength="50">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Segundo Apellido</label>
+                            <input type="text" name="segundo_apellido" id="p_segundo_apellido" class="form-control" maxlength="50">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Telefono</label>
+                            <input type="text" name="telefono" id="p_telefono" class="form-control" maxlength="20">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Sede *</label>
+                            <select name="id_sede" id="p_id_sede" class="form-control" required>
+                                <option value="">-- Seleccione --</option>
+                                <?php foreach ($sedes as $sede): ?>
+                                <option value="<?= $sede['id'] ?>"><?= htmlspecialchars($sede['nombre']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline mr-1" onclick="cerrarModalPersona()">Cancelar</button>
+            <button class="btn btn-success" onclick="guardarPersona()">Guardar Persona</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var BASE_URL = '<?= BASE_URL ?>';
+var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
+
+// === TABS ===
+function cambiarTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+    document.getElementById('tab_' + tab).classList.add('active');
+    // Activate the correct button
+    var btns = document.querySelectorAll('.tab-btn');
+    var tabNames = ['listado', 'reportes'];
+    var idx = tabNames.indexOf(tab);
+    if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+}
+
+// === MODAL SOLICITUD ===
+function abrirModalSolicitud() {
+    document.getElementById('modal_solicitud').classList.add('show');
+    setTimeout(function() {
+        var si = document.getElementById('scanner_input');
+        if (si) si.focus();
+    }, 100);
+}
+
+function cerrarModalSolicitud() {
+    document.getElementById('modal_solicitud').classList.remove('show');
+    // Reset form
+    document.getElementById('form_solicitud').reset();
+    document.getElementById('persona_id').value = '';
+    document.getElementById('persona_info').classList.add('hidden');
+    document.getElementById('btn_guardar').disabled = true;
+    document.getElementById('scanner_status').textContent = '';
+    document.getElementById('scanner_input').value = '';
+    var sedeSelect = document.getElementById('id_sede');
+    sedeSelect.disabled = false;
+    var hiddenSede = document.getElementById('id_sede_hidden');
+    if (hiddenSede) hiddenSede.remove();
+    var nota = document.getElementById('sede_nota');
+    if (nota) nota.style.display = 'none';
+    var gmo = document.getElementById('grupo_motivo_otro');
+    if (gmo) gmo.classList.add('hidden');
+}
+
+function enviarSolicitud() {
+    var personaId = document.getElementById('persona_id').value;
+    if (!personaId) {
+        alert('Debe escanear o buscar una persona primero.');
+        return;
+    }
+    document.getElementById('form_solicitud').submit();
+}
+
+// === REPORTES ===
+function enviarPorCorreo() {
+    if (!confirm('Enviar el reporte por correo electronico?')) return;
+    var form = document.getElementById('form_reporte');
+    var formData = new FormData(form);
+    var msgEl = document.getElementById('reporte_msg');
+    msgEl.innerHTML = '<div class="alert alert-info"><span class="spinner"></span> Enviando correo...</div>';
+    fetch(BASE_URL + '/reportes/enviar-correo', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            msgEl.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+        } else {
+            msgEl.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+        }
+    })
+    .catch(function() {
+        msgEl.innerHTML = '<div class="alert alert-danger">Error de conexion</div>';
+    });
+}
+
+// Stub para buscarManual - scanner.js lo sobreescribe
+function buscarManual() {
+    var input = document.getElementById('scanner_input');
+    if (input && input.value.trim().length >= 3) {
+        window.procesarEntradaScanner && window.procesarEntradaScanner(input.value.trim());
+    } else {
+        alert('Escriba al menos 3 digitos del documento');
+    }
+}
+</script>
+<script src="<?= BASE_URL ?>/js/scanner.js"></script>
+<script src="<?= BASE_URL ?>/js/solicitud.js"></script>

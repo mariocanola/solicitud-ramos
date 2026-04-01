@@ -8,20 +8,8 @@ class CupoController
 {
     public function index()
     {
-        $cupoService = new CupoService();
-        $sedeModel = new Sede();
-
-        $cupos = $cupoService->getResumen();
-        $sedes = $sedeModel->getActivas();
-        $periodoActual = DateHelper::currentPeriod();
-        $periodoTexto = DateHelper::mesAnio($periodoActual);
-        $pageTitle = 'Control de Cupos';
-        $csrfField = Csrf::field();
-
-        ob_start();
-        require BASE_PATH . '/app/views/configuracion/cupos.php';
-        $content = ob_get_clean();
-        require BASE_PATH . '/app/views/layouts/main.php';
+        // Redirect to configuracion with cupos tab
+        Response::redirect('configuracion?tab=cupos');
     }
 
     public function actualizar()
@@ -34,7 +22,7 @@ class CupoController
         if ($id_sede <= 0 || $cupo_maximo < 1) {
             Session::flash('mensaje', 'Datos inválidos. El cupo debe ser mayor a 0.');
             Session::flash('tipo', 'danger');
-            Response::redirect('cupos');
+            Response::redirect('configuracion?tab=cupos');
             return;
         }
 
@@ -48,6 +36,6 @@ class CupoController
 
         Session::flash('mensaje', 'Cupo actualizado exitosamente');
         Session::flash('tipo', 'success');
-        Response::redirect('cupos');
+        Response::redirect('configuracion?tab=cupos');
     }
 }

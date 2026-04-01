@@ -29,17 +29,24 @@ class SolicitudController
 
         $sedeModel = new Sede();
         $estadoModel = new EstadoSolicitud();
+        $motivoModel = new MotivoRamo();
 
         $sedes = $sedeModel->getActivas();
         $estados = $estadoModel->getAll();
+        $motivos = $motivoModel->getActivos();
         $solicitudes = $resultado['data'] ?? [];
         $totalPaginas = $resultado['total_paginas'] ?? 1;
         $paginaActual = $resultado['pagina'] ?? 1;
         $totalRegistros = $resultado['total'] ?? 0;
 
+        $hoy = DateHelper::today();
         $flash = Session::getFlash('mensaje');
         $flashTipo = Session::getFlash('tipo');
         $pageTitle = 'Solicitudes';
+        $csrfField = Csrf::field();
+
+        // Tab activa
+        $tabActiva = $_GET['tab'] ?? 'listado';
 
         ob_start();
         require BASE_PATH . '/app/views/solicitudes/listar.php';
@@ -49,20 +56,8 @@ class SolicitudController
 
     public function formCrear()
     {
-        $sedeModel = new Sede();
-        $motivoModel = new MotivoRamo();
-
-        $sedes = $sedeModel->getActivas();
-        $motivos = $motivoModel->getActivos();
-        $hoy = DateHelper::today();
-
-        $pageTitle = 'Nueva Solicitud';
-        $csrfField = Csrf::field();
-
-        ob_start();
-        require BASE_PATH . '/app/views/solicitudes/crear.php';
-        $content = ob_get_clean();
-        require BASE_PATH . '/app/views/layouts/main.php';
+        // Redirect to solicitudes with tab
+        Response::redirect('solicitudes?tab=listado');
     }
 
     public function crear()

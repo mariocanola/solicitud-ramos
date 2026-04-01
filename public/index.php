@@ -66,13 +66,15 @@ $routes = [
     'GET:api/sedes'    => ['SedeController', 'listarActivas'],
     'GET:api/motivos'  => ['SedeController', 'listarMotivos'],
     'GET:api/estados'  => ['SedeController', 'listarEstados'],
+    'POST:api/sedes/crear'      => ['SedeController', 'crear'],
+    'POST:api/sedes/actualizar' => ['SedeController', 'actualizar'],
 
-    // Reportes
+    // Reportes (ahora vive dentro de solicitudes, pero se mantienen rutas POST)
     'GET:reportes'              => ['ReporteController', 'index'],
     'POST:reportes/generar-pdf' => ['ReporteController', 'generarPdf'],
     'POST:reportes/enviar-correo'=> ['ReporteController', 'enviarCorreo'],
 
-    // Cupos
+    // Cupos (redirect al tab, pero se mantiene POST)
     'GET:cupos'             => ['CupoController', 'index'],
     'POST:cupos/actualizar' => ['CupoController', 'actualizar'],
 

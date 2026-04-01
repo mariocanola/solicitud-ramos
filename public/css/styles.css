@@ -476,6 +476,73 @@ table.table tbody tr:nth-child(even) {
 .justify-between { justify-content: space-between; }
 .align-center { align-items: center; }
 
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 20px;
+    gap: 0;
+}
+
+.tab-btn {
+    padding: 10px 22px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #7F8C8D;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: var(--primary);
+    background: var(--light);
+}
+
+.tab-btn.active {
+    color: var(--secondary);
+    border-bottom-color: var(--secondary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Modal large */
+.modal-lg {
+    max-width: 850px;
+}
+
+/* Detalle campo (used in solicitud detail) */
+.detalle-campo {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.detalle-campo:last-child {
+    border-bottom: none;
+}
+.detalle-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #95A5A6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+}
+.detalle-valor {
+    display: block;
+    font-size: 15px;
+    color: #2C3E50;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); }

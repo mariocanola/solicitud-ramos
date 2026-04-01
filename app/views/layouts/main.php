@@ -19,12 +19,9 @@
             <?php
             $currentRoute = $GLOBALS['current_route'] ?? 'dashboard';
             $menuItems = [
-                ['route' => 'dashboard',         'icon' => '&#9632;', 'label' => 'Dashboard'],
-                ['route' => 'solicitudes/crear',  'icon' => '&#10010;', 'label' => 'Nueva Solicitud'],
-                ['route' => 'solicitudes',        'icon' => '&#9776;', 'label' => 'Solicitudes'],
-                ['route' => 'reportes',           'icon' => '&#128196;', 'label' => 'Reportes / PDF'],
-                ['route' => 'cupos',              'icon' => '&#9881;', 'label' => 'Control de Cupos'],
-                ['route' => 'configuracion',      'icon' => '&#9881;', 'label' => 'Configuración'],
+                ['route' => 'dashboard',      'icon' => '&#9632;', 'label' => 'Dashboard'],
+                ['route' => 'solicitudes',    'icon' => '&#9776;', 'label' => 'Solicitudes'],
+                ['route' => 'configuracion',  'icon' => '&#9881;', 'label' => 'Configuracion'],
             ];
             foreach ($menuItems as $item):
                 $isActive = ($currentRoute === $item['route']
