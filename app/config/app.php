@@ -8,7 +8,7 @@ define('BASE_PATH', dirname(__DIR__, 2));
 // where the app lives at /flores/public/.
 $_scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
 define('BASE_URL', $_scriptDir);
-define('APP_NAME', 'Sistema de Ramos Florales');
+define('APP_NAME', 'Sistema de Solicitud de Ramos');
 define('STORAGE_PATH', BASE_PATH . '/storage');
 define('PDF_PATH', STORAGE_PATH . '/pdfs');
 define('LOG_PATH', STORAGE_PATH . '/logs');
