@@ -10,6 +10,55 @@ class Persona
         $this->db = Database::getInstance()->getConnection();
     }
 
+    public function getAll($filtros = [])
+    {
+        $where = [];
+        $params = [];
+
+        if (!empty($filtros['busqueda'])) {
+            $where[] = "(p.documento LIKE ? OR p.primer_nombre LIKE ? OR p.primer_apellido LIKE ?)";
+            $like = '%' . $filtros['busqueda'] . '%';
+            $params[] = $like;
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        if (!empty($filtros['id_sede'])) {
+            $where[] = "p.id_sede = ?";
+            $params[] = (int)$filtros['id_sede'];
+        }
+
+        $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        // Count
+        $countStmt = $this->db->prepare("SELECT COUNT(*) FROM personas p $whereSQL");
+        $countStmt->execute($params);
+        $total = (int)$countStmt->fetchColumn();
+
+        // Pagination
+        $porPagina = 15;
+        $pagina = max(1, (int)($filtros['pagina'] ?? 1));
+        $totalPaginas = max(1, ceil($total / $porPagina));
+        $offset = ($pagina - 1) * $porPagina;
+
+        $stmt = $this->db->prepare(
+            "SELECT p.*, s.nombre AS sede_nombre
+             FROM personas p
+             INNER JOIN sedes s ON s.id = p.id_sede
+             $whereSQL
+             ORDER BY p.primer_apellido, p.primer_nombre
+             LIMIT $porPagina OFFSET $offset"
+        );
+        $stmt->execute($params);
+
+        return [
+            'data' => $stmt->fetchAll(),
+            'total' => $total,
+            'pagina' => $pagina,
+            'total_paginas' => $totalPaginas,
+        ];
+    }
+
     public function buscarPorDocumento($documento)
     {
         $stmt = $this->db->prepare(
@@ -84,6 +133,19 @@ class Persona
             $data['activo'] ?? 1,
             (int)$id,
         ]);
+    }
+
+    public function delete($id)
+    {
+        $stmt = $this->db->prepare("DELETE FROM personas WHERE id = ?");
+        return $stmt->execute([(int)$id]);
+    }
+
+    public function tieneRegistrosAsociados($id)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM solicitudes WHERE persona_id = ?");
+        $stmt->execute([(int)$id]);
+        return (int)$stmt->fetchColumn() > 0;
     }
 
     public static function getNombreCompleto($persona)

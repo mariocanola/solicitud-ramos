@@ -150,7 +150,7 @@ class PdfService
         $pdf->Ln(10);
         $pdf->SetFont('Helvetica', 'I', 8);
         $pdf->SetTextColor(150, 150, 150);
-        $pdf->Cell(0, 5, $this->toLatin1('Este documento fue generado automáticamente por el Sistema de Ramos Florales - ' . date('d/m/Y H:i')), 0, 1, 'C');
+        $pdf->Cell(0, 5, $this->toLatin1('Este documento fue generado automáticamente por el ' . APP_NAME . ' - ' . date('d/m/Y H:i')), 0, 1, 'C');
 
         // Guardar
         $nombre = 'reporte_ramos_' . date('Ymd_His') . '.pdf';

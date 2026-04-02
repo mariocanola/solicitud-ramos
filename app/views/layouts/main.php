@@ -12,8 +12,8 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
+            <img src="<?= BASE_URL ?>/img/logo-tandil.png" alt="Logo" class="sidebar-logo">
             <h2><?= APP_NAME ?></h2>
-            <small>v1.0</small>
         </div>
         <nav class="sidebar-nav">
             <?php
@@ -21,6 +21,7 @@
             $menuItems = [
                 ['route' => 'dashboard',      'icon' => '&#9632;', 'label' => 'Dashboard'],
                 ['route' => 'solicitudes',    'icon' => '&#9776;', 'label' => 'Solicitudes'],
+                ['route' => 'personas',       'icon' => '&#9787;', 'label' => 'Personas'],
                 ['route' => 'configuracion',  'icon' => '&#9881;', 'label' => 'Configuracion'],
             ];
             foreach ($menuItems as $item):

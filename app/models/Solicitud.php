@@ -128,6 +128,12 @@ class Solicitud
         return $stmt->execute([(int)$id_estado, (int)$id]);
     }
 
+    public function delete($id)
+    {
+        $stmt = $this->db->prepare("DELETE FROM solicitudes WHERE id = ?");
+        return $stmt->execute([(int)$id]);
+    }
+
     public function getParaReporte($filtros = [])
     {
         $where = [];
@@ -237,6 +243,89 @@ class Solicitud
         $stmt->execute();
         $stats['total_mes'] = (int)$stmt->fetch()['total'];
 
+        // Solicitudes de la semana actual
+        $stmt = $this->db->query(
+            "SELECT COUNT(*) as total FROM solicitudes
+             WHERE YEARWEEK(fecha_solicitud, 1) = YEARWEEK(CURDATE(), 1)"
+        );
+        $stats['total_semana'] = (int)$stmt->fetch()['total'];
+
         return $stats;
+    }
+
+    /**
+     * Solicitudes de la semana actual agrupadas por sede (for pie chart)
+     */
+    public function getSolicitudesSemanaActualPorSede()
+    {
+        $stmt = $this->db->query(
+            "SELECT se.nombre as sede_nombre, COUNT(*) as total
+             FROM solicitudes s
+             INNER JOIN sedes se ON se.id = s.id_sede
+             WHERE YEARWEEK(s.fecha_solicitud, 1) = YEARWEEK(CURDATE(), 1)
+             GROUP BY s.id_sede, se.nombre
+             ORDER BY total DESC"
+        );
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Total solicitudes por sede (all time, for bar chart)
+     */
+    public function getTotalPorSede()
+    {
+        $stmt = $this->db->query(
+            "SELECT se.nombre as sede_nombre, COUNT(*) as total
+             FROM solicitudes s
+             INNER JOIN sedes se ON se.id = s.id_sede
+             GROUP BY s.id_sede, se.nombre
+             ORDER BY total DESC"
+        );
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get weekly solicitudes by sede for the last N weeks (for chart)
+     */
+    public function getSolicitudesSemanalPorSede($numSemanas = 8)
+    {
+        $stmt = $this->db->prepare(
+            "SELECT
+                YEARWEEK(s.fecha_solicitud, 1) as semana_num,
+                MIN(DATE(s.fecha_solicitud - INTERVAL WEEKDAY(s.fecha_solicitud) DAY)) as semana_inicio,
+                se.id as sede_id,
+                se.nombre as sede_nombre,
+                COUNT(*) as total
+             FROM solicitudes s
+             INNER JOIN sedes se ON se.id = s.id_sede
+             WHERE s.fecha_solicitud >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)
+             GROUP BY semana_num, se.id, se.nombre
+             ORDER BY semana_num ASC, se.nombre ASC"
+        );
+        $stmt->execute([$numSemanas]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get last 5 solicitudes for recent activity
+     */
+    public function getRecientes($limit = 5)
+    {
+        $stmt = $this->db->prepare(
+            "SELECT s.id, s.fecha_solicitud, s.nombre_destinatario,
+                    p.primer_nombre, p.primer_apellido, p.documento,
+                    se.nombre AS sede_nombre,
+                    m.nombre AS motivo_nombre,
+                    e.nombre AS estado_nombre, e.color AS estado_color
+             FROM solicitudes s
+             INNER JOIN personas p ON p.id = s.persona_id
+             INNER JOIN sedes se ON se.id = s.id_sede
+             INNER JOIN motivos_ramo m ON m.id = s.id_motivo
+             INNER JOIN estados_solicitud e ON e.id = s.id_estado
+             ORDER BY s.id DESC
+             LIMIT ?"
+        );
+        $stmt->execute([(int)$limit]);
+        return $stmt->fetchAll();
     }
 }

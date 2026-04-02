@@ -55,6 +55,35 @@ class SedeController
         }
     }
 
+    public function eliminar()
+    {
+        Csrf::validate();
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            Response::error('ID invalido');
+            return;
+        }
+
+        $model = new Sede();
+        $asociados = $model->tieneRegistrosAsociados($id);
+        if ($asociados) {
+            $mensajes = [
+                'solicitudes' => 'No se puede eliminar esta sede porque tiene solicitudes asociadas. Desactivela en su lugar.',
+                'personas'    => 'No se puede eliminar esta sede porque tiene personas asociadas. Reasigne las personas o desactivela en su lugar.',
+            ];
+            Response::error($mensajes[$asociados] ?? 'No se puede eliminar esta sede porque tiene registros asociados.');
+            return;
+        }
+
+        try {
+            $model->delete($id);
+            Response::success(null, 'Sede eliminada exitosamente');
+        } catch (Exception $e) {
+            Response::error('Error al eliminar la sede: tiene registros dependientes');
+        }
+    }
+
     public function actualizar()
     {
         Csrf::validate();

@@ -22,4 +22,43 @@ class EstadoSolicitud
         $stmt->execute([(int)$id]);
         return $stmt->fetch();
     }
+
+    public function create($data)
+    {
+        $stmt = $this->db->prepare(
+            "INSERT INTO estados_solicitud (nombre, color, orden) VALUES (?, ?, ?)"
+        );
+        $stmt->execute([
+            $data['nombre'],
+            $data['color'] ?? '#6c757d',
+            (int)($data['orden'] ?? 0),
+        ]);
+        return $this->db->lastInsertId();
+    }
+
+    public function update($id, $data)
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE estados_solicitud SET nombre = ?, color = ?, orden = ? WHERE id = ?"
+        );
+        return $stmt->execute([
+            $data['nombre'],
+            $data['color'] ?? '#6c757d',
+            (int)($data['orden'] ?? 0),
+            (int)$id,
+        ]);
+    }
+
+    public function delete($id)
+    {
+        $stmt = $this->db->prepare("DELETE FROM estados_solicitud WHERE id = ?");
+        return $stmt->execute([(int)$id]);
+    }
+
+    public function tieneRegistrosAsociados($id)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM solicitudes WHERE id_estado = ?");
+        $stmt->execute([(int)$id]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
 }

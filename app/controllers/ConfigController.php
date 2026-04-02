@@ -2,6 +2,8 @@
 require_once BASE_PATH . '/app/models/Configuracion.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/CupoSede.php';
+require_once BASE_PATH . '/app/models/MotivoRamo.php';
+require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
 require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 
@@ -12,11 +14,15 @@ class ConfigController
         $configModel = new Configuracion();
         $sedeModel = new Sede();
         $cupoService = new CupoService();
+        $motivoModel = new MotivoRamo();
+        $estadoModel = new EstadoSolicitud();
 
         $configuraciones = $configModel->getAllWithDescriptions();
         $sedes = $sedeModel->getActivas();
         $todasSedes = $sedeModel->getAll();
         $cupos = $cupoService->getResumen();
+        $motivos = $motivoModel->getAll();
+        $estadosSolicitud = $estadoModel->getAll();
         $periodoActual = DateHelper::currentPeriod();
         $periodoTexto = DateHelper::mesAnio($periodoActual);
 

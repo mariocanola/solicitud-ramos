@@ -15,6 +15,9 @@
             <span class="badge" style="background:<?= htmlspecialchars($solicitud['estado_color']) ?>;font-size:14px;padding:6px 16px">
                 <?= htmlspecialchars($solicitud['estado_nombre']) ?>
             </span>
+            <button class="btn btn-danger btn-sm" onclick="eliminarSolicitud(<?= $solicitud['id'] ?>)">
+                Eliminar
+            </button>
         </div>
     </div>
 </div>
@@ -130,6 +133,22 @@
 <script>
 var BASE_URL = '<?= BASE_URL ?>';
 var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
+
+function eliminarSolicitud(id) {
+    if (!confirm('¿Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.')) {
+        return;
+    }
+    var formData = new FormData();
+    formData.append('id', id);
+    formData.append('_csrf_token', CSRF_TOKEN);
+    ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
+        if (data.success) {
+            window.location.href = BASE_URL + '/solicitudes';
+        } else {
+            alert(data.message || 'Error al eliminar');
+        }
+    });
+}
 
 function cambiarEstado(id) {
     var nuevoEstado = document.getElementById('nuevo_estado').value;

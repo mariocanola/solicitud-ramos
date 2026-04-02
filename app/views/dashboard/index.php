@@ -1,4 +1,4 @@
-<!-- Dashboard -->
+<!-- KPI Cards -->
 <div class="row">
     <div class="col-3">
         <div class="stat-card primary">
@@ -14,24 +14,59 @@
     </div>
     <div class="col-3">
         <div class="stat-card success">
-            <div class="stat-value"><?= $totalSedes ?></div>
-            <div class="stat-label">Sedes Activas</div>
+            <div class="stat-value"><?= $estadisticas['total_semana'] ?? 0 ?></div>
+            <div class="stat-label">Solicitudes esta Semana</div>
         </div>
     </div>
     <div class="col-3">
         <div class="stat-card warning">
             <div class="stat-value"><?= $periodoActual ?></div>
-            <div class="stat-label">Período Actual</div>
+            <div class="stat-label">Periodo Actual</div>
         </div>
     </div>
 </div>
 
-<!-- Cupos por sede -->
+<!-- Graficas -->
+<div class="row mt-2">
+    <!-- Grafica Circular: Solicitudes de la semana por sede -->
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Solicitudes de la Semana por Sede</div>
+            <div class="card-body">
+                <?php if (empty($pieData['data'])): ?>
+                    <p class="text-muted text-center" style="padding:40px 0">No hay solicitudes registradas esta semana.</p>
+                <?php else: ?>
+                <div style="position:relative;height:300px;display:flex;justify-content:center">
+                    <canvas id="chartPie"></canvas>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grafica de Barras: Total solicitudes por sede -->
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">Total Solicitudes por Sede</div>
+            <div class="card-body">
+                <?php if (empty($barData['data'])): ?>
+                    <p class="text-muted text-center" style="padding:40px 0">No hay solicitudes registradas.</p>
+                <?php else: ?>
+                <div style="position:relative;height:300px">
+                    <canvas id="chartBar"></canvas>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cupos por Sede -->
 <div class="card mt-2">
-    <div class="card-header">Control de Cupos por Sede - <?= htmlspecialchars($periodoActual) ?></div>
+    <div class="card-header">Control de Cupos por Sede</div>
     <div class="card-body">
         <?php if (empty($cupos)): ?>
-            <p class="text-muted">No hay cupos configurados para el período actual.</p>
+            <p class="text-muted">No hay cupos configurados para el periodo actual.</p>
         <?php else: ?>
             <?php foreach ($cupos as $cupo): ?>
             <div style="margin-bottom:15px">
@@ -52,52 +87,132 @@
     </div>
 </div>
 
-<div class="row mt-2">
-    <!-- Por Estado -->
-    <div class="col-6">
-        <div class="card">
-            <div class="card-header">Solicitudes por Estado</div>
-            <div class="card-body">
-                <?php if (!empty($estadisticas['por_estado'])): ?>
-                <table class="table">
-                    <thead><tr><th>Estado</th><th>Total</th></tr></thead>
-                    <tbody>
-                    <?php foreach ($estadisticas['por_estado'] as $item): ?>
-                    <tr>
-                        <td><span class="badge" style="background:<?= htmlspecialchars($item['color']) ?>"><?= htmlspecialchars($item['nombre']) ?></span></td>
-                        <td><?= $item['total'] ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php else: ?>
-                <p class="text-muted">Sin datos</p>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
 
-    <!-- Por Motivo -->
-    <div class="col-6">
-        <div class="card">
-            <div class="card-header">Solicitudes por Motivo</div>
-            <div class="card-body">
-                <?php if (!empty($estadisticas['por_motivo'])): ?>
-                <table class="table">
-                    <thead><tr><th>Motivo</th><th>Total</th></tr></thead>
-                    <tbody>
-                    <?php foreach ($estadisticas['por_motivo'] as $item): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($item['nombre']) ?></td>
-                        <td><?= $item['total'] ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php else: ?>
-                <p class="text-muted">Sin datos</p>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-</div>
+    var pieData = <?= json_encode($pieData, JSON_UNESCAPED_UNICODE) ?>;
+    var barData = <?= json_encode($barData, JSON_UNESCAPED_UNICODE) ?>;
+
+    // === GRAFICA CIRCULAR: Solicitudes de la semana ===
+    if (pieData.data.length > 0) {
+        var pieTotal = pieData.data.reduce(function(a, b) { return a + b; }, 0);
+
+        new Chart(document.getElementById('chartPie').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: pieData.labels,
+                datasets: [{
+                    data: pieData.data,
+                    backgroundColor: pieData.colors,
+                    borderColor: pieData.borders,
+                    borderWidth: 2,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 13, weight: '600' },
+                            generateLabels: function(chart) {
+                                var data = chart.data;
+                                return data.labels.map(function(label, i) {
+                                    var value = data.datasets[0].data[i];
+                                    var pct = pieTotal > 0 ? Math.round((value / pieTotal) * 100) : 0;
+                                    return {
+                                        text: label + '  (' + value + ' - ' + pct + '%)',
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor[i],
+                                        lineWidth: 2,
+                                        pointStyle: 'circle',
+                                        index: i
+                                    };
+                                });
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                var value = context.raw;
+                                var pct = pieTotal > 0 ? Math.round((value / pieTotal) * 100) : 0;
+                                return ' ' + context.label + ': ' + value + ' solicitudes (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // === GRAFICA DE BARRAS: Total solicitudes por sede ===
+    if (barData.data.length > 0) {
+        new Chart(document.getElementById('chartBar').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: barData.labels,
+                datasets: [{
+                    label: 'Solicitudes',
+                    data: barData.data,
+                    backgroundColor: barData.colors,
+                    borderColor: barData.borders,
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.raw + ' solicitudes';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: { size: 12 },
+                            color: '#7f8c8d'
+                        },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 13, weight: '600' },
+                            color: '#2c3e50'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>

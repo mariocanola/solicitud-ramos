@@ -56,4 +56,29 @@ class Sede
             (int)$id,
         ]);
     }
+
+    public function delete($id)
+    {
+        $stmt = $this->db->prepare("DELETE FROM sedes WHERE id = ?");
+        return $stmt->execute([(int)$id]);
+    }
+
+    public function tieneRegistrosAsociados($id)
+    {
+        $id = (int)$id;
+
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM solicitudes WHERE id_sede = ?");
+        $stmt->execute([$id]);
+        if ((int)$stmt->fetchColumn() > 0) {
+            return 'solicitudes';
+        }
+
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM personas WHERE id_sede = ?");
+        $stmt->execute([$id]);
+        if ((int)$stmt->fetchColumn() > 0) {
+            return 'personas';
+        }
+
+        return false;
+    }
 }

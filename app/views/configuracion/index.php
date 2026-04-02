@@ -7,6 +7,8 @@
     <button class="tab-btn <?= $tabActiva === 'general' ? 'active' : '' ?>" onclick="cambiarTab('general')">General</button>
     <button class="tab-btn <?= $tabActiva === 'cupos' ? 'active' : '' ?>" onclick="cambiarTab('cupos')">Control de Cupos</button>
     <button class="tab-btn <?= $tabActiva === 'sedes' ? 'active' : '' ?>" onclick="cambiarTab('sedes')">Gestion de Sedes</button>
+    <button class="tab-btn <?= $tabActiva === 'motivos' ? 'active' : '' ?>" onclick="cambiarTab('motivos')">Motivos de Ramo</button>
+    <button class="tab-btn <?= $tabActiva === 'estados' ? 'active' : '' ?>" onclick="cambiarTab('estados')">Estados de Solicitud</button>
 </div>
 
 <!-- ==================== TAB: GENERAL ==================== -->
@@ -162,6 +164,123 @@
                                     onclick="editarSede(<?= $sede['id'] ?>, '<?= htmlspecialchars(addslashes($sede['nombre']), ENT_QUOTES) ?>', '<?= htmlspecialchars(addslashes($sede['codigo']), ENT_QUOTES) ?>', '<?= htmlspecialchars(addslashes($sede['direccion'] ?? ''), ENT_QUOTES) ?>', <?= $sede['activo'] ?>)">
                                 Editar
                             </button>
+                            <button class="btn btn-danger btn-sm"
+                                    onclick="eliminarRegistro('api/sedes/eliminar', <?= $sede['id'] ?>, 'sedes', '<?= htmlspecialchars(addslashes($sede['nombre']), ENT_QUOTES) ?>')">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB: MOTIVOS DE RAMO ==================== -->
+<div class="tab-content <?= $tabActiva === 'motivos' ? 'active' : '' ?>" id="tab_motivos">
+    <div class="card">
+        <div class="card-header">
+            <span>Motivos de Ramo</span>
+            <button class="btn btn-success btn-sm" onclick="abrirModalMotivo()">+ Nuevo Motivo</button>
+        </div>
+        <div class="card-body">
+            <?php if (empty($motivos)): ?>
+                <p class="text-muted text-center" style="padding:20px">No hay motivos registrados.</p>
+            <?php else: ?>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Requiere Detalle</th>
+                            <th>Orden</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($motivos as $motivo): ?>
+                    <tr>
+                        <td><?= $motivo['id'] ?></td>
+                        <td><strong><?= htmlspecialchars($motivo['nombre']) ?></strong></td>
+                        <td><?= $motivo['requiere_detalle'] ? 'Si' : 'No' ?></td>
+                        <td><?= $motivo['orden'] ?></td>
+                        <td>
+                            <?php if ($motivo['activo']): ?>
+                                <span class="badge" style="background:var(--success)">Activo</span>
+                            <?php else: ?>
+                                <span class="badge" style="background:var(--danger)">Inactivo</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                    onclick="editarMotivo(<?= $motivo['id'] ?>, '<?= htmlspecialchars(addslashes($motivo['nombre']), ENT_QUOTES) ?>', <?= $motivo['requiere_detalle'] ?>, <?= $motivo['orden'] ?>, <?= $motivo['activo'] ?>)">
+                                Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm"
+                                    onclick="eliminarRegistro('api/motivos/eliminar', <?= $motivo['id'] ?>, 'motivos', '<?= htmlspecialchars(addslashes($motivo['nombre']), ENT_QUOTES) ?>')">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB: ESTADOS DE SOLICITUD ==================== -->
+<div class="tab-content <?= $tabActiva === 'estados' ? 'active' : '' ?>" id="tab_estados">
+    <div class="card">
+        <div class="card-header">
+            <span>Estados de Solicitud</span>
+            <button class="btn btn-success btn-sm" onclick="abrirModalEstado()">+ Nuevo Estado</button>
+        </div>
+        <div class="card-body">
+            <?php if (empty($estadosSolicitud)): ?>
+                <p class="text-muted text-center" style="padding:20px">No hay estados registrados.</p>
+            <?php else: ?>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Color</th>
+                            <th>Orden</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($estadosSolicitud as $estado): ?>
+                    <tr>
+                        <td><?= $estado['id'] ?></td>
+                        <td>
+                            <span class="badge" style="background:<?= htmlspecialchars($estado['color'] ?? '#6c757d') ?>">
+                                <?= htmlspecialchars($estado['nombre']) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <span style="display:inline-block;width:24px;height:24px;border-radius:4px;background:<?= htmlspecialchars($estado['color'] ?? '#6c757d') ?>;vertical-align:middle"></span>
+                            <?= htmlspecialchars($estado['color'] ?? '#6c757d') ?>
+                        </td>
+                        <td><?= $estado['orden'] ?></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                    onclick="editarEstado(<?= $estado['id'] ?>, '<?= htmlspecialchars(addslashes($estado['nombre']), ENT_QUOTES) ?>', '<?= htmlspecialchars($estado['color'] ?? '#6c757d', ENT_QUOTES) ?>', <?= $estado['orden'] ?>)">
+                                Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm"
+                                    onclick="eliminarRegistro('api/estados/eliminar', <?= $estado['id'] ?>, 'estados', '<?= htmlspecialchars(addslashes($estado['nombre']), ENT_QUOTES) ?>')">
+                                Eliminar
+                            </button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -220,6 +339,96 @@
     </div>
 </div>
 
+<!-- ==================== MODAL: CREAR/EDITAR MOTIVO ==================== -->
+<div class="modal-overlay" id="modal_motivo">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modal_motivo_titulo">Nuevo Motivo</h3>
+            <button class="modal-close" onclick="cerrarModalMotivo()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form_motivo">
+                <input type="hidden" name="_csrf_token" value="<?= Session::getCsrfToken() ?>">
+                <input type="hidden" name="id" id="motivo_id" value="">
+
+                <div class="form-group">
+                    <label>Nombre del Motivo *</label>
+                    <input type="text" name="nombre" id="motivo_nombre" class="form-control" required maxlength="100">
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label>Orden</label>
+                            <input type="number" name="orden" id="motivo_orden" class="form-control" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label>Requiere Detalle</label>
+                            <select name="requiere_detalle" id="motivo_requiere_detalle" class="form-control">
+                                <option value="0">No</option>
+                                <option value="1">Si</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select name="activo" id="motivo_activo" class="form-control">
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline mr-1" onclick="cerrarModalMotivo()">Cancelar</button>
+            <button class="btn btn-success" onclick="guardarMotivo()">Guardar Motivo</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL: CREAR/EDITAR ESTADO ==================== -->
+<div class="modal-overlay" id="modal_estado">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modal_estado_titulo">Nuevo Estado</h3>
+            <button class="modal-close" onclick="cerrarModalEstado()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form_estado">
+                <input type="hidden" name="_csrf_token" value="<?= Session::getCsrfToken() ?>">
+                <input type="hidden" name="id" id="estado_id" value="">
+
+                <div class="form-group">
+                    <label>Nombre del Estado *</label>
+                    <input type="text" name="nombre" id="estado_nombre" class="form-control" required maxlength="50">
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input type="color" name="color" id="estado_color" class="form-control" value="#6c757d" style="height:38px;padding:2px">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Orden</label>
+                            <input type="number" name="orden" id="estado_orden" class="form-control" min="0" value="0">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline mr-1" onclick="cerrarModalEstado()">Cancelar</button>
+            <button class="btn btn-success" onclick="guardarEstado()">Guardar Estado</button>
+        </div>
+    </div>
+</div>
+
 <script>
 var BASE_URL = '<?= BASE_URL ?>';
 var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
@@ -230,7 +439,7 @@ function cambiarTab(tab) {
     document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
     document.getElementById('tab_' + tab).classList.add('active');
     var btns = document.querySelectorAll('.tab-btn');
-    var tabNames = ['general', 'cupos', 'sedes'];
+    var tabNames = ['general', 'cupos', 'sedes', 'motivos', 'estados'];
     var idx = tabNames.indexOf(tab);
     if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
 }
@@ -279,6 +488,119 @@ function guardarSede() {
             location.href = BASE_URL + '/configuracion?tab=sedes';
         } else {
             alert(data.message || 'Error al guardar la sede');
+        }
+    });
+}
+
+// === MODAL MOTIVO ===
+function abrirModalMotivo() {
+    document.getElementById('modal_motivo_titulo').textContent = 'Nuevo Motivo';
+    document.getElementById('form_motivo').reset();
+    document.getElementById('motivo_id').value = '';
+    document.getElementById('modal_motivo').classList.add('show');
+    document.getElementById('motivo_nombre').focus();
+}
+
+function editarMotivo(id, nombre, requiereDetalle, orden, activo) {
+    document.getElementById('modal_motivo_titulo').textContent = 'Editar Motivo';
+    document.getElementById('motivo_id').value = id;
+    document.getElementById('motivo_nombre').value = nombre;
+    document.getElementById('motivo_requiere_detalle').value = requiereDetalle;
+    document.getElementById('motivo_orden').value = orden;
+    document.getElementById('motivo_activo').value = activo;
+    document.getElementById('modal_motivo').classList.add('show');
+}
+
+function cerrarModalMotivo() {
+    document.getElementById('modal_motivo').classList.remove('show');
+}
+
+function guardarMotivo() {
+    var nombre = document.getElementById('motivo_nombre').value.trim();
+    if (!nombre) {
+        alert('El nombre es requerido');
+        return;
+    }
+
+    var form = document.getElementById('form_motivo');
+    var formData = new FormData(form);
+    var motivoId = document.getElementById('motivo_id').value;
+    var url = motivoId
+        ? BASE_URL + '/api/motivos/actualizar'
+        : BASE_URL + '/api/motivos/crear';
+
+    ajaxPost(url, formData, function(data) {
+        if (data.success) {
+            cerrarModalMotivo();
+            location.href = BASE_URL + '/configuracion?tab=motivos';
+        } else {
+            alert(data.message || 'Error al guardar el motivo');
+        }
+    });
+}
+
+// === MODAL ESTADO ===
+function abrirModalEstado() {
+    document.getElementById('modal_estado_titulo').textContent = 'Nuevo Estado';
+    document.getElementById('form_estado').reset();
+    document.getElementById('estado_id').value = '';
+    document.getElementById('estado_color').value = '#6c757d';
+    document.getElementById('modal_estado').classList.add('show');
+    document.getElementById('estado_nombre').focus();
+}
+
+function editarEstado(id, nombre, color, orden) {
+    document.getElementById('modal_estado_titulo').textContent = 'Editar Estado';
+    document.getElementById('estado_id').value = id;
+    document.getElementById('estado_nombre').value = nombre;
+    document.getElementById('estado_color').value = color;
+    document.getElementById('estado_orden').value = orden;
+    document.getElementById('modal_estado').classList.add('show');
+}
+
+function cerrarModalEstado() {
+    document.getElementById('modal_estado').classList.remove('show');
+}
+
+// === ELIMINAR GENERICO ===
+function eliminarRegistro(endpoint, id, tab, nombre) {
+    if (!confirm('¿Esta seguro de eliminar "' + nombre + '"? Esta accion no se puede deshacer.')) {
+        return;
+    }
+
+    var formData = new FormData();
+    formData.append('id', id);
+    formData.append('_csrf_token', CSRF_TOKEN);
+
+    ajaxPost(BASE_URL + '/' + endpoint, formData, function(data) {
+        if (data.success) {
+            location.href = BASE_URL + '/configuracion?tab=' + tab;
+        } else {
+            alert(data.message || 'Error al eliminar');
+        }
+    });
+}
+
+function guardarEstado() {
+    var nombre = document.getElementById('estado_nombre').value.trim();
+    if (!nombre) {
+        alert('El nombre es requerido');
+        return;
+    }
+
+    var form = document.getElementById('form_estado');
+    var formData = new FormData(form);
+    var estadoId = document.getElementById('estado_id').value;
+    var url = estadoId
+        ? BASE_URL + '/api/estados/actualizar'
+        : BASE_URL + '/api/estados/crear';
+
+    ajaxPost(url, formData, function(data) {
+        if (data.success) {
+            cerrarModalEstado();
+            location.href = BASE_URL + '/configuracion?tab=estados';
+        } else {
+            alert(data.message || 'Error al guardar el estado');
         }
     });
 }

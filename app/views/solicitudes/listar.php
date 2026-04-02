@@ -92,7 +92,7 @@
     <!-- Tabla -->
     <div class="card mt-2">
         <div class="card-header">
-            <span>Solicitudes (<?= $totalRegistros ?> resultado<?= $totalRegistros != 1 ? 's' : '' ?>)</span>
+            <span>Solicitudes</span>
             <button class="btn btn-success btn-sm" onclick="abrirModalSolicitud()">+ Nueva Solicitud</button>
         </div>
         <div class="card-body">
@@ -143,6 +143,10 @@
                             </td>
                             <td>
                                 <a href="<?= BASE_URL ?>/solicitudes/ver?id=<?= $s['id'] ?>" class="btn btn-primary btn-sm">Ver</a>
+                                <button class="btn btn-danger btn-sm"
+                                        onclick="eliminarSolicitud(<?= $s['id'] ?>)">
+                                    Eliminar
+                                </button>
                             </td>
                         </tr>
                     <?php
@@ -323,7 +327,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-outline mr-1" onclick="cerrarModalSolicitud()">Cancelar</button>
-            <button class="btn btn-success btn-lg" id="btn_guardar" disabled onclick="enviarSolicitud()">Guardar Solicitud</button>
+            <button type="button" class="btn btn-success btn-lg" id="btn_guardar" disabled onclick="enviarSolicitud()" title="Primero busque una persona por documento">Guardar Solicitud</button>
         </div>
     </div>
 </div>
@@ -445,7 +449,10 @@ function cerrarModalSolicitud() {
     document.getElementById('form_solicitud').reset();
     document.getElementById('persona_id').value = '';
     document.getElementById('persona_info').classList.add('hidden');
-    document.getElementById('btn_guardar').disabled = true;
+    var btnGuardar = document.getElementById('btn_guardar');
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardar Solicitud';
+    btnGuardar.title = 'Primero busque una persona por documento';
     document.getElementById('scanner_status').textContent = '';
     document.getElementById('scanner_input').value = '';
     var sedeSelect = document.getElementById('id_sede');
@@ -464,6 +471,38 @@ function enviarSolicitud() {
         alert('Debe escanear o buscar una persona primero.');
         return;
     }
+
+    // Validar campos requeridos antes de enviar
+    var destinatario = document.getElementById('nombre_destinatario').value.trim();
+    if (!destinatario) {
+        alert('Debe ingresar el nombre del destinatario.');
+        document.getElementById('nombre_destinatario').focus();
+        return;
+    }
+
+    var motivo = document.getElementById('id_motivo').value;
+    if (!motivo) {
+        alert('Debe seleccionar un motivo.');
+        document.getElementById('id_motivo').focus();
+        return;
+    }
+
+    // Verificar motivo "otro"
+    var opcionMotivo = document.getElementById('id_motivo').options[document.getElementById('id_motivo').selectedIndex];
+    if (opcionMotivo.getAttribute('data-requiere-detalle') === '1') {
+        var motivoOtro = document.getElementById('motivo_otro').value.trim();
+        if (!motivoOtro) {
+            alert('Debe especificar el motivo.');
+            document.getElementById('motivo_otro').focus();
+            return;
+        }
+    }
+
+    // Deshabilitar botón para evitar doble envío
+    var btn = document.getElementById('btn_guardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
     document.getElementById('form_solicitud').submit();
 }
 
@@ -489,6 +528,25 @@ function enviarPorCorreo() {
     })
     .catch(function() {
         msgEl.innerHTML = '<div class="alert alert-danger">Error de conexion</div>';
+    });
+}
+
+// === ELIMINAR SOLICITUD ===
+function eliminarSolicitud(id) {
+    if (!confirm('¿Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.')) {
+        return;
+    }
+
+    var formData = new FormData();
+    formData.append('id', id);
+    formData.append('_csrf_token', CSRF_TOKEN);
+
+    ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error al eliminar');
+        }
     });
 }
 

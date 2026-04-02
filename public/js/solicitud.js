@@ -95,7 +95,10 @@ function mostrarPersona(persona) {
     }
 
     // Enable submit button
-    document.getElementById('btn_guardar').disabled = false;
+    var btnGuardar = document.getElementById('btn_guardar');
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar Solicitud';
+    btnGuardar.title = '';
 }
 
 /**

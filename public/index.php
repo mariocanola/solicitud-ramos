@@ -51,9 +51,12 @@ $routes = [
     'GET:dashboard'             => ['DashboardController', 'index'],
     'GET:api/dashboard/resumen' => ['DashboardController', 'resumen'],
 
-    // Personas (AJAX)
-    'GET:personas/buscar'  => ['PersonaController', 'buscar'],
-    'POST:personas/crear'  => ['PersonaController', 'crear'],
+    // Personas
+    'GET:personas'              => ['PersonaController', 'index'],
+    'GET:personas/buscar'       => ['PersonaController', 'buscar'],
+    'POST:personas/crear'       => ['PersonaController', 'crear'],
+    'POST:personas/actualizar'  => ['PersonaController', 'actualizar'],
+    'POST:personas/eliminar'    => ['PersonaController', 'eliminar'],
 
     // Solicitudes
     'GET:solicitudes'                => ['SolicitudController', 'listar'],
@@ -61,13 +64,25 @@ $routes = [
     'POST:solicitudes/crear'         => ['SolicitudController', 'crear'],
     'GET:solicitudes/ver'            => ['SolicitudController', 'ver'],
     'POST:solicitudes/cambiar-estado'=> ['SolicitudController', 'cambiarEstado'],
+    'POST:solicitudes/eliminar'      => ['SolicitudController', 'eliminar'],
 
-    // Catálogos API
-    'GET:api/sedes'    => ['SedeController', 'listarActivas'],
-    'GET:api/motivos'  => ['SedeController', 'listarMotivos'],
-    'GET:api/estados'  => ['SedeController', 'listarEstados'],
+    // Catálogos API - Sedes
+    'GET:api/sedes'             => ['SedeController', 'listarActivas'],
     'POST:api/sedes/crear'      => ['SedeController', 'crear'],
     'POST:api/sedes/actualizar' => ['SedeController', 'actualizar'],
+    'POST:api/sedes/eliminar'   => ['SedeController', 'eliminar'],
+
+    // Catálogos API - Motivos de Ramo
+    'GET:api/motivos'               => ['MotivoRamoController', 'listar'],
+    'POST:api/motivos/crear'        => ['MotivoRamoController', 'crear'],
+    'POST:api/motivos/actualizar'   => ['MotivoRamoController', 'actualizar'],
+    'POST:api/motivos/eliminar'     => ['MotivoRamoController', 'eliminar'],
+
+    // Catálogos API - Estados de Solicitud
+    'GET:api/estados'               => ['EstadoSolicitudController', 'listar'],
+    'POST:api/estados/crear'        => ['EstadoSolicitudController', 'crear'],
+    'POST:api/estados/actualizar'   => ['EstadoSolicitudController', 'actualizar'],
+    'POST:api/estados/eliminar'     => ['EstadoSolicitudController', 'eliminar'],
 
     // Reportes (ahora vive dentro de solicitudes, pero se mantienen rutas POST)
     'GET:reportes'              => ['ReporteController', 'index'],

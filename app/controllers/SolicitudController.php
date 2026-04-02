@@ -111,6 +111,19 @@ class SolicitudController
         require BASE_PATH . '/app/views/layouts/main.php';
     }
 
+    public function eliminar()
+    {
+        Csrf::validate();
+        $id = (int)($_POST['id'] ?? 0);
+
+        $resultado = $this->service->eliminar($id);
+        if ($resultado['success']) {
+            Response::success(null, $resultado['message']);
+        } else {
+            Response::error($resultado['message']);
+        }
+    }
+
     public function cambiarEstado()
     {
         Csrf::validate();

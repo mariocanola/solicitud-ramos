@@ -116,6 +116,23 @@ class SolicitudService
         return ['success' => true, 'message' => 'Estado actualizado'];
     }
 
+    public function eliminar($id)
+    {
+        $solicitud = $this->solicitudModel->getById($id);
+        if (!$solicitud) {
+            return ['success' => false, 'message' => 'Solicitud no encontrada'];
+        }
+
+        // If it was counted in cupo, decrement
+        $estadosCancelados = ['Cancelada', 'Rechazada'];
+        if (!in_array($solicitud['estado_nombre'], $estadosCancelados)) {
+            $this->cupoService->decrementar($solicitud['id_sede'], $solicitud['fecha_solicitud']);
+        }
+
+        $this->solicitudModel->delete($id);
+        return ['success' => true, 'message' => 'Solicitud eliminada exitosamente'];
+    }
+
     private function validar($data)
     {
         $errors = [];
