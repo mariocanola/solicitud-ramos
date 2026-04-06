@@ -46,6 +46,7 @@ class Session
     {
         $token = bin2hex(random_bytes(32));
         $_SESSION['_csrf_token'] = $token;
+        $_SESSION['_csrf_token_time'] = time();
         return $token;
     }
 
@@ -56,9 +57,16 @@ class Session
 
     public static function getCsrfToken()
     {
-        if (!isset($_SESSION['_csrf_token'])) {
+        // Regenerate token if it doesn't exist or is older than 30 minutes
+        if (!isset($_SESSION['_csrf_token']) || self::csrfTokenExpired()) {
             self::generateCsrfToken();
         }
         return $_SESSION['_csrf_token'];
+    }
+
+    private static function csrfTokenExpired()
+    {
+        $tokenTime = $_SESSION['_csrf_token_time'] ?? 0;
+        return (time() - $tokenTime) > 1800; // 30 minutes
     }
 }

@@ -49,7 +49,7 @@
             var personaId = document.getElementById('persona_id').value;
             if (!personaId) {
                 e.preventDefault();
-                alert('Debe escanear o buscar una persona primero.');
+                swalWarning('Debe escanear o buscar una persona primero.');
                 return false;
             }
         });
@@ -127,7 +127,7 @@ function guardarPersona() {
         var field = required[i];
         var el = document.getElementById('p_' + field);
         if (el && !el.value.trim()) {
-            alert('Complete el campo: ' + el.previousElementSibling.textContent);
+            swalWarning('Complete el campo: ' + el.previousElementSibling.textContent);
             el.focus();
             return;
         }
@@ -140,7 +140,7 @@ function guardarPersona() {
             document.getElementById('scanner_status').textContent = 'Persona creada y seleccionada';
             document.getElementById('scanner_status').style.color = 'var(--success)';
         } else {
-            alert(data.message || 'Error al crear persona');
+            swalError(data.message || 'Error al crear persona');
         }
     });
 }

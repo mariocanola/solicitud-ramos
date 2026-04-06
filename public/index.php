@@ -24,12 +24,27 @@ if (PHP_SAPI === 'cli-server') {
     }
 }
 
+// Session hardening
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'httponly'  => true,
+    'samesite' => 'Strict',
+    'secure'   => !empty($_SERVER['HTTPS']),
+]);
 session_start();
+
+// Security headers
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:");
 
 require_once __DIR__ . '/../app/config/app.php';
 require_once BASE_PATH . '/app/helpers/Session.php';
 require_once BASE_PATH . '/app/helpers/Response.php';
 require_once BASE_PATH . '/app/middleware/Csrf.php';
+require_once BASE_PATH . '/app/middleware/Auth.php';
 
 // Resolve route from URL path (works with both built-in server and Apache)
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -45,6 +60,25 @@ if (isset($_GET['route'])) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Public routes (no auth required)
+$publicRoutes = [
+    'GET:login'  => ['AuthController', 'loginForm'],
+    'POST:login' => ['AuthController', 'login'],
+    'GET:logout' => ['AuthController', 'logout'],
+];
+
+$publicRouteKey = $method . ':' . $route;
+if (isset($publicRoutes[$publicRouteKey])) {
+    [$controllerFile, $action] = $publicRoutes[$publicRouteKey];
+    require_once BASE_PATH . '/app/controllers/' . $controllerFile . '.php';
+    $controller = new $controllerFile();
+    $controller->$action();
+    exit;
+}
+
+// Auth guard - all other routes require authentication
+Auth::guard();
 
 $routes = [
     // Dashboard

@@ -1,5 +1,6 @@
 <?php
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
+require_once BASE_PATH . '/app/helpers/Validator.php';
 
 class EstadoSolicitudController
 {
@@ -17,8 +18,9 @@ class EstadoSolicitudController
         $color = trim($_POST['color'] ?? '#6c757d');
         $orden = (int)($_POST['orden'] ?? 0);
 
-        if (empty($nombre)) {
-            Response::error('El nombre es requerido');
+        $errors = $this->validar($nombre, $color, $orden);
+        if (!empty($errors)) {
+            Response::error('Datos invalidos', 400, $errors);
             return;
         }
 
@@ -72,8 +74,14 @@ class EstadoSolicitudController
         $color = trim($_POST['color'] ?? '#6c757d');
         $orden = (int)($_POST['orden'] ?? 0);
 
-        if ($id <= 0 || empty($nombre)) {
-            Response::error('Datos invalidos');
+        if ($id <= 0) {
+            Response::error('ID invalido');
+            return;
+        }
+
+        $errors = $this->validar($nombre, $color, $orden);
+        if (!empty($errors)) {
+            Response::error('Datos invalidos', 400, $errors);
             return;
         }
 
@@ -92,5 +100,26 @@ class EstadoSolicitudController
             }
             Response::error($msg);
         }
+    }
+
+    private function validar($nombre, $color, $orden)
+    {
+        $errors = [];
+
+        if (!Validator::required($nombre)) {
+            $errors['nombre'] = 'El nombre es requerido';
+        } elseif (!Validator::minLength($nombre, 2) || !Validator::maxLength($nombre, 50)) {
+            $errors['nombre'] = 'El nombre debe tener entre 2 y 50 caracteres';
+        }
+
+        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
+            $errors['color'] = 'El color debe ser un valor hexadecimal valido (#RRGGBB)';
+        }
+
+        if (!Validator::integer($orden) || $orden < 0 || $orden > 999) {
+            $errors['orden'] = 'El orden debe ser un numero entre 0 y 999';
+        }
+
+        return $errors;
     }
 }

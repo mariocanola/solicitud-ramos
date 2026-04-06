@@ -48,7 +48,8 @@ class ReporteController
             readfile($ruta);
             exit;
         } catch (Exception $e) {
-            Session::flash('mensaje', 'Error al generar PDF: ' . $e->getMessage());
+            error_log('Error generando PDF: ' . $e->getMessage());
+            Session::flash('mensaje', 'Ocurrio un error al generar el PDF. Intente de nuevo.');
             Session::flash('tipo', 'danger');
             Response::redirect('reportes');
         }

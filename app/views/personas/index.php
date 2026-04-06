@@ -271,31 +271,36 @@ function cerrarModalPersona() {
 }
 
 function eliminarPersona(id, nombre) {
-    if (!confirm('¿Esta seguro de eliminar a "' + nombre + '"? Esta accion no se puede deshacer.')) {
-        return;
-    }
-    var formData = new FormData();
-    formData.append('id', id);
-    formData.append('_csrf_token', CSRF_TOKEN);
-    ajaxPost(BASE_URL + '/personas/eliminar', formData, function(data) {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.message || 'Error al eliminar');
+    swalConfirm(
+        '¿Eliminar persona?',
+        'Esta seguro de eliminar a "' + nombre + '"? Esta accion no se puede deshacer.',
+        function() {
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('_csrf_token', CSRF_TOKEN);
+            ajaxPost(BASE_URL + '/personas/eliminar', formData, function(data) {
+                if (data.success) {
+                    Toast.fire({ icon: 'success', title: 'Persona eliminada' }).then(function() {
+                        location.reload();
+                    });
+                } else {
+                    swalError(data.message || 'Error al eliminar');
+                }
+            });
         }
-    });
+    );
 }
 
-function guardarPersona() {
-    var nombre = document.getElementById('pe_primer_nombre').value.trim();
-    var apellido = document.getElementById('pe_primer_apellido').value.trim();
-    var documento = document.getElementById('pe_documento').value.trim();
-    var sede = document.getElementById('pe_id_sede').value;
+var personaValidator = new FormValidator('form_persona', {
+    'documento': [V.required('El documento es requerido'), V.numeric('Solo numeros'), V.maxLength(20)],
+    'primer_nombre': [V.required('El primer nombre es requerido'), V.maxLength(100)],
+    'primer_apellido': [V.required('El primer apellido es requerido'), V.maxLength(100)],
+    'telefono': [V.numeric('Solo numeros')],
+    'id_sede': [V.required('Debe seleccionar una sede')]
+});
 
-    if (!nombre || !apellido || !documento || !sede) {
-        alert('Complete los campos obligatorios: documento, primer nombre, primer apellido y sede');
-        return;
-    }
+function guardarPersona() {
+    if (!personaValidator.validateAll()) return;
 
     var form = document.getElementById('form_persona');
     var formData = new FormData(form);
@@ -307,15 +312,20 @@ function guardarPersona() {
     ajaxPost(url, formData, function(data) {
         if (data.success) {
             cerrarModalPersona();
-            location.reload();
+            Toast.fire({ icon: 'success', title: personaId ? 'Persona actualizada' : 'Persona creada' }).then(function() {
+                location.reload();
+            });
         } else {
-            var msg = data.message || 'Error al guardar la persona';
-            if (data.errors) {
-                var errList = Object.values(data.errors).join('\n');
-                if (errList) msg += '\n' + errList;
+            if (data.errors && Object.keys(data.errors).length > 0) {
+                personaValidator.showServerErrors(data.errors);
+            } else {
+                swalError(data.message || 'Error al guardar la persona');
             }
-            alert(msg);
         }
     });
 }
+
+// Reset validator when opening modal
+var _origAbrirPersona = abrirModalPersona;
+abrirModalPersona = function() { _origAbrirPersona(); personaValidator.reset(); };
 </script>

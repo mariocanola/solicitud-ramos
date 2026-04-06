@@ -63,6 +63,24 @@ class Sede
         return $stmt->execute([(int)$id]);
     }
 
+    public function eliminarConDependencias($id)
+    {
+        $id = (int)$id;
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare("DELETE FROM cupos_sede WHERE id_sede = ?");
+            $stmt->execute([$id]);
+
+            $stmt = $this->db->prepare("DELETE FROM sedes WHERE id = ?");
+            $stmt->execute([$id]);
+
+            $this->db->commit();
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
     public function tieneRegistrosAsociados($id)
     {
         $id = (int)$id;

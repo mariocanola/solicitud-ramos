@@ -2,6 +2,7 @@
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/MotivoRamo.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
+require_once BASE_PATH . '/app/helpers/Validator.php';
 
 class SedeController
 {
@@ -32,8 +33,9 @@ class SedeController
         $direccion = trim($_POST['direccion'] ?? '') ?: null;
         $activo = (int)($_POST['activo'] ?? 1);
 
-        if (empty($nombre) || empty($codigo)) {
-            Response::error('Nombre y codigo son requeridos');
+        $errors = $this->validar($nombre, $codigo, $direccion, $activo);
+        if (!empty($errors)) {
+            Response::error('Datos invalidos', 400, $errors);
             return;
         }
 
@@ -77,7 +79,7 @@ class SedeController
         }
 
         try {
-            $model->delete($id);
+            $model->eliminarConDependencias($id);
             Response::success(null, 'Sede eliminada exitosamente');
         } catch (Exception $e) {
             Response::error('Error al eliminar la sede: tiene registros dependientes');
@@ -94,8 +96,14 @@ class SedeController
         $direccion = trim($_POST['direccion'] ?? '') ?: null;
         $activo = (int)($_POST['activo'] ?? 1);
 
-        if ($id <= 0 || empty($nombre) || empty($codigo)) {
-            Response::error('Datos invalidos');
+        if ($id <= 0) {
+            Response::error('ID invalido');
+            return;
+        }
+
+        $errors = $this->validar($nombre, $codigo, $direccion, $activo);
+        if (!empty($errors)) {
+            Response::error('Datos invalidos', 400, $errors);
             return;
         }
 
@@ -115,5 +123,34 @@ class SedeController
             }
             Response::error($msg);
         }
+    }
+
+    private function validar($nombre, $codigo, $direccion, $activo)
+    {
+        $errors = [];
+
+        if (!Validator::required($nombre)) {
+            $errors['nombre'] = 'El nombre es requerido';
+        } elseif (!Validator::minLength($nombre, 2) || !Validator::maxLength($nombre, 100)) {
+            $errors['nombre'] = 'El nombre debe tener entre 2 y 100 caracteres';
+        }
+
+        if (!Validator::required($codigo)) {
+            $errors['codigo'] = 'El codigo es requerido';
+        } elseif (!Validator::minLength($codigo, 1) || !Validator::maxLength($codigo, 20)) {
+            $errors['codigo'] = 'El codigo debe tener entre 1 y 20 caracteres';
+        } elseif (!preg_match('/^[a-zA-Z0-9_\-]+$/', $codigo)) {
+            $errors['codigo'] = 'El codigo solo puede contener letras, numeros, guiones y guion bajo';
+        }
+
+        if ($direccion !== null && !Validator::maxLength($direccion, 255)) {
+            $errors['direccion'] = 'La direccion no puede exceder 255 caracteres';
+        }
+
+        if (!in_array($activo, [0, 1], true)) {
+            $errors['activo'] = 'El estado debe ser activo o inactivo';
+        }
+
+        return $errors;
     }
 }

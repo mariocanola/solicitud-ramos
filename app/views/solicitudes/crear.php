@@ -211,7 +211,7 @@ function buscarManual() {
     if (input && input.value.trim().length >= 3) {
         window.procesarEntradaScanner && window.procesarEntradaScanner(input.value.trim());
     } else {
-        alert('Escriba al menos 3 dígitos del documento');
+        swalWarning('Escriba al menos 3 digitos del documento');
     }
 }
 </script>

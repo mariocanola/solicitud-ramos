@@ -468,21 +468,21 @@ function cerrarModalSolicitud() {
 function enviarSolicitud() {
     var personaId = document.getElementById('persona_id').value;
     if (!personaId) {
-        alert('Debe escanear o buscar una persona primero.');
+        swalWarning('Debe escanear o buscar una persona primero.');
         return;
     }
 
     // Validar campos requeridos antes de enviar
     var destinatario = document.getElementById('nombre_destinatario').value.trim();
     if (!destinatario) {
-        alert('Debe ingresar el nombre del destinatario.');
+        swalWarning('Debe ingresar el nombre del destinatario.');
         document.getElementById('nombre_destinatario').focus();
         return;
     }
 
     var motivo = document.getElementById('id_motivo').value;
     if (!motivo) {
-        alert('Debe seleccionar un motivo.');
+        swalWarning('Debe seleccionar un motivo.');
         document.getElementById('id_motivo').focus();
         return;
     }
@@ -492,7 +492,7 @@ function enviarSolicitud() {
     if (opcionMotivo.getAttribute('data-requiere-detalle') === '1') {
         var motivoOtro = document.getElementById('motivo_otro').value.trim();
         if (!motivoOtro) {
-            alert('Debe especificar el motivo.');
+            swalWarning('Debe especificar el motivo.');
             document.getElementById('motivo_otro').focus();
             return;
         }
@@ -508,11 +508,20 @@ function enviarSolicitud() {
 
 // === REPORTES ===
 function enviarPorCorreo() {
-    if (!confirm('Enviar el reporte por correo electronico?')) return;
+    swalConfirm('Enviar reporte', '¿Enviar el reporte por correo electronico?', function() { _enviarCorreo(); });
+    return;
+}
+function _enviarCorreo() {
     var form = document.getElementById('form_reporte');
     var formData = new FormData(form);
-    var msgEl = document.getElementById('reporte_msg');
-    msgEl.innerHTML = '<div class="alert alert-info"><span class="spinner"></span> Enviando correo...</div>';
+
+    Swal.fire({
+        title: 'Enviando correo...',
+        text: 'Por favor espere',
+        allowOutsideClick: false,
+        didOpen: function() { Swal.showLoading(); }
+    });
+
     fetch(BASE_URL + '/reportes/enviar-correo', {
         method: 'POST',
         body: formData,
@@ -521,33 +530,37 @@ function enviarPorCorreo() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.success) {
-            msgEl.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+            swalSuccess(data.message);
         } else {
-            msgEl.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+            swalError(data.message);
         }
     })
     .catch(function() {
-        msgEl.innerHTML = '<div class="alert alert-danger">Error de conexion</div>';
+        swalError('Error de conexion');
     });
 }
 
 // === ELIMINAR SOLICITUD ===
 function eliminarSolicitud(id) {
-    if (!confirm('¿Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.')) {
-        return;
-    }
+    swalConfirm(
+        '¿Eliminar solicitud?',
+        'Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.',
+        function() {
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('_csrf_token', CSRF_TOKEN);
 
-    var formData = new FormData();
-    formData.append('id', id);
-    formData.append('_csrf_token', CSRF_TOKEN);
-
-    ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.message || 'Error al eliminar');
+            ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
+                if (data.success) {
+                    Toast.fire({ icon: 'success', title: 'Solicitud eliminada' }).then(function() {
+                        location.reload();
+                    });
+                } else {
+                    swalError(data.message || 'Error al eliminar');
+                }
+            });
         }
-    });
+    );
 }
 
 // Stub para buscarManual - scanner.js lo sobreescribe
@@ -556,9 +569,24 @@ function buscarManual() {
     if (input && input.value.trim().length >= 3) {
         window.procesarEntradaScanner && window.procesarEntradaScanner(input.value.trim());
     } else {
-        alert('Escriba al menos 3 digitos del documento');
+        swalWarning('Escriba al menos 3 digitos del documento');
     }
 }
+</script>
+<script>
+// Client-side validators
+var solicitudValidator = new FormValidator('form_solicitud', {
+    'nombre_destinatario': [V.required('El nombre del destinatario es requerido'), V.maxLength(150)],
+    'id_sede': [V.required('Debe seleccionar una sede')],
+    'id_motivo': [V.required('Debe seleccionar un motivo')]
+});
+
+var personaValidator = new FormValidator('form_persona', {
+    'documento': [V.required('El documento es requerido'), V.numeric('Solo numeros')],
+    'primer_nombre': [V.required('El primer nombre es requerido'), V.maxLength(50)],
+    'primer_apellido': [V.required('El primer apellido es requerido'), V.maxLength(50)],
+    'id_sede': [V.required('Debe seleccionar una sede')]
+});
 </script>
 <script src="<?= BASE_URL ?>/js/scanner.js"></script>
 <script src="<?= BASE_URL ?>/js/solicitud.js"></script>

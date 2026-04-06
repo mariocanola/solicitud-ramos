@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? 'Sistema') ?> - <?= APP_NAME ?></title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="<?= BASE_URL ?>/js/app.js"></script>
+    <script src="<?= BASE_URL ?>/js/form-validator.js"></script>
 </head>
 <body>
 <div class="app-wrapper">
@@ -33,6 +36,11 @@
                 <?= $item['label'] ?>
             </a>
             <?php endforeach; ?>
+            <div class="sidebar-divider"></div>
+            <a href="<?= BASE_URL ?>/logout">
+                <span class="icon">&#10140;</span>
+                Cerrar Sesion
+            </a>
         </nav>
     </aside>
 

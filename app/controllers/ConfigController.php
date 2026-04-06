@@ -6,6 +6,7 @@ require_once BASE_PATH . '/app/models/MotivoRamo.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
 require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
+require_once BASE_PATH . '/app/helpers/Validator.php';
 
 class ConfigController
 {
@@ -41,6 +42,42 @@ class ConfigController
     public function guardar()
     {
         Csrf::validate();
+
+        $errors = [];
+
+        // Validate specific fields
+        if (isset($_POST['correo_destino']) && $_POST['correo_destino'] !== '') {
+            if (!Validator::email($_POST['correo_destino'])) {
+                $errors['correo_destino'] = 'El correo destino no es un email valido';
+            }
+        }
+
+        if (isset($_POST['smtp_port']) && $_POST['smtp_port'] !== '') {
+            $port = (int)$_POST['smtp_port'];
+            if ($port < 1 || $port > 65535) {
+                $errors['smtp_port'] = 'El puerto SMTP debe estar entre 1 y 65535';
+            }
+        }
+
+        if (isset($_POST['cupo_default']) && $_POST['cupo_default'] !== '') {
+            $cupo = (int)$_POST['cupo_default'];
+            if ($cupo < 1 || $cupo > 10000) {
+                $errors['cupo_default'] = 'El cupo por defecto debe estar entre 1 y 10000';
+            }
+        }
+
+        if (isset($_POST['smtp_secure'])) {
+            if (!in_array($_POST['smtp_secure'], ['tls', 'ssl', ''], true)) {
+                $errors['smtp_secure'] = 'El tipo de seguridad SMTP debe ser tls, ssl o vacio';
+            }
+        }
+
+        if (!empty($errors)) {
+            Session::flash('mensaje', 'Error de validacion: ' . implode('. ', $errors));
+            Session::flash('tipo', 'danger');
+            Response::redirect('configuracion');
+            return;
+        }
 
         $configModel = new Configuracion();
         $claves = ['correo_destino', 'correo_cc', 'cupo_default', 'smtp_host',

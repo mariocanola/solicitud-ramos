@@ -19,8 +19,8 @@ class CupoController
         $id_sede = (int)($_POST['id_sede'] ?? 0);
         $cupo_maximo = (int)($_POST['cupo_maximo'] ?? 0);
 
-        if ($id_sede <= 0 || $cupo_maximo < 1) {
-            Session::flash('mensaje', 'Datos inválidos. El cupo debe ser mayor a 0.');
+        if ($id_sede <= 0 || $cupo_maximo < 1 || $cupo_maximo > 10000) {
+            Session::flash('mensaje', 'Datos invalidos. El cupo debe estar entre 1 y 10,000.');
             Session::flash('tipo', 'danger');
             Response::redirect('configuracion?tab=cupos');
             return;

@@ -22,13 +22,20 @@ class Csrf
         if (!Session::validateCsrfToken($token)) {
             http_response_code(403);
             if (self::isAjax()) {
+                // Include fresh token so the client can retry
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
+                echo json_encode([
+                    'success'    => false,
+                    'message'    => 'Token CSRF inválido. Recargue la página.',
+                    'csrf_token' => Session::getCsrfToken(),
+                ]);
             } else {
                 echo 'Error: Token de seguridad inválido. Recargue la página.';
             }
             exit;
         }
+        // Don't regenerate on every request — the token is already time-limited.
+        // Rotating on each POST causes failures when the user fires two quick AJAX requests.
     }
 
     private static function isAjax()

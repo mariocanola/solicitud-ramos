@@ -225,6 +225,22 @@ body {
     box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
 }
 
+.form-control.is-invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(220,53,69,0.1);
+}
+
+.form-control.is-valid {
+    border-color: var(--success);
+}
+
+.invalid-feedback {
+    display: none;
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 4px;
+}
+
 .form-control.scanner-input {
     font-size: 18px;
     padding: 12px 15px;

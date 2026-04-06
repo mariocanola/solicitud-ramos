@@ -64,29 +64,33 @@ var BASE_URL = '<?= BASE_URL ?>';
 var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
 
 function enviarPorCorreo() {
-    if (!confirm('¿Enviar el reporte por correo electrónico?')) return;
+    swalConfirm('Enviar reporte', '¿Enviar el reporte por correo electronico?', function() {
+        var form = document.getElementById('form_reporte');
+        var formData = new FormData(form);
 
-    var form = document.getElementById('form_reporte');
-    var formData = new FormData(form);
+        Swal.fire({
+            title: 'Enviando correo...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: function() { Swal.showLoading(); }
+        });
 
-    var msgEl = document.getElementById('reporte_msg');
-    msgEl.innerHTML = '<div class="alert alert-info"><span class="spinner"></span> Enviando correo...</div>';
-
-    fetch(BASE_URL + '/reportes/enviar-correo', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success) {
-            msgEl.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
-        } else {
-            msgEl.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
-        }
-    })
-    .catch(function() {
-        msgEl.innerHTML = '<div class="alert alert-danger">Error de conexión</div>';
+        fetch(BASE_URL + '/reportes/enviar-correo', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                swalSuccess(data.message);
+            } else {
+                swalError(data.message);
+            }
+        })
+        .catch(function() {
+            swalError('Error de conexion');
+        });
     });
 }
 </script>

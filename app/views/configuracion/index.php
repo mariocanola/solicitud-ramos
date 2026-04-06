@@ -467,30 +467,6 @@ function cerrarModalSede() {
     document.getElementById('modal_sede').classList.remove('show');
 }
 
-function guardarSede() {
-    var nombre = document.getElementById('sede_nombre').value.trim();
-    var codigo = document.getElementById('sede_codigo').value.trim();
-    if (!nombre || !codigo) {
-        alert('Nombre y codigo son requeridos');
-        return;
-    }
-
-    var form = document.getElementById('form_sede');
-    var formData = new FormData(form);
-    var sedeId = document.getElementById('sede_id').value;
-    var url = sedeId
-        ? BASE_URL + '/api/sedes/actualizar'
-        : BASE_URL + '/api/sedes/crear';
-
-    ajaxPost(url, formData, function(data) {
-        if (data.success) {
-            cerrarModalSede();
-            location.href = BASE_URL + '/configuracion?tab=sedes';
-        } else {
-            alert(data.message || 'Error al guardar la sede');
-        }
-    });
-}
 
 // === MODAL MOTIVO ===
 function abrirModalMotivo() {
@@ -515,29 +491,6 @@ function cerrarModalMotivo() {
     document.getElementById('modal_motivo').classList.remove('show');
 }
 
-function guardarMotivo() {
-    var nombre = document.getElementById('motivo_nombre').value.trim();
-    if (!nombre) {
-        alert('El nombre es requerido');
-        return;
-    }
-
-    var form = document.getElementById('form_motivo');
-    var formData = new FormData(form);
-    var motivoId = document.getElementById('motivo_id').value;
-    var url = motivoId
-        ? BASE_URL + '/api/motivos/actualizar'
-        : BASE_URL + '/api/motivos/crear';
-
-    ajaxPost(url, formData, function(data) {
-        if (data.success) {
-            cerrarModalMotivo();
-            location.href = BASE_URL + '/configuracion?tab=motivos';
-        } else {
-            alert(data.message || 'Error al guardar el motivo');
-        }
-    });
-}
 
 // === MODAL ESTADO ===
 function abrirModalEstado() {
@@ -564,29 +517,91 @@ function cerrarModalEstado() {
 
 // === ELIMINAR GENERICO ===
 function eliminarRegistro(endpoint, id, tab, nombre) {
-    if (!confirm('¿Esta seguro de eliminar "' + nombre + '"? Esta accion no se puede deshacer.')) {
-        return;
-    }
+    swalConfirm(
+        '¿Eliminar registro?',
+        'Esta seguro de eliminar "' + nombre + '"? Esta accion no se puede deshacer.',
+        function() {
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('_csrf_token', CSRF_TOKEN);
 
-    var formData = new FormData();
-    formData.append('id', id);
-    formData.append('_csrf_token', CSRF_TOKEN);
+            ajaxPost(BASE_URL + '/' + endpoint, formData, function(data) {
+                if (data.success) {
+                    Toast.fire({ icon: 'success', title: 'Eliminado correctamente' }).then(function() {
+                        location.href = BASE_URL + '/configuracion?tab=' + tab;
+                    });
+                } else {
+                    swalError(data.message || 'Error al eliminar');
+                }
+            });
+        }
+    );
+}
 
-    ajaxPost(BASE_URL + '/' + endpoint, formData, function(data) {
+// === VALIDATORS ===
+var sedeValidator = new FormValidator('form_sede', {
+    'nombre': [V.required('El nombre es requerido'), V.minLength(2), V.maxLength(100)],
+    'codigo': [V.required('El codigo es requerido'), V.minLength(1), V.maxLength(20), V.alphanumeric()]
+});
+
+var motivoValidator = new FormValidator('form_motivo', {
+    'nombre': [V.required('El nombre es requerido'), V.minLength(2), V.maxLength(100)],
+    'orden': [V.integer(0, 999)]
+});
+
+var estadoValidator = new FormValidator('form_estado', {
+    'nombre': [V.required('El nombre es requerido'), V.minLength(2), V.maxLength(50)],
+    'orden': [V.integer(0, 999)]
+});
+
+function guardarSede() {
+    if (!sedeValidator.validateAll()) return;
+
+    var form = document.getElementById('form_sede');
+    var formData = new FormData(form);
+    var sedeId = document.getElementById('sede_id').value;
+    var url = sedeId
+        ? BASE_URL + '/api/sedes/actualizar'
+        : BASE_URL + '/api/sedes/crear';
+
+    ajaxPost(url, formData, function(data) {
         if (data.success) {
-            location.href = BASE_URL + '/configuracion?tab=' + tab;
+            cerrarModalSede();
+            Toast.fire({ icon: 'success', title: sedeId ? 'Sede actualizada' : 'Sede creada' }).then(function() {
+                location.href = BASE_URL + '/configuracion?tab=sedes';
+            });
         } else {
-            alert(data.message || 'Error al eliminar');
+            if (data.errors && Object.keys(data.errors).length > 0) sedeValidator.showServerErrors(data.errors);
+            else swalError(data.message || 'Error al guardar la sede');
+        }
+    });
+}
+
+function guardarMotivo() {
+    if (!motivoValidator.validateAll()) return;
+
+    var form = document.getElementById('form_motivo');
+    var formData = new FormData(form);
+    var motivoId = document.getElementById('motivo_id').value;
+    var url = motivoId
+        ? BASE_URL + '/api/motivos/actualizar'
+        : BASE_URL + '/api/motivos/crear';
+
+    ajaxPost(url, formData, function(data) {
+        if (data.success) {
+            cerrarModalMotivo();
+            Toast.fire({ icon: 'success', title: motivoId ? 'Motivo actualizado' : 'Motivo creado' }).then(function() {
+                location.href = BASE_URL + '/configuracion?tab=motivos';
+            });
+        } else {
+            if (data.errors && Object.keys(data.errors).length > 0) motivoValidator.showServerErrors(data.errors);
+            else swalError(data.message || 'Error al guardar el motivo');
         }
     });
 }
 
 function guardarEstado() {
-    var nombre = document.getElementById('estado_nombre').value.trim();
-    if (!nombre) {
-        alert('El nombre es requerido');
-        return;
-    }
+    if (!estadoValidator.validateAll()) return;
 
     var form = document.getElementById('form_estado');
     var formData = new FormData(form);
@@ -598,10 +613,21 @@ function guardarEstado() {
     ajaxPost(url, formData, function(data) {
         if (data.success) {
             cerrarModalEstado();
-            location.href = BASE_URL + '/configuracion?tab=estados';
+            Toast.fire({ icon: 'success', title: estadoId ? 'Estado actualizado' : 'Estado creado' }).then(function() {
+                location.href = BASE_URL + '/configuracion?tab=estados';
+            });
         } else {
-            alert(data.message || 'Error al guardar el estado');
+            if (data.errors && Object.keys(data.errors).length > 0) estadoValidator.showServerErrors(data.errors);
+            else swalError(data.message || 'Error al guardar el estado');
         }
     });
 }
+
+// Reset validators when opening modals
+var _origAbrirSede = abrirModalSede;
+abrirModalSede = function() { _origAbrirSede(); sedeValidator.reset(); };
+var _origAbrirMotivo = abrirModalMotivo;
+abrirModalMotivo = function() { _origAbrirMotivo(); motivoValidator.reset(); };
+var _origAbrirEstado = abrirModalEstado;
+abrirModalEstado = function() { _origAbrirEstado(); estadoValidator.reset(); };
 </script>

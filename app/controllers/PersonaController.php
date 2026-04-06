@@ -2,10 +2,13 @@
 require_once BASE_PATH . '/app/services/PersonaService.php';
 require_once BASE_PATH . '/app/models/Persona.php';
 require_once BASE_PATH . '/app/models/Sede.php';
+require_once BASE_PATH . '/app/helpers/Validator.php';
 
 class PersonaController
 {
     private $service;
+
+    private static $tiposDocumentoValidos = ['CC', 'CE', 'TI', 'PA', 'NIT'];
 
     public function __construct()
     {
@@ -82,8 +85,14 @@ class PersonaController
             'activo'          => (int)($_POST['activo'] ?? 1),
         ];
 
-        if ($id <= 0 || empty($data['primer_nombre']) || empty($data['primer_apellido'])) {
-            Response::error('Datos invalidos');
+        if ($id <= 0) {
+            Response::error('ID invalido');
+            return;
+        }
+
+        $errors = $this->validarActualizar($data);
+        if (!empty($errors)) {
+            Response::error('Datos invalidos', 400, $errors);
             return;
         }
 
@@ -133,5 +142,40 @@ class PersonaController
         } else {
             Response::error($resultado['message'], 400, $resultado['errors'] ?? []);
         }
+    }
+
+    private function validarActualizar($data)
+    {
+        $errors = [];
+
+        if (!Validator::inArray($data['tipo_documento'], self::$tiposDocumentoValidos)) {
+            $errors['tipo_documento'] = 'Tipo de documento invalido';
+        }
+
+        if (!Validator::required($data['primer_nombre'])) {
+            $errors['primer_nombre'] = 'El primer nombre es requerido';
+        } elseif (!Validator::maxLength($data['primer_nombre'], 100)) {
+            $errors['primer_nombre'] = 'El primer nombre no puede exceder 100 caracteres';
+        }
+
+        if (!Validator::required($data['primer_apellido'])) {
+            $errors['primer_apellido'] = 'El primer apellido es requerido';
+        } elseif (!Validator::maxLength($data['primer_apellido'], 100)) {
+            $errors['primer_apellido'] = 'El primer apellido no puede exceder 100 caracteres';
+        }
+
+        if ($data['telefono'] !== null && !Validator::onlyNumbers($data['telefono'])) {
+            $errors['telefono'] = 'El telefono solo puede contener numeros';
+        }
+
+        if ($data['id_sede'] <= 0) {
+            $errors['id_sede'] = 'Debe seleccionar una sede';
+        }
+
+        if (!in_array($data['activo'], [0, 1], true)) {
+            $errors['activo'] = 'El estado debe ser activo o inactivo';
+        }
+
+        return $errors;
     }
 }

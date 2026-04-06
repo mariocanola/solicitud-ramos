@@ -135,19 +135,24 @@ var BASE_URL = '<?= BASE_URL ?>';
 var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
 
 function eliminarSolicitud(id) {
-    if (!confirm('¿Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.')) {
-        return;
-    }
-    var formData = new FormData();
-    formData.append('id', id);
-    formData.append('_csrf_token', CSRF_TOKEN);
-    ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
-        if (data.success) {
-            window.location.href = BASE_URL + '/solicitudes';
-        } else {
-            alert(data.message || 'Error al eliminar');
+    swalConfirm(
+        '¿Eliminar solicitud?',
+        'Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.',
+        function() {
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('_csrf_token', CSRF_TOKEN);
+            ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
+                if (data.success) {
+                    Toast.fire({ icon: 'success', title: 'Solicitud eliminada' }).then(function() {
+                        window.location.href = BASE_URL + '/solicitudes';
+                    });
+                } else {
+                    swalError(data.message || 'Error al eliminar');
+                }
+            });
         }
-    });
+    );
 }
 
 function cambiarEstado(id) {
@@ -166,11 +171,12 @@ function cambiarEstado(id) {
     .then(function(data) {
         var msgEl = document.getElementById('estado_msg');
         if (data.success) {
-            msgEl.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+            showAlert(msgEl, 'success', data.message);
             setTimeout(function() { location.reload(); }, 1000);
         } else {
-            msgEl.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+            showAlert(msgEl, 'danger', data.message || 'Error al cambiar estado');
         }
+        updateCsrfToken(data);
     });
 }
 </script>
