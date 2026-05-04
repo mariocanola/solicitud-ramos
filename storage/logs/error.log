@@ -127,3 +127,40 @@ Stack trace:
 [31-Mar-2026 17:04:11 America/Bogota] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\laragon\www\flores\app\views\solicitudes\listar.php on line 87
 [31-Mar-2026 17:04:11 America/Bogota] PHP Warning:  Undefined array key "destinatario" in C:\laragon\www\flores\app\views\solicitudes\listar.php on line 87
 [31-Mar-2026 17:04:11 America/Bogota] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\laragon\www\flores\app\views\solicitudes\listar.php on line 87
+[01-Apr-2026 22:22:33 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`flores_db`.`cupos_sede`, CONSTRAINT `fk_cupos_sede` FOREIGN KEY (`id_sede`) REFERENCES `sedes` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE) in Command line code:6
+Stack trace:
+#0 Command line code(6): PDOStatement->execute(Array)
+#1 {main}
+  thrown in Command line code on line 6
+[07-Apr-2026 16:42:17 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'flores_db.usuarios' doesn't exist in C:\laragon\www\flores\app\models\Usuario.php:15
+Stack trace:
+#0 C:\laragon\www\flores\app\models\Usuario.php(15): PDO->prepare('SELECT * FROM u...')
+#1 C:\laragon\www\flores\app\middleware\Auth.php(65): Usuario->buscarPorUsername('admin@empresa.c...')
+#2 C:\laragon\www\flores\app\controllers\AuthController.php(32): Auth::login('admin@empresa.c...', 'password123')
+#3 C:\laragon\www\flores\public\index.php(181): AuthController->login()
+#4 {main}
+  thrown in C:\laragon\www\flores\app\models\Usuario.php on line 15
+[07-Apr-2026 16:43:22 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'flores_db.usuarios' doesn't exist in C:\laragon\www\flores\app\models\Usuario.php:15
+Stack trace:
+#0 C:\laragon\www\flores\app\models\Usuario.php(15): PDO->prepare('SELECT * FROM u...')
+#1 C:\laragon\www\flores\app\middleware\Auth.php(65): Usuario->buscarPorUsername('admin@empresa.c...')
+#2 C:\laragon\www\flores\app\controllers\AuthController.php(32): Auth::login('admin@empresa.c...', 'password123')
+#3 C:\laragon\www\flores\public\index.php(181): AuthController->login()
+#4 {main}
+  thrown in C:\laragon\www\flores\app\models\Usuario.php on line 15
+[07-Apr-2026 16:43:35 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'flores_db.usuarios' doesn't exist in C:\laragon\www\flores\app\models\Usuario.php:15
+Stack trace:
+#0 C:\laragon\www\flores\app\models\Usuario.php(15): PDO->prepare('SELECT * FROM u...')
+#1 C:\laragon\www\flores\app\middleware\Auth.php(65): Usuario->buscarPorUsername('admin@empresa.c...')
+#2 C:\laragon\www\flores\app\controllers\AuthController.php(32): Auth::login('admin@empresa.c...', 'password123')
+#3 C:\laragon\www\flores\public\index.php(181): AuthController->login()
+#4 {main}
+  thrown in C:\laragon\www\flores\app\models\Usuario.php on line 15
+[07-Apr-2026 16:43:40 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'flores_db.usuarios' doesn't exist in C:\laragon\www\flores\app\models\Usuario.php:15
+Stack trace:
+#0 C:\laragon\www\flores\app\models\Usuario.php(15): PDO->prepare('SELECT * FROM u...')
+#1 C:\laragon\www\flores\app\middleware\Auth.php(65): Usuario->buscarPorUsername('admin@empresa.c...')
+#2 C:\laragon\www\flores\app\controllers\AuthController.php(32): Auth::login('admin@empresa.c...', 'password123')
+#3 C:\laragon\www\flores\public\index.php(181): AuthController->login()
+#4 {main}
+  thrown in C:\laragon\www\flores\app\models\Usuario.php on line 15

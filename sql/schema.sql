@@ -132,16 +132,19 @@ CREATE TABLE IF NOT EXISTS configuracion (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: log_correos
+-- Tabla: usuarios (autenticacion del sistema)
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS log_correos (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tipo ENUM('manual','automatico') NOT NULL,
-    destinatario VARCHAR(255) NOT NULL,
-    asunto VARCHAR(255) NOT NULL,
-    estado ENUM('enviado','fallido') NOT NULL,
-    error_detalle TEXT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    username VARCHAR(50) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    rol ENUM('admin','operador') NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    ultimo_login DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_usuarios_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

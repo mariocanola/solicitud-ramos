@@ -3,295 +3,500 @@ require_once BASE_PATH . '/app/models/Solicitud.php';
 require_once BASE_PATH . '/app/models/Persona.php';
 require_once BASE_PATH . '/app/models/Configuracion.php';
 
+/**
+ * PdfService — Reporte consolidado de solicitudes de ramos.
+ * Diseño empresarial: un solo acento morado, mucho espacio en blanco,
+ * tipografía clara, texto envuelto sin truncar a media palabra.
+ */
 class PdfService
 {
-    // Colores corporativos
-    private $colorPrimario   = [88, 44, 131];   // Morado (del logo)
-    private $colorSecundario = [44, 62, 80];     // Azul oscuro
-    private $colorAccento    = [142, 68, 173];   // Morado claro
-    private $colorExito      = [39, 174, 96];    // Verde
-    private $colorFilaAlt    = [245, 240, 250];  // Morado muy claro para filas alternas
+    // Paleta sobria — un solo acento, el resto neutros.
+    private $accent     = [74, 25, 66];     // Morado corporativo (acento único)
+    private $accentSoft = [232, 222, 230];  // Tinte suave para encabezados de sección
+    private $text       = [40, 40, 45];     // Texto principal
+    private $textSoft   = [110, 110, 118];  // Texto auxiliar / labels
+    private $border     = [220, 220, 224];  // Líneas y bordes
+    private $rowAlt     = [248, 248, 250];  // Fila alterna casi blanca
+    private $kpiBg      = [249, 247, 249];  // Fondo de tarjeta KPI
+
+    // Geometría de página (Letter landscape)
+    private $marginX    = 12;
+    private $pageWidth  = 279.4;
+    private $usableW;
+
+    public function __construct()
+    {
+        $this->usableW = $this->pageWidth - 2 * $this->marginX;
+    }
 
     public function generarConsolidado($filtros = [])
     {
         require_once BASE_PATH . '/vendor/fpdf/fpdf.php';
+
         $solicitudModel = new Solicitud();
-        $configModel = new Configuracion();
+        $configModel    = new Configuracion();
+        $solicitudes    = $solicitudModel->getParaReporte($filtros);
+        $nombreOrg      = $configModel->get('nombre_organizacion') ?: 'TANDIL';
 
-        $solicitudes = $solicitudModel->getParaReporte($filtros);
-        $nombreOrg = $configModel->get('nombre_organizacion') ?: 'TANDIL';
-
-        // Agrupar solo por sede (sin area)
+        // Agrupar por sede (orden alfabético)
         $agrupado = [];
         foreach ($solicitudes as $s) {
             $sede = $s['sede_nombre'] ?? 'Sin Sede';
             $agrupado[$sede][] = $s;
         }
+        ksort($agrupado);
 
         $pdf = new FPDF('L', 'mm', 'Letter');
-        $pdf->SetAutoPageBreak(true, 20);
+        $pdf->SetMargins($this->marginX, 12, $this->marginX);
+        $pdf->SetAutoPageBreak(true, 18);
         $pdf->AddPage();
+        $this->headerPagina($pdf, $nombreOrg, $filtros);
 
-        // === ENCABEZADO CON LOGO ===
-        $this->encabezadoPagina($pdf, $nombreOrg, $filtros);
-
-        $totalGeneral = 0;
-        $totalesSede = [];
-        $totalesMotivo = [];
-        $totalesEstado = [];
+        // Acumuladores para el resumen
+        $totalGeneral   = 0;
+        $totalesSede    = [];
+        $totalesMotivo  = [];
 
         foreach ($agrupado as $nombreSede => $registros) {
             $totalSede = count($registros);
-            $consecutivo = 1; // Reiniciar numeracion por sede
 
-            // Verificar espacio para header de sede + al menos 2 filas
-            if ($pdf->GetY() > 160) {
+            // Salto de página si no caben encabezado de sede + 2 filas
+            if ($pdf->GetY() > 170) {
                 $pdf->AddPage();
-                $this->encabezadoPagina($pdf, $nombreOrg, $filtros, true);
+                $this->headerPagina($pdf, $nombreOrg, $filtros, true);
             }
 
-            // Barra de sede
-            $pdf->SetFillColor(...$this->colorPrimario);
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->Cell(0, 8, $this->toLatin1("  SEDE: $nombreSede  |  $totalSede solicitud(es)"), 0, 1, 'L', true);
-            $pdf->Ln(2);
+            $this->headerSede($pdf, $nombreSede, $totalSede);
+            $this->tablaHeader($pdf);
 
-            // Encabezado tabla
-            $this->tablaEncabezado($pdf);
-
+            $consecutivo = 1;
             foreach ($registros as $r) {
-                if ($pdf->GetY() > 180) {
+                // Pre-cálculo: ¿cabe la fila en la página actual?
+                $tempH = $this->calcularAlturaFila($pdf, $r, $consecutivo);
+                if ($pdf->GetY() + $tempH > 195) {
                     $pdf->AddPage();
-                    $this->encabezadoPagina($pdf, $nombreOrg, $filtros, true);
-                    // Repetir barra de sede en nueva pagina
-                    $pdf->SetFillColor(...$this->colorPrimario);
-                    $pdf->SetTextColor(255, 255, 255);
-                    $pdf->SetFont('Helvetica', 'B', 10);
-                    $pdf->Cell(0, 8, $this->toLatin1("  SEDE: $nombreSede (continuación)"), 0, 1, 'L', true);
-                    $pdf->Ln(2);
-                    $this->tablaEncabezado($pdf);
+                    $this->headerPagina($pdf, $nombreOrg, $filtros, true);
+                    $this->headerSede($pdf, $nombreSede . ' (continuación)', $totalSede);
+                    $this->tablaHeader($pdf);
                 }
 
-                // Filas alternas
-                if ($consecutivo % 2 === 0) {
-                    $pdf->SetFillColor(...$this->colorFilaAlt);
-                } else {
-                    $pdf->SetFillColor(255, 255, 255);
-                }
-                $pdf->SetTextColor(50, 50, 50);
-                $pdf->SetFont('Helvetica', '', 8);
-
-                $nombre = Persona::getNombreCompleto($r);
-                $motivo = $r['motivo_nombre'];
-                if ($r['motivo_otro']) {
-                    $motivo .= ': ' . $r['motivo_otro'];
-                }
-                $estado = $r['estado_nombre'] ?? '';
-
-                $pdf->Cell(12, 6, $consecutivo, 'B', 0, 'C', true);
-                $pdf->Cell(22, 6, date('d/m/Y', strtotime($r['fecha_solicitud'])), 'B', 0, 'C', true);
-                $pdf->Cell(55, 6, $this->toLatin1($this->truncar($nombre, 32)), 'B', 0, 'L', true);
-                $pdf->Cell(28, 6, $r['documento'], 'B', 0, 'C', true);
-                $pdf->Cell(50, 6, $this->toLatin1($this->truncar($r['nombre_destinatario'], 28)), 'B', 0, 'L', true);
-                $pdf->Cell(40, 6, $this->toLatin1($this->truncar($motivo, 24)), 'B', 0, 'L', true);
-                $pdf->Cell(25, 6, $this->toLatin1($estado), 'B', 0, 'C', true);
-                $pdf->Cell(0, 6, $this->toLatin1($this->truncar($r['observaciones'] ?? '-', 30)), 'B', 1, 'L', true);
-
+                $this->renderFila($pdf, $r, $consecutivo);
                 $consecutivo++;
 
-                // Acumular totales
-                $mNombre = $r['motivo_nombre'];
+                $mNombre = $r['motivo_nombre'] ?? 'Sin motivo';
                 $totalesMotivo[$mNombre] = ($totalesMotivo[$mNombre] ?? 0) + 1;
-                $eNombre = $r['estado_nombre'] ?? 'Sin estado';
-                $totalesEstado[$eNombre] = ($totalesEstado[$eNombre] ?? 0) + 1;
             }
 
-            // Total sede
-            $pdf->SetFont('Helvetica', 'B', 9);
-            $pdf->SetTextColor(...$this->colorPrimario);
-            $pdf->Cell(0, 7, $this->toLatin1("Total $nombreSede: $totalSede solicitud(es)"), 0, 1, 'R');
-            $pdf->Ln(4);
-
+            $this->footerSede($pdf, $nombreSede, $totalSede);
             $totalesSede[$nombreSede] = $totalSede;
             $totalGeneral += $totalSede;
+            $pdf->Ln(2);
         }
 
-        // === PAGINA DE RESUMEN ===
+        // === PÁGINA DE RESUMEN ===
         $pdf->AddPage();
-        $this->encabezadoPagina($pdf, $nombreOrg, $filtros, true);
-
-        $pdf->SetFont('Helvetica', 'B', 16);
-        $pdf->SetTextColor(...$this->colorPrimario);
-        $pdf->Cell(0, 10, $this->toLatin1('RESUMEN GENERAL'), 0, 1, 'C');
-        $pdf->Ln(2);
-
-        // Tarjeta de total general
-        $pdf->SetFillColor(...$this->colorPrimario);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFont('Helvetica', 'B', 14);
-        $y = $pdf->GetY();
-        $pdf->Rect(10, $y, 259, 14, 'F');
-        $pdf->Cell(0, 14, $this->toLatin1("TOTAL DE SOLICITUDES: $totalGeneral"), 0, 1, 'C');
-        $pdf->Ln(8);
-
-        // Tabla resumen por sede
-        $this->tablaResumen($pdf, 'Solicitudes por Sede', $totalesSede, $this->colorPrimario);
-        $pdf->Ln(3);
-
-        // Tabla resumen por motivo
-        $this->tablaResumen($pdf, 'Solicitudes por Motivo', $totalesMotivo, $this->colorAccento);
-        $pdf->Ln(3);
-
-        // Tabla resumen por estado
-        $this->tablaResumen($pdf, 'Solicitudes por Estado', $totalesEstado, $this->colorSecundario);
-
-        // Pie de pagina con fecha
-        $pdf->Ln(10);
-        $pdf->SetFont('Helvetica', 'I', 8);
-        $pdf->SetTextColor(150, 150, 150);
-        $pdf->Cell(0, 5, $this->toLatin1('Este documento fue generado automáticamente por el ' . APP_NAME . ' - ' . date('d/m/Y H:i')), 0, 1, 'C');
+        $this->headerPagina($pdf, $nombreOrg, $filtros, true);
+        $this->paginaResumen($pdf, $totalGeneral, $totalesSede, $totalesMotivo);
 
         // Guardar
         $nombre = 'reporte_ramos_' . date('Ymd_His') . '.pdf';
         $ruta = PDF_PATH . '/' . $nombre;
         $pdf->Output('F', $ruta);
-
         return $ruta;
     }
 
-    private function encabezadoPagina($pdf, $nombreOrg, $filtros, $compacto = false)
+    // ────────────────────────────────────────────────────────────
+    // ENCABEZADO DE PÁGINA
+    // ────────────────────────────────────────────────────────────
+    private function headerPagina($pdf, $nombreOrg, $filtros, $compacto = false)
     {
         $logoPath = BASE_PATH . '/public/img/logo-tandil.png';
-        $hasLogo = file_exists($logoPath);
+        $hasLogo  = file_exists($logoPath);
+        $fechaDesde = $filtros['fecha_desde'] ?? '—';
+        $fechaHasta = $filtros['fecha_hasta'] ?? '—';
 
-        if ($compacto) {
-            // Encabezado compacto para paginas internas
-            $pdf->SetFillColor(...$this->colorPrimario);
-            $pdf->Rect(0, 0, 280, 18, 'F');
-
-            if ($hasLogo) {
-                $pdf->Image($logoPath, 8, 2, 14);
-            }
-
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->SetXY($hasLogo ? 24 : 10, 4);
-            $pdf->Cell(0, 5, $this->toLatin1("$nombreOrg - Reporte de Solicitudes de Ramos Florales"), 0, 1, 'L');
-            $pdf->SetXY($hasLogo ? 24 : 10, 10);
-            $pdf->SetFont('Helvetica', '', 8);
-            $fechaDesde = $filtros['fecha_desde'] ?? 'N/A';
-            $fechaHasta = $filtros['fecha_hasta'] ?? 'N/A';
-            $pdf->Cell(0, 5, $this->toLatin1("Período: $fechaDesde a $fechaHasta"), 0, 1, 'L');
-            $pdf->Ln(8);
-        } else {
-            // Encabezado completo para primera pagina
-            // Barra superior decorativa
-            $pdf->SetFillColor(...$this->colorPrimario);
-            $pdf->Rect(0, 0, 280, 3, 'F');
-
-            $startY = 8;
-
-            // Logo
-            if ($hasLogo) {
-                $pdf->Image($logoPath, 10, $startY, 30);
-            }
-
-            // Titulo principal
-            $pdf->SetFont('Helvetica', 'B', 18);
-            $pdf->SetTextColor(...$this->colorPrimario);
-            $pdf->SetXY($hasLogo ? 45 : 10, $startY + 2);
-            $pdf->Cell(0, 8, $this->toLatin1($nombreOrg), 0, 1, 'L');
-
-            $pdf->SetXY($hasLogo ? 45 : 10, $startY + 11);
-            $pdf->SetFont('Helvetica', 'B', 13);
-            $pdf->SetTextColor(...$this->colorSecundario);
-            $pdf->Cell(0, 7, $this->toLatin1('Reporte Consolidado de Solicitudes de Ramos Florales'), 0, 1, 'L');
-
-            // Periodo y fecha
-            $fechaDesde = $filtros['fecha_desde'] ?? 'N/A';
-            $fechaHasta = $filtros['fecha_hasta'] ?? 'N/A';
-            $pdf->SetXY($hasLogo ? 45 : 10, $startY + 19);
-            $pdf->SetFont('Helvetica', '', 10);
-            $pdf->SetTextColor(100, 100, 100);
-            $pdf->Cell(0, 6, $this->toLatin1("Período: $fechaDesde  a  $fechaHasta"), 0, 1, 'L');
-
-            // Fecha generacion a la derecha
-            $pdf->SetFont('Helvetica', 'I', 8);
-            $pdf->SetTextColor(150, 150, 150);
-            $pdf->SetXY(200, $startY + 2);
-            $pdf->Cell(69, 5, 'Generado: ' . date('d/m/Y H:i'), 0, 1, 'R');
-
-            // Linea separadora
-            $lineY = $startY + 30;
-            $pdf->SetDrawColor(...$this->colorPrimario);
-            $pdf->SetLineWidth(0.5);
-            $pdf->Line(10, $lineY, 269, $lineY);
-            $pdf->SetLineWidth(0.2);
-            $pdf->SetY($lineY + 5);
+        if ($hasLogo) {
+            $pdf->Image($logoPath, $this->marginX, 10, 16);
         }
+
+        // Lado izquierdo: organización + título
+        $textX = $hasLogo ? ($this->marginX + 20) : $this->marginX;
+        $pdf->SetXY($textX, 11);
+        $pdf->SetFont('Helvetica', 'B', 13);
+        $pdf->SetTextColor(...$this->text);
+        $pdf->Cell(150, 5, $this->toLatin1($nombreOrg), 0, 1, 'L');
+
+        $pdf->SetXY($textX, 17);
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(...$this->textSoft);
+        $titulo = $compacto
+            ? 'Reporte de Solicitudes de Ramos Florales (continuación)'
+            : 'Reporte Consolidado de Solicitudes de Ramos Florales';
+        $pdf->Cell(150, 5, $this->toLatin1($titulo), 0, 1, 'L');
+
+        // Lado derecho: período + fecha de generación
+        $pdf->SetFont('Helvetica', '', 8);
+        $pdf->SetTextColor(...$this->textSoft);
+        $rightX = $this->pageWidth - $this->marginX - 80;
+        $pdf->SetXY($rightX, 11);
+        $pdf->Cell(80, 5, $this->toLatin1("Período: $fechaDesde — $fechaHasta"), 0, 1, 'R');
+        $pdf->SetXY($rightX, 17);
+        $pdf->Cell(80, 5, 'Generado: ' . date('d/m/Y H:i'), 0, 1, 'R');
+
+        // Línea fina divisoria
+        $pdf->SetDrawColor(...$this->accent);
+        $pdf->SetLineWidth(0.4);
+        $pdf->Line($this->marginX, 27, $this->pageWidth - $this->marginX, 27);
+        $pdf->SetLineWidth(0.2);
+        $pdf->SetDrawColor(...$this->border);
+
+        $pdf->SetY(32);
     }
 
-    private function tablaEncabezado($pdf)
+    // ────────────────────────────────────────────────────────────
+    // ENCABEZADO DE SECCIÓN (sede)
+    // ────────────────────────────────────────────────────────────
+    private function headerSede($pdf, $nombreSede, $total)
     {
-        $pdf->SetFillColor(...$this->colorSecundario);
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFont('Helvetica', 'B', 8);
-        $pdf->Cell(12, 7, 'No.', 1, 0, 'C', true);
-        $pdf->Cell(22, 7, 'Fecha', 1, 0, 'C', true);
-        $pdf->Cell(55, 7, 'Solicitante', 1, 0, 'C', true);
-        $pdf->Cell(28, 7, 'Documento', 1, 0, 'C', true);
-        $pdf->Cell(50, 7, 'Destinatario', 1, 0, 'C', true);
-        $pdf->Cell(40, 7, 'Motivo', 1, 0, 'C', true);
-        $pdf->Cell(25, 7, 'Estado', 1, 0, 'C', true);
-        $pdf->Cell(0, 7, 'Observaciones', 1, 1, 'C', true);
+        $y = $pdf->GetY();
+        // Fondo suave, no saturado
+        $pdf->SetFillColor(...$this->accentSoft);
+        $pdf->Rect($this->marginX, $y, $this->usableW, 8, 'F');
+        // Barra acento delgada a la izquierda
+        $pdf->SetFillColor(...$this->accent);
+        $pdf->Rect($this->marginX, $y, 1.5, 8, 'F');
+
+        $pdf->SetTextColor(...$this->accent);
+        $pdf->SetFont('Helvetica', 'B', 10);
+        $pdf->SetXY($this->marginX + 4, $y + 1.5);
+        $pdf->Cell($this->usableW - 8, 5, $this->toLatin1('Sede ' . $nombreSede), 0, 0, 'L');
+
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->SetXY($this->marginX, $y + 1.5);
+        $pdf->Cell($this->usableW - 4, 5, $this->toLatin1($total . ' solicitud' . ($total === 1 ? '' : 'es')), 0, 1, 'R');
+
+        $pdf->SetY($y + 8);
+        $pdf->Ln(1);
     }
 
-    private function tablaResumen($pdf, $titulo, $datos, $colorRgb)
+    private function footerSede($pdf, $nombreSede, $total)
+    {
+        $pdf->SetFont('Helvetica', 'B', 9);
+        $pdf->SetTextColor(...$this->accent);
+        $pdf->Cell($this->usableW, 6, $this->toLatin1("Subtotal $nombreSede: $total"), 0, 1, 'R');
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // TABLA — encabezados y filas con wrap
+    // ────────────────────────────────────────────────────────────
+    private function colWidths()
+    {
+        // Suman ≈ usableW (255 mm en Letter horizontal con márgenes de 12 mm)
+        return [
+            'no'      => 12,
+            'fecha'   => 26,
+            'solic'   => 80,
+            'doc'     => 32,
+            'motivo'  => 55,
+            'obs'     => 50,  // ocupa el resto vía auto-extend
+        ];
+    }
+
+    private function tablaHeader($pdf)
+    {
+        $w = $this->colWidths();
+        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['motivo']);
+
+        $pdf->SetFont('Helvetica', 'B', 8);
+        $pdf->SetFillColor(245, 243, 245);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->SetDrawColor(...$this->border);
+
+        $h = 7;
+        $pdf->Cell($w['no'],     $h, '#',             'B', 0, 'C', true);
+        $pdf->Cell($w['fecha'],  $h, 'Fecha',         'B', 0, 'C', true);
+        $pdf->Cell($w['solic'],  $h, 'Solicitante',   'B', 0, 'L', true);
+        $pdf->Cell($w['doc'],    $h, 'Documento',     'B', 0, 'C', true);
+        $pdf->Cell($w['motivo'], $h, 'Motivo',        'B', 0, 'L', true);
+        $pdf->Cell($w['obs'],    $h, 'Observaciones', 'B', 1, 'L', true);
+    }
+
+    /**
+     * Calcula la altura necesaria para una fila considerando wrap en columnas largas.
+     */
+    private function calcularAlturaFila($pdf, $r, $n)
+    {
+        $w = $this->colWidths();
+        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['motivo']);
+
+        $pdf->SetFont('Helvetica', '', 8);
+        $solic  = $this->nbLines($pdf, $w['solic']  - 2, Persona::getNombreCompleto($r));
+        $motivo = $this->nbLines($pdf, $w['motivo'] - 2, $this->motivoCompleto($r));
+        $obs    = $this->nbLines($pdf, $w['obs']    - 2, $r['observaciones'] ?? '');
+        $maxL   = max(1, $solic, $motivo, $obs);
+        return $maxL * 4.6 + 1.4; // alto por línea + padding
+    }
+
+    private function renderFila($pdf, $r, $n)
+    {
+        $w = $this->colWidths();
+        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['motivo']);
+
+        $pdf->SetFont('Helvetica', '', 8);
+        $pdf->SetTextColor(...$this->text);
+        $pdf->SetDrawColor(...$this->border);
+
+        // Datos formateados
+        $solic  = Persona::getNombreCompleto($r);
+        $fecha  = date('d/m/Y', strtotime($r['fecha_solicitud']));
+        $doc    = $r['documento'] ?? '';
+        $motivo = $this->motivoCompleto($r);
+        $obs    = ($r['observaciones'] ?? '') ?: '—';
+
+        // Alto de la fila (basado en columnas con wrap)
+        $solicL  = $this->nbLines($pdf, $w['solic']  - 2, $solic);
+        $motivoL = $this->nbLines($pdf, $w['motivo'] - 2, $motivo);
+        $obsL    = $this->nbLines($pdf, $w['obs']    - 2, $obs);
+        $maxL    = max(1, $solicL, $motivoL, $obsL);
+        $rowH    = $maxL * 4.6 + 1.4;
+
+        // Fondo alterno
+        $bg = ($n % 2 === 0) ? $this->rowAlt : [255, 255, 255];
+        $pdf->SetFillColor(...$bg);
+
+        $x0 = $pdf->GetX();
+        $y0 = $pdf->GetY();
+        $x  = $x0;
+
+        // Pintar fondo completo de la fila primero
+        $pdf->Rect($x0, $y0, $this->usableW, $rowH, 'F');
+
+        // No.
+        $pdf->SetXY($x, $y0);
+        $pdf->Cell($w['no'], $rowH, $n, 0, 0, 'C');
+        $x += $w['no'];
+
+        // Fecha
+        $pdf->SetXY($x, $y0);
+        $pdf->Cell($w['fecha'], $rowH, $fecha, 0, 0, 'C');
+        $x += $w['fecha'];
+
+        // Solicitante (wrap)
+        $pdf->SetXY($x + 1, $y0 + 0.7);
+        $pdf->MultiCell($w['solic'] - 2, 4.6, $this->toLatin1($solic), 0, 'L');
+        $x += $w['solic'];
+
+        // Documento
+        $pdf->SetXY($x, $y0);
+        $pdf->Cell($w['doc'], $rowH, $doc, 0, 0, 'C');
+        $x += $w['doc'];
+
+        // Motivo (wrap)
+        $pdf->SetXY($x + 1, $y0 + 0.7);
+        $pdf->MultiCell($w['motivo'] - 2, 4.6, $this->toLatin1($motivo), 0, 'L');
+        $x += $w['motivo'];
+
+        // Observaciones (wrap)
+        $pdf->SetXY($x + 1, $y0 + 0.7);
+        $pdf->SetTextColor(...$this->text);
+        $pdf->MultiCell($w['obs'] - 2, 4.6, $this->toLatin1($obs), 0, 'L');
+
+        // Línea inferior delgada
+        $pdf->SetDrawColor(...$this->border);
+        $pdf->Line($x0, $y0 + $rowH, $x0 + $this->usableW, $y0 + $rowH);
+
+        $pdf->SetXY($x0, $y0 + $rowH);
+    }
+
+    private function motivoCompleto($r)
+    {
+        $m = $r['motivo_nombre'] ?? '';
+        if (!empty($r['motivo_otro'])) $m .= ': ' . $r['motivo_otro'];
+        return $m;
+    }
+
+    /**
+     * Cuenta cuántas líneas ocuparía un texto con MultiCell de ancho $w.
+     * Adaptado del ejemplo oficial de FPDF.
+     */
+    private function nbLines($pdf, $w, $txt)
+    {
+        $txt = $this->toLatin1((string)$txt);
+        if ($txt === '') return 1;
+
+        $cw = $pdf->GetStringWidth(' ');
+        if ($w === 0) $w = $pdf->w - $pdf->rMargin - $pdf->x;
+        $wmax = ($w - 2);
+
+        $s = str_replace("\r", '', $txt);
+        $nb = strlen($s);
+        if ($nb > 0 && $s[$nb - 1] === "\n") $nb--;
+
+        $sep = -1; $i = 0; $j = 0; $l = 0; $nl = 1;
+        while ($i < $nb) {
+            $c = $s[$i];
+            if ($c === "\n") { $i++; $sep = -1; $j = $i; $l = 0; $nl++; continue; }
+            if ($c === ' ') $sep = $i;
+            $l += $pdf->GetStringWidth($c);
+            if ($l > $wmax) {
+                if ($sep === -1) {
+                    if ($i === $j) $i++;
+                } else {
+                    $i = $sep + 1;
+                }
+                $sep = -1; $j = $i; $l = 0; $nl++;
+            } else {
+                $i++;
+            }
+        }
+        return $nl;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // PÁGINA DE RESUMEN
+    // ────────────────────────────────────────────────────────────
+    private function paginaResumen($pdf, $totalGeneral, $tSede, $tMotivo)
+    {
+        // Título de la sección
+        $pdf->SetFont('Helvetica', 'B', 14);
+        $pdf->SetTextColor(...$this->text);
+        $pdf->Cell(0, 8, $this->toLatin1('Resumen general'), 0, 1, 'L');
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->Cell(0, 5, $this->toLatin1('Indicadores principales del período seleccionado'), 0, 1, 'L');
+        $pdf->Ln(4);
+
+        // Fila de KPIs (3 tarjetas)
+        $kpis = [
+            ['Total de solicitudes', $totalGeneral],
+            ['Sedes con actividad',  count($tSede)],
+            ['Motivos distintos',    count($tMotivo)],
+        ];
+        $this->kpis($pdf, $kpis);
+
+        // Pie discreto
+        $pdf->Ln(6);
+        $pdf->SetFont('Helvetica', 'I', 7);
+        $pdf->SetTextColor(160, 160, 165);
+        $pdf->Cell(0, 4, $this->toLatin1('Documento generado automáticamente por ' . APP_NAME . ' — ' . date('d/m/Y H:i')), 0, 1, 'C');
+    }
+
+    private function kpis($pdf, $items)
+    {
+        $count = count($items);
+        $gap   = 4;
+        $cardW = ($this->usableW - $gap * ($count - 1)) / $count;
+        $cardH = 22;
+        $x = $this->marginX;
+        $y = $pdf->GetY();
+
+        foreach ($items as $kpi) {
+            list($label, $value) = $kpi;
+
+            // Fondo
+            $pdf->SetFillColor(...$this->kpiBg);
+            $pdf->Rect($x, $y, $cardW, $cardH, 'F');
+            // Borde delgado izquierdo (acento)
+            $pdf->SetFillColor(...$this->accent);
+            $pdf->Rect($x, $y, 1.2, $cardH, 'F');
+
+            // Valor (grande)
+            $pdf->SetFont('Helvetica', 'B', 18);
+            $pdf->SetTextColor(...$this->text);
+            $pdf->SetXY($x + 4, $y + 3);
+            $pdf->Cell($cardW - 6, 9, (string)$value, 0, 1, 'L');
+
+            // Label (pequeño, mayúsculas)
+            $pdf->SetFont('Helvetica', '', 7);
+            $pdf->SetTextColor(...$this->textSoft);
+            $pdf->SetXY($x + 4, $y + 13);
+            $pdf->Cell($cardW - 6, 5, $this->toLatin1(strtoupper($label)), 0, 1, 'L');
+
+            $x += $cardW + $gap;
+        }
+        $pdf->SetY($y + $cardH);
+    }
+
+    private function tablaResumen($pdf, $titulo, $datos, $totalGeneral)
     {
         if (empty($datos)) return;
-
         $total = array_sum($datos);
 
-        // Titulo de seccion
-        $pdf->SetFillColor(...$colorRgb);
-        $pdf->SetTextColor(255, 255, 255);
+        // Título de la sub-sección (sin barra llena)
         $pdf->SetFont('Helvetica', 'B', 10);
-        $pdf->Cell(170, 8, $this->toLatin1("  $titulo"), 0, 0, 'L', true);
-        $pdf->Cell(0, 8, "Total: $total", 0, 1, 'R', true);
+        $pdf->SetTextColor(...$this->text);
+        $pdf->Cell($this->usableW - 30, 6, $this->toLatin1($titulo), 0, 0, 'L');
+        $pdf->SetFont('Helvetica', '', 9);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->Cell(30, 6, $this->toLatin1('Total: ' . $total), 0, 1, 'R');
+
+        // Línea fina morada
+        $y = $pdf->GetY();
+        $pdf->SetDrawColor(...$this->accent);
+        $pdf->SetLineWidth(0.3);
+        $pdf->Line($this->marginX, $y, $this->pageWidth - $this->marginX, $y);
+        $pdf->SetDrawColor(...$this->border);
+        $pdf->SetLineWidth(0.2);
+        $pdf->Ln(1.5);
+
+        // Cabecera de columnas
+        $w1 = $this->usableW * 0.55;
+        $w2 = $this->usableW * 0.10;
+        $w3 = $this->usableW * 0.15;
+        $w4 = $this->usableW - $w1 - $w2 - $w3;
+
+        $pdf->SetFont('Helvetica', 'B', 7);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->Cell($w1, 5, $this->toLatin1(strtoupper('Categoría')),     0, 0, 'L');
+        $pdf->Cell($w2, 5, $this->toLatin1(strtoupper('Cant.')),         0, 0, 'C');
+        $pdf->Cell($w3, 5, $this->toLatin1(strtoupper('% del total')),   0, 0, 'C');
+        $pdf->Cell($w4, 5, '',                                            0, 1, 'L');
 
         // Filas
-        $pdf->SetTextColor(50, 50, 50);
-        $pdf->SetFont('Helvetica', '', 10);
-        $fila = 0;
+        arsort($datos);
+        $i = 0;
         foreach ($datos as $label => $valor) {
-            if ($fila % 2 === 0) {
-                $pdf->SetFillColor(...$this->colorFilaAlt);
-            } else {
-                $pdf->SetFillColor(255, 255, 255);
-            }
-            $porcentaje = $total > 0 ? round(($valor / $total) * 100, 1) : 0;
-
-            $pdf->Cell(140, 7, $this->toLatin1("  $label"), 'B', 0, 'L', true);
-            $pdf->SetFont('Helvetica', 'B', 10);
-            $pdf->Cell(30, 7, $valor, 'B', 0, 'C', true);
+            $bg = ($i % 2 === 0) ? [255, 255, 255] : $this->rowAlt;
+            $pdf->SetFillColor(...$bg);
             $pdf->SetFont('Helvetica', '', 9);
-            $pdf->SetTextColor(130, 130, 130);
-            $pdf->Cell(0, 7, "($porcentaje%)", 'B', 1, 'C', true);
-            $pdf->SetTextColor(50, 50, 50);
-            $pdf->SetFont('Helvetica', '', 10);
-            $fila++;
-        }
-    }
+            $pdf->SetTextColor(...$this->text);
 
-    private function truncar($texto, $max)
-    {
-        $texto = $texto ?? '';
-        return (mb_strlen($texto) > $max) ? mb_substr($texto, 0, $max - 3) . '...' : $texto;
+            $pct = $totalGeneral > 0 ? ($valor / $totalGeneral) * 100 : 0;
+            $pctStr = number_format($pct, 1) . '%';
+
+            $y0 = $pdf->GetY();
+            $h  = 6;
+
+            $pdf->Rect($this->marginX, $y0, $this->usableW, $h, 'F');
+
+            $pdf->SetXY($this->marginX, $y0);
+            $pdf->Cell($w1, $h, $this->toLatin1((string)$label), 0, 0, 'L');
+
+            $pdf->SetFont('Helvetica', 'B', 9);
+            $pdf->Cell($w2, $h, (string)$valor, 0, 0, 'C');
+
+            $pdf->SetFont('Helvetica', '', 9);
+            $pdf->SetTextColor(...$this->textSoft);
+            $pdf->Cell($w3, $h, $pctStr, 0, 0, 'C');
+
+            // Mini barra horizontal de progreso (acento, estilo dataviz)
+            $barX = $this->marginX + $w1 + $w2 + $w3 + 2;
+            $barW = $w4 - 4;
+            $barFill = ($pct / 100) * $barW;
+            $pdf->SetFillColor(232, 226, 230);
+            $pdf->Rect($barX, $y0 + 2, $barW, 2, 'F');
+            $pdf->SetFillColor(...$this->accent);
+            $pdf->Rect($barX, $y0 + 2, max(0.5, $barFill), 2, 'F');
+
+            $pdf->SetXY($this->marginX, $y0 + $h);
+            $pdf->SetTextColor(...$this->text);
+            $i++;
+        }
     }
 
     private function toLatin1($str)
     {
-        return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+        return mb_convert_encoding((string)$str, 'ISO-8859-1', 'UTF-8');
     }
 }

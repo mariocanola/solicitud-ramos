@@ -38,4 +38,41 @@ class CupoController
         Session::flash('tipo', 'success');
         Response::redirect('configuracion?tab=cupos');
     }
+
+    public function verificar()
+    {
+        Csrf::validate();
+        
+        $id_sede = (int)($_POST['id_sede'] ?? 0);
+        
+        if ($id_sede <= 0) {
+            Response::error('ID de sede inválido');
+            return;
+        }
+
+        $cupoModel = new CupoSede();
+        $periodo = DateHelper::currentPeriod();
+        $cupoService = new CupoService();
+
+        // Obtener o crear registro de cupos para el periodo actual
+        $cupo = $cupoModel->obtenerPorSedePeriodo($id_sede, $periodo);
+        
+        if (!$cupo) {
+            // Crear con cupo default si no existe
+            $cupo_default = $cupoService->obtenerCupoDefault();
+            $cupoModel->existeOCrear($id_sede, $periodo, $cupo_default);
+            $cupo = $cupoModel->obtenerPorSedePeriodo($id_sede, $periodo);
+        }
+
+        $data = [
+            'cupo_maximo' => (int)$cupo['cupo_maximo'],
+            'cupo_usado' => (int)$cupo['cupo_usado'],
+            'disponible' => (int)$cupo['cupo_maximo'] - (int)$cupo['cupo_usado'],
+            'porcentaje_usado' => $cupo['cupo_maximo'] > 0 
+                ? round(($cupo['cupo_usado'] / $cupo['cupo_maximo']) * 100, 1) 
+                : 0
+        ];
+
+        Response::success($data, 'Información de cupos obtenida');
+    }
 }

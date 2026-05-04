@@ -44,20 +44,4 @@ class Configuracion
         return $stmt->fetchAll();
     }
 
-    public function getMailConfig()
-    {
-        $keys = ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_secure',
-                 'correo_destino', 'correo_cc', 'nombre_organizacion'];
-        $placeholders = implode(',', array_fill(0, count($keys), '?'));
-        $stmt = $this->db->prepare(
-            "SELECT clave, valor FROM configuracion WHERE clave IN ($placeholders)"
-        );
-        $stmt->execute($keys);
-        $rows = $stmt->fetchAll();
-        $config = [];
-        foreach ($rows as $row) {
-            $config[$row['clave']] = $row['valor'];
-        }
-        return $config;
-    }
 }

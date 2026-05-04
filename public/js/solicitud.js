@@ -133,14 +133,156 @@ function guardarPersona() {
         }
     }
 
+    // Validación de documento según tipo
+    var tipoDocEl = document.getElementById('p_tipo_documento');
+    var docEl = document.getElementById('p_documento');
+    var tipoDoc = tipoDocEl ? tipoDocEl.value : '';
+    var documento = docEl ? docEl.value.trim() : '';
+    
+    if (!documento) {
+        swalWarning('El documento es requerido');
+        docEl.focus();
+        return;
+    }
+    
+    // Validar según tipo de documento
+    if (tipoDoc === 'CC' || tipoDoc === 'TI') {
+        if (!/^\d+$/.test(documento)) {
+            swalWarning('Para Cédula y Tarjeta de Identidad, el documento debe contener solo números');
+            docEl.focus();
+            return;
+        }
+        if (documento.length < 5 || documento.length > 10) {
+            swalWarning('El documento debe tener entre 5 y 10 dígitos');
+            docEl.focus();
+            return;
+        }
+    } else if (tipoDoc === 'NIT') {
+        if (!/^\d+$/.test(documento)) {
+            swalWarning('El NIT debe contener solo números');
+            docEl.focus();
+            return;
+        }
+        if (documento.length < 8 || documento.length > 15) {
+            swalWarning('El NIT debe tener entre 8 y 15 dígitos');
+            docEl.focus();
+            return;
+        }
+    } else if (tipoDoc === 'CE' || tipoDoc === 'PA') {
+        if (documento.length < 5 || documento.length > 20) {
+            swalWarning('El documento debe tener entre 5 y 20 caracteres');
+            docEl.focus();
+            return;
+        }
+    }
+
+    // Mostrar estado de guardando
+    var btnGuardar = form.parentElement.querySelector('.modal-footer button[onclick="guardarPersona()"]');
+    var originalText = btnGuardar.textContent;
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
+    console.log('Enviando datos de persona:', Object.fromEntries(formData));
+    
     ajaxPost(BASE_URL + '/personas/crear', formData, function(data) {
+        console.log('Respuesta del servidor:', data);
+        
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = originalText;
+        
         if (data.success) {
             cerrarModalPersona();
+            
+            // Mostrar información de la persona creada
             mostrarPersona(data.data);
             document.getElementById('scanner_status').textContent = 'Persona creada y seleccionada';
             document.getElementById('scanner_status').style.color = 'var(--success)';
+            
+            // Actualizar indicador visual
+            if (window.onScannerStatusChange) {
+                window.onScannerStatusChange('success', 'Persona creada');
+            }
+            
+            // Llamar a función global para manejar persona encontrada (que mostrará el formulario)
+            if (window.onPersonaEncontrada) {
+                window.onPersonaEncontrada(data.data);
+            }
         } else {
-            swalError(data.message || 'Error al crear persona');
+            console.error('Error al crear persona:', data);
+            if (data.errors && Object.keys(data.errors).length > 0) {
+                var errorMsg = 'Por favor corrija los siguientes errores:\\n\\n';
+                for (var field in data.errors) {
+                    errorMsg += '- ' + data.errors[field] + '\\n';
+                }
+                swalWarning(errorMsg);
+            } else {
+                swalError(data.message || 'Error al crear persona');
+            }
         }
+    }).catch(function(error) {
+        console.error('Error en la petición AJAX:', error);
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = originalText;
+        swalError('Error de conexión. Por favor intente nuevamente.');
+    });
+}
+
+// Helper local: setStatus solo existe dentro del IIFE de scanner.js. Aquí lo llamamos
+// vía window.setStatus si la vista lo expuso, o caemos en un fallback que actualiza
+// directamente #scanner_status. Sin esto, una ReferenceError abortaba el flujo después
+// de mostrar la persona y onPersonaEncontrada nunca se ejecutaba.
+function _setStatus(msg, type) {
+    if (typeof window.setStatus === 'function') { window.setStatus(msg, type); return; }
+    var el = document.getElementById('scanner_status');
+    if (!el) return;
+    var colors = { success: '#1B873F', danger: '#B42318', error: '#B42318', warning: '#B54708', info: '#175CD3' };
+    el.style.color = colors[type] || '#4A4651';
+    el.textContent = msg;
+}
+
+function buscarPersona(documento) {
+    fetch(BASE_URL + '/personas/buscar?documento=' + encodeURIComponent(documento), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success && data.data) {
+            // Persona encontrada - mostrar directamente el formulario
+            mostrarPersona(data.data);
+            _setStatus('Persona encontrada', 'success');
+
+            // Actualizar indicador visual
+            if (window.onScannerStatusChange) {
+                window.onScannerStatusChange('success', 'Persona encontrada');
+            }
+
+            // Llamar a función global para manejar persona encontrada
+            if (window.onPersonaEncontrada) {
+                window.onPersonaEncontrada(data.data);
+            }
+        } else {
+            // Persona no encontrada - mostrar modal para crearla
+            _setStatus('Persona no encontrada. Complete el registro.', 'warning');
+
+            // Actualizar indicador visual
+            if (window.onScannerStatusChange) {
+                window.onScannerStatusChange('error', 'Persona no encontrada');
+            }
+
+            // Abrir modal para crear nueva persona
+            abrirModalPersona(documento);
+        }
+    })
+    .catch(function(err) {
+        console.error('Error buscando persona:', err);
+        _setStatus('Error de conexión. Intente nuevamente.', 'error');
+
+        // Actualizar indicador visual
+        if (window.onScannerStatusChange) {
+            window.onScannerStatusChange('error', 'Error de conexión');
+        }
+
+        // Abrir modal para crear nueva persona en caso de error
+        abrirModalPersona(documento);
     });
 }

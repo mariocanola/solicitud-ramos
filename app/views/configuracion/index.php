@@ -21,8 +21,6 @@
                 <?php
                 $groups = [
                     'Organizacion' => ['nombre_organizacion', 'logo_path'],
-                    'Correo' => ['correo_destino', 'correo_cc'],
-                    'SMTP' => ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_secure'],
                     'Cupos' => ['cupo_default'],
                 ];
                 $configMap = [];
@@ -37,8 +35,7 @@
                 <div class="row">
                     <?php foreach ($claves as $clave):
                         $config = $configMap[$clave] ?? null;
-                        $tipo = ($clave === 'smtp_pass') ? 'password' : 'text';
-                        if ($clave === 'smtp_port' || $clave === 'cupo_default') $tipo = 'number';
+                        $tipo = ($clave === 'cupo_default') ? 'number' : 'text';
                     ?>
                     <div class="col-6">
                         <div class="form-group">

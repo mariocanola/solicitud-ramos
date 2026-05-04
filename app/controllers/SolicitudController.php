@@ -3,7 +3,11 @@ require_once BASE_PATH . '/app/services/SolicitudService.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/MotivoRamo.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
+require_once BASE_PATH . '/app/models/Persona.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
+require_once BASE_PATH . '/app/helpers/Session.php';
+require_once BASE_PATH . '/app/middleware/Csrf.php';
+require_once BASE_PATH . '/app/helpers/Response.php';
 
 class SolicitudController
 {
@@ -12,6 +16,101 @@ class SolicitudController
     public function __construct()
     {
         $this->service = new SolicitudService();
+    }
+
+    /**
+     * Buscar persona por documento para el panel del operador
+     */
+    public function buscarPersona()
+    {
+        $documento = trim($_GET['documento'] ?? '');
+        
+        if (empty($documento)) {
+            Response::error('El documento es requerido');
+            return;
+        }
+
+        $personaModel = new Persona();
+        $persona = $personaModel->buscarPorDocumento($documento);
+
+        if ($persona) {
+            Response::success($persona, 'Persona encontrada');
+        } else {
+            Response::error('Persona no encontrada');
+        }
+    }
+
+    /**
+     * Crear nueva persona desde el panel del operador
+     */
+    public function crearPersona()
+    {
+        Csrf::validate();
+        
+        $data = [
+            'tipo_documento'     => $_POST['tipo_documento'] ?? 'CC',
+            'documento'          => trim($_POST['documento'] ?? ''),
+            'primer_nombre'       => trim($_POST['primer_nombre'] ?? ''),
+            'segundo_nombre'      => trim($_POST['segundo_nombre'] ?? '') ?: null,
+            'primer_apellido'     => trim($_POST['primer_apellido'] ?? ''),
+            'segundo_apellido'    => trim($_POST['segundo_apellido'] ?? '') ?: null,
+            'telefono'            => trim($_POST['telefono'] ?? '') ?: null,
+            'id_sede'            => (int)($_POST['id_sede'] ?? 0),
+            'activo'             => 1 // Siempre activo para operador
+        ];
+
+        $personaModel = new Persona();
+        $resultado = $personaModel->crear($data);
+
+        if ($resultado['success']) {
+            Response::success($resultado['data'], $resultado['message']);
+        } else {
+            Response::error($resultado['message']);
+        }
+    }
+
+    public function formTouch()
+    {
+        // Fase 3: Panel del operador optimizado para pantalla táctil
+        $sedeModel = new Sede();
+        $motivoModel = new MotivoRamo();
+        
+        $sedes = $sedeModel->getActivas();
+        $motivos = $motivoModel->getActivos();
+        
+        $hoy = DateHelper::today();
+        $flash = Session::getFlash('mensaje');
+        $flashTipo = Session::getFlash('tipo');
+        $pageTitle = 'Panel del Operador';
+        $csrfField = Csrf::field();
+        
+        ob_start();
+        require BASE_PATH . '/app/views/solicitudes/formulario_operador.php';
+        $content = ob_get_clean();
+        require BASE_PATH . '/app/views/layouts/main.php';
+    }
+
+    public function crearTouch()
+    {
+        Csrf::validate();
+        
+        $data = [
+            'persona_id'         => (int)($_POST['persona_id'] ?? 0),
+            'fecha_solicitud'    => $_POST['fecha_solicitud'] ?? DateHelper::today(),
+            'id_sede'            => (int)($_POST['id_sede'] ?? 0),
+            'nombre_destinatario'=> trim($_POST['nombre_destinatario'] ?? 'Solicitante'),
+            'id_motivo'          => (int)($_POST['id_motivo'] ?? 0),
+            'motivo_otro'        => trim($_POST['motivo_otro'] ?? '') ?: null,
+            'observaciones'      => trim($_POST['observaciones'] ?? '') ?: null,
+        ];
+
+        $resultado = $this->service->crear($data);
+
+        if ($resultado['success']) {
+            Response::success(null, $resultado['message']);
+        } else {
+            Response::error($resultado['message']);
+        }
     }
 
     public function listar()

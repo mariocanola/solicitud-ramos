@@ -227,7 +227,6 @@
                 </div>
                 <div class="mt-2 d-flex gap-1">
                     <button type="submit" class="btn btn-dark btn-lg">Descargar PDF</button>
-                    <button type="button" class="btn btn-primary btn-lg" onclick="enviarPorCorreo()">Enviar por Correo</button>
                 </div>
             </form>
             <div id="reporte_msg" class="mt-2"></div>
@@ -265,44 +264,18 @@
             <!-- Form -->
             <form id="form_solicitud" method="POST" action="<?= BASE_URL ?>/solicitudes/crear">
                 <?= $csrfField ?>
-                <input type="hidden" name="persona_id" id="persona_id" value="">
-
-                <div class="row">
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label>Fecha de Solicitud</label>
-                            <input type="date" name="fecha_solicitud" id="fecha_solicitud"
-                                   class="form-control" value="<?= $hoy ?>" readonly>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label>Sede *</label>
-                            <select name="id_sede" id="id_sede" class="form-control" required>
-                                <option value="">-- Seleccione --</option>
-                                <?php foreach ($sedes as $sede): ?>
-                                <option value="<?= $sede['id'] ?>"><?= htmlspecialchars($sede['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <small id="sede_nota" class="text-muted" style="font-size:11px;margin-top:4px;display:none">
-                                La sede corresponde a la persona seleccionada
-                            </small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Nombre del Destinatario *</label>
-                    <input type="text" name="nombre_destinatario" id="nombre_destinatario"
-                           class="form-control" maxlength="150" required>
-                </div>
+                <!-- Datos automáticos: se completan desde la persona identificada -->
+                <input type="hidden" name="persona_id"          id="persona_id"          value="">
+                <input type="hidden" name="fecha_solicitud"     id="fecha_solicitud"     value="<?= $hoy ?>">
+                <input type="hidden" name="id_sede"             id="id_sede"             value="">
+                <input type="hidden" name="nombre_destinatario" id="nombre_destinatario" value="">
 
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
                             <label>Motivo *</label>
                             <select name="id_motivo" id="id_motivo" class="form-control" required>
-                                <option value="">-- Seleccione --</option>
+                                <option value="">-- Seleccione el motivo --</option>
                                 <?php foreach ($motivos as $motivo): ?>
                                 <option value="<?= $motivo['id'] ?>" data-requiere-detalle="<?= $motivo['requiere_detalle'] ?>">
                                     <?= htmlspecialchars($motivo['nombre']) ?>
@@ -320,8 +293,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Observaciones</label>
-                    <textarea name="observaciones" id="observaciones" class="form-control" maxlength="500"></textarea>
+                    <label>Observaciones <span style="color:#7F8C8D;font-weight:400;font-size:12px">(opcional)</span></label>
+                    <textarea name="observaciones" id="observaciones" class="form-control" maxlength="500"
+                              placeholder="Si desea agregar algún detalle adicional, escríbalo aquí."></textarea>
                 </div>
             </form>
         </div>
@@ -434,6 +408,16 @@ function cambiarTab(tab) {
     if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
 }
 
+// Auto-rellena el destinatario oculto con el nombre completo de la persona identificada.
+// solicitud.js dispara esta callback tras encontrar persona; aquí solo seteamos el campo.
+window.onPersonaEncontrada = function (persona) {
+    var dest = document.getElementById('nombre_destinatario');
+    if (dest) {
+        dest.value = persona.nombre_completo ||
+            ((persona.primer_nombre || '') + ' ' + (persona.primer_apellido || '')).trim();
+    }
+};
+
 // === MODAL SOLICITUD ===
 function abrirModalSolicitud() {
     document.getElementById('modal_solicitud').classList.add('show');
@@ -472,14 +456,6 @@ function enviarSolicitud() {
         return;
     }
 
-    // Validar campos requeridos antes de enviar
-    var destinatario = document.getElementById('nombre_destinatario').value.trim();
-    if (!destinatario) {
-        swalWarning('Debe ingresar el nombre del destinatario.');
-        document.getElementById('nombre_destinatario').focus();
-        return;
-    }
-
     var motivo = document.getElementById('id_motivo').value;
     if (!motivo) {
         swalWarning('Debe seleccionar un motivo.');
@@ -504,40 +480,6 @@ function enviarSolicitud() {
     btn.textContent = 'Guardando...';
 
     document.getElementById('form_solicitud').submit();
-}
-
-// === REPORTES ===
-function enviarPorCorreo() {
-    swalConfirm('Enviar reporte', '¿Enviar el reporte por correo electronico?', function() { _enviarCorreo(); });
-    return;
-}
-function _enviarCorreo() {
-    var form = document.getElementById('form_reporte');
-    var formData = new FormData(form);
-
-    Swal.fire({
-        title: 'Enviando correo...',
-        text: 'Por favor espere',
-        allowOutsideClick: false,
-        didOpen: function() { Swal.showLoading(); }
-    });
-
-    fetch(BASE_URL + '/reportes/enviar-correo', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success) {
-            swalSuccess(data.message);
-        } else {
-            swalError(data.message);
-        }
-    })
-    .catch(function() {
-        swalError('Error de conexion');
-    });
 }
 
 // === ELIMINAR SOLICITUD ===
@@ -575,9 +517,9 @@ function buscarManual() {
 </script>
 <script>
 // Client-side validators
+// Solo el motivo es input visible del usuario; destinatario, sede y fecha se auto-completan
+// desde la persona identificada (campos hidden), por eso no necesitan validación del cliente.
 var solicitudValidator = new FormValidator('form_solicitud', {
-    'nombre_destinatario': [V.required('El nombre del destinatario es requerido'), V.maxLength(150)],
-    'id_sede': [V.required('Debe seleccionar una sede')],
     'id_motivo': [V.required('Debe seleccionar un motivo')]
 });
 
@@ -588,5 +530,9 @@ var personaValidator = new FormValidator('form_persona', {
     'id_sede': [V.required('Debe seleccionar una sede')]
 });
 </script>
-<script src="<?= BASE_URL ?>/js/scanner.js"></script>
-<script src="<?= BASE_URL ?>/js/solicitud.js"></script>
+<?php
+  $jsScannerVer = @filemtime(BASE_PATH . '/public/js/scanner.js') ?: time();
+  $jsSolicitudVer = @filemtime(BASE_PATH . '/public/js/solicitud.js') ?: time();
+?>
+<script src="<?= BASE_URL ?>/js/scanner.js?v=<?= $jsScannerVer ?>"></script>
+<script src="<?= BASE_URL ?>/js/solicitud.js?v=<?= $jsSolicitudVer ?>"></script>

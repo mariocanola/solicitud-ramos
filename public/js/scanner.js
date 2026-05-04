@@ -72,35 +72,23 @@
 
         if (documento.length < 3) {
             setStatus('Documento no válido. Escriba al menos 3 dígitos.', 'danger');
+            // Actualizar indicador visual
+            if (window.onScannerStatusChange) {
+                window.onScannerStatusChange('error', 'Documento inválido');
+            }
             return;
         }
 
         scannerInput.value = documento;
         setStatus('Buscando...', 'info');
+        // Actualizar indicador visual
+        if (window.onScannerStatusChange) {
+            window.onScannerStatusChange('scanning', 'Buscando persona...');
+        }
         buscarPersona(documento);
     }
 
-    function buscarPersona(documento) {
-        fetch(BASE_URL + '/personas/buscar?documento=' + encodeURIComponent(documento), {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success && data.data) {
-                mostrarPersona(data.data);
-                setStatus('Persona encontrada', 'success');
-            } else {
-                setStatus('Persona no encontrada. Complete el registro.', 'warning');
-                abrirModalPersona(documento);
-            }
-        })
-        .catch(function(err) {
-            console.error('Error buscando persona:', err);
-            setStatus('Persona no encontrada. Complete el registro.', 'warning');
-            abrirModalPersona(documento);
-        });
-    }
-
+    
     function setStatus(msg, type) {
         var el = document.getElementById('scanner_status');
         var colors = {
@@ -114,7 +102,6 @@
     }
 
     // Expose for external use
-    window.buscarPersona = buscarPersona;
     window.procesarEntradaScanner = procesarEntrada;
     window.buscarManual = window.buscarManual || buscarManual;
 })();

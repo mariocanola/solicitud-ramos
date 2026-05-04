@@ -1,6 +1,5 @@
 <?php
 require_once BASE_PATH . '/app/services/PdfService.php';
-require_once BASE_PATH . '/app/services/MailService.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
 
@@ -52,27 +51,6 @@ class ReporteController
             Session::flash('mensaje', 'Ocurrio un error al generar el PDF. Intente de nuevo.');
             Session::flash('tipo', 'danger');
             Response::redirect('reportes');
-        }
-    }
-
-    public function enviarCorreo()
-    {
-        Csrf::validate();
-
-        $filtros = [
-            'fecha_desde' => $_POST['fecha_desde'] ?? '',
-            'fecha_hasta' => $_POST['fecha_hasta'] ?? '',
-            'id_sede'     => $_POST['id_sede'] ?? '',
-            'id_estado'   => $_POST['id_estado'] ?? '',
-        ];
-
-        $mailService = new MailService();
-        $resultado = $mailService->enviarReporteManual($filtros);
-
-        if ($resultado['success']) {
-            Response::success(null, $resultado['message']);
-        } else {
-            Response::error($resultado['message']);
         }
     }
 }

@@ -123,10 +123,6 @@ function ajaxPost(url, formData, callback) {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(function(r) {
-        if (r.status === 401) {
-            window.location.href = (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + '/login';
-            throw new Error('No autenticado');
-        }
         if (!r.ok && r.status === 403) {
             throw new Error('Token de seguridad expirado. Recargue la página.');
         }

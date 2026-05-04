@@ -1,11 +1,31 @@
 <?php
-// Authentication Middleware
+require_once BASE_PATH . '/app/models/Usuario.php';
 
 class Auth
 {
     public static function check()
     {
-        return !empty($_SESSION['authenticated']);
+        return !empty($_SESSION['usuario']);
+    }
+
+    public static function user()
+    {
+        return $_SESSION['usuario'] ?? null;
+    }
+
+    public static function id()
+    {
+        return $_SESSION['usuario']['id'] ?? null;
+    }
+
+    public static function rol()
+    {
+        return $_SESSION['usuario']['rol'] ?? null;
+    }
+
+    public static function isAdmin()
+    {
+        return self::rol() === 'admin';
     }
 
     public static function guard()
@@ -22,16 +42,52 @@ class Auth
         }
     }
 
-    public static function login($password)
+    public static function requireRol($roles)
     {
-        $hash = Env::get('AUTH_PASSWORD', '');
-        if ($hash && password_verify($password, $hash)) {
-            session_regenerate_id(true);
-            $_SESSION['authenticated'] = true;
-            $_SESSION['auth_time'] = time();
-            return true;
+        self::guard();
+        $roles = (array)$roles;
+        if (!in_array(self::rol(), $roles, true)) {
+            if (self::isAjax()) {
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Acceso denegado']);
+                exit;
+            }
+            http_response_code(403);
+            echo '<div style="padding:80px;text-align:center"><h1>403</h1><p>No tienes permisos para acceder a esta seccion.</p><a href="' . BASE_URL . '/dashboard">Volver</a></div>';
+            exit;
         }
-        return false;
+    }
+
+    public static function login($username, $password)
+    {
+        try {
+            $userModel = new Usuario();
+            $user = $userModel->buscarPorUsername($username);
+        } catch (Throwable $e) {
+            error_log('[Auth::login] Error al consultar usuario: ' . $e->getMessage());
+            // Re-lanzamos para que el manejador global muestre el mensaje amigable
+            throw $e;
+        }
+
+        if (!$user || !password_verify($password, $user['password_hash'])) {
+            return false;
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['usuario'] = [
+            'id'       => (int)$user['id'],
+            'username' => $user['username'],
+            'nombre'   => $user['nombre'],
+            'rol'      => $user['rol'],
+        ];
+        $_SESSION['auth_time'] = time();
+        try {
+            $userModel->registrarLogin($user['id']);
+        } catch (Throwable $e) {
+            error_log('[Auth::login] No se pudo registrar ultimo_login: ' . $e->getMessage());
+        }
+        return true;
     }
 
     public static function logout()

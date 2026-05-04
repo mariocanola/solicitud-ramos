@@ -49,48 +49,9 @@
                 <button type="submit" class="btn btn-dark btn-lg">
                     Descargar PDF
                 </button>
-                <button type="button" class="btn btn-primary btn-lg" onclick="enviarPorCorreo()">
-                    Enviar por Correo
-                </button>
             </div>
         </form>
 
         <div id="reporte_msg" class="mt-2"></div>
     </div>
 </div>
-
-<script>
-var BASE_URL = '<?= BASE_URL ?>';
-var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
-
-function enviarPorCorreo() {
-    swalConfirm('Enviar reporte', '¿Enviar el reporte por correo electronico?', function() {
-        var form = document.getElementById('form_reporte');
-        var formData = new FormData(form);
-
-        Swal.fire({
-            title: 'Enviando correo...',
-            text: 'Por favor espere',
-            allowOutsideClick: false,
-            didOpen: function() { Swal.showLoading(); }
-        });
-
-        fetch(BASE_URL + '/reportes/enviar-correo', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                swalSuccess(data.message);
-            } else {
-                swalError(data.message);
-            }
-        })
-        .catch(function() {
-            swalError('Error de conexion');
-        });
-    });
-}
-</script>
