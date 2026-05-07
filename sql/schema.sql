@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS sedes (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS personas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    tipo_documento ENUM('CC','CE','TI','PA','NIT') NOT NULL,
+    tipo_documento ENUM('CC','CE','TI','PA','NIT','PT') NOT NULL,
     documento VARCHAR(20) NOT NULL,
     primer_nombre VARCHAR(50) NOT NULL,
     segundo_nombre VARCHAR(50) NULL,

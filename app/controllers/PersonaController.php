@@ -8,7 +8,7 @@ class PersonaController
 {
     private $service;
 
-    private static $tiposDocumentoValidos = ['CC', 'CE', 'TI', 'PA', 'NIT'];
+    private static $tiposDocumentoValidos = ['CC', 'CE', 'TI', 'PA', 'NIT', 'PT'];
 
     public function __construct()
     {
@@ -21,9 +21,10 @@ class PersonaController
         $sedeModel = new Sede();
 
         $filtros = [
-            'busqueda' => trim($_GET['busqueda'] ?? ''),
-            'id_sede'  => $_GET['id_sede'] ?? '',
-            'pagina'   => $_GET['pagina'] ?? 1,
+            'busqueda'   => trim($_GET['busqueda'] ?? ''),
+            'id_sede'    => $_GET['id_sede'] ?? '',
+            'pagina'     => $_GET['pagina'] ?? 1,
+            'por_pagina' => $_GET['por_pagina'] ?? 15,
         ];
 
         $resultado = $personaModel->getAll($filtros);
@@ -33,6 +34,7 @@ class PersonaController
         $totalPaginas = $resultado['total_paginas'];
         $paginaActual = $resultado['pagina'];
         $totalRegistros = $resultado['total'];
+        $porPagina = $resultado['por_pagina'];
 
         $pageTitle = 'Personas';
         $csrfField = Csrf::field();
@@ -142,6 +144,167 @@ class PersonaController
         } else {
             Response::error($resultado['message'], 400, $resultado['errors'] ?? []);
         }
+    }
+
+    public function importar()
+    {
+        $pageTitle = 'Cargar maestro de personas';
+        $csrfField = Csrf::field();
+        $flash = Session::getFlash('mensaje');
+        $flashTipo = Session::getFlash('tipo');
+
+        ob_start();
+        require BASE_PATH . '/app/views/personas/importar.php';
+        $content = ob_get_clean();
+        require BASE_PATH . '/app/views/layouts/main.php';
+    }
+
+    public function descargarPlantilla()
+    {
+        $ruta = BASE_PATH . '/public/templates/plantilla_maestro_personas.xlsx';
+        if (!is_file($ruta)) {
+            http_response_code(404);
+            echo 'Plantilla no encontrada';
+            return;
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="plantilla_maestro_personas.xlsx"');
+        header('Content-Length: ' . filesize($ruta));
+        header('Cache-Control: no-cache, must-revalidate');
+        readfile($ruta);
+    }
+
+    public function subirMaestro()
+    {
+        Csrf::validate();
+
+        if (empty($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
+            $this->redirectImportError('Debe seleccionar un archivo valido.');
+        }
+
+        $tmp  = $_FILES['archivo']['tmp_name'];
+        $name = $_FILES['archivo']['name'];
+        $ext  = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+        if (!in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+            $this->redirectImportError('Formato no soportado. Use .xlsx, .xls o .csv.');
+        }
+
+        if ($_FILES['archivo']['size'] > 10 * 1024 * 1024) {
+            $this->redirectImportError('El archivo excede 10 MB.');
+        }
+
+        require_once BASE_PATH . '/app/services/MaestroImportService.php';
+        $service = new MaestroImportService();
+
+        try {
+            $clasificacion = $service->clasificar($service->leerArchivo($tmp));
+        } catch (Exception $e) {
+            $this->redirectImportError('Error al procesar el archivo: ' . $e->getMessage());
+        }
+
+        $this->guardarPreview($clasificacion, $name);
+        header('Location: ' . BASE_URL . '/personas/importar/preview');
+    }
+
+    public function previewMaestro()
+    {
+        $preview = $this->cargarPreview();
+        if ($preview === null) {
+            header('Location: ' . BASE_URL . '/personas/importar');
+            return;
+        }
+        $clasificacion = $preview['clasificacion'];
+        $archivo       = $preview['archivo'];
+
+        $pageTitle = 'Previsualizacion de maestro';
+        $csrfField = Csrf::field();
+
+        ob_start();
+        require BASE_PATH . '/app/views/personas/importar_preview.php';
+        $content = ob_get_clean();
+        require BASE_PATH . '/app/views/layouts/main.php';
+    }
+
+    public function confirmarImport()
+    {
+        Csrf::validate();
+
+        $preview = $this->cargarPreview();
+        if ($preview === null) {
+            Session::flash('mensaje', 'No hay datos para importar. Vuelva a cargar el archivo.');
+            Session::flash('tipo', 'warning');
+            header('Location: ' . BASE_URL . '/personas/importar');
+            return;
+        }
+
+        require_once BASE_PATH . '/app/services/MaestroImportService.php';
+        $service = new MaestroImportService();
+
+        try {
+            $resultado = $service->ejecutar($preview['clasificacion']);
+        } catch (Exception $e) {
+            $this->redirectImportError('Error al ejecutar la importacion: ' . $e->getMessage());
+        }
+
+        $this->limpiarPreview();
+
+        $msg = sprintf(
+            'Importacion completada. Insertadas: %d, actualizadas: %d, reactivadas: %d.',
+            $resultado['insertadas'], $resultado['actualizadas'], $resultado['reactivadas']
+        );
+        Session::flash('mensaje', $msg);
+        Session::flash('tipo', 'success');
+        header('Location: ' . BASE_URL . '/personas');
+    }
+
+    private function redirectImportError($mensaje)
+    {
+        Session::flash('mensaje', $mensaje);
+        Session::flash('tipo', 'danger');
+        header('Location: ' . BASE_URL . '/personas/importar');
+        exit;
+    }
+
+    // Persiste la clasificacion (hasta ~1200 filas) en archivo temporal en lugar
+    // de $_SESSION para evitar serializar el payload en cada request.
+    private function guardarPreview(array $clasificacion, $archivo)
+    {
+        $token = bin2hex(random_bytes(16));
+        $dir = BASE_PATH . '/storage/maestro_imports';
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
+        file_put_contents($dir . '/' . $token . '.json', json_encode([
+            'clasificacion' => $clasificacion,
+            'archivo'       => $archivo,
+            'creado'        => time(),
+        ]));
+        $_SESSION['maestro_preview_token'] = $token;
+    }
+
+    private function cargarPreview()
+    {
+        $token = $_SESSION['maestro_preview_token'] ?? null;
+        if (!$token) return null;
+        $ruta = BASE_PATH . '/storage/maestro_imports/' . preg_replace('/[^a-f0-9]/', '', $token) . '.json';
+        if (!is_file($ruta)) return null;
+        $data = json_decode(file_get_contents($ruta), true);
+        return is_array($data) ? $data : null;
+    }
+
+    public function cancelarImport()
+    {
+        $this->limpiarPreview();
+        header('Location: ' . BASE_URL . '/personas');
+    }
+
+    private function limpiarPreview()
+    {
+        $token = $_SESSION['maestro_preview_token'] ?? null;
+        if ($token) {
+            $ruta = BASE_PATH . '/storage/maestro_imports/' . preg_replace('/[^a-f0-9]/', '', $token) . '.json';
+            if (is_file($ruta)) @unlink($ruta);
+        }
+        unset($_SESSION['maestro_preview_token']);
     }
 
     private function validarActualizar($data)

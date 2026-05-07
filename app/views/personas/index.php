@@ -49,7 +49,10 @@
 <div class="card mt-2">
     <div class="card-header">
         <span>Personas</span>
-        <button class="btn btn-success btn-sm" onclick="abrirModalPersona()">+ Nueva Persona</button>
+        <div style="display:flex;gap:8px">
+            <a href="<?= BASE_URL ?>/personas/importar" class="btn btn-outline btn-sm">Cargar maestro</a>
+            <button class="btn btn-success btn-sm" onclick="abrirModalPersona()">+ Nueva Persona</button>
+        </div>
     </div>
     <div class="card-body">
         <?php if (empty($personas)): ?>
@@ -79,7 +82,7 @@
                 </thead>
                 <tbody>
                 <?php
-                $contador = ($paginaActual - 1) * 15 + 1;
+                $contador = ($paginaActual - 1) * $porPagina + 1;
                 foreach ($personas as $p):
                 ?>
                     <tr>
@@ -114,26 +117,95 @@
             </table>
         </div>
 
-        <?php if ($totalPaginas > 1): ?>
-        <div class="pagination">
-            <?php if ($paginaActual > 1): ?>
-                <?php $params = $_GET; $params['pagina'] = $paginaActual - 1; ?>
-                <a href="<?= BASE_URL ?>/personas?<?= http_build_query($params) ?>">&laquo; Anterior</a>
-            <?php endif; ?>
-            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                <?php $params = $_GET; $params['pagina'] = $i; $qs = http_build_query($params); ?>
-                <?php if ($i == $paginaActual): ?>
-                    <span class="active"><?= $i ?></span>
-                <?php else: ?>
-                    <a href="<?= BASE_URL ?>/personas?<?= $qs ?>"><?= $i ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-            <?php if ($paginaActual < $totalPaginas): ?>
-                <?php $params = $_GET; $params['pagina'] = $paginaActual + 1; ?>
-                <a href="<?= BASE_URL ?>/personas?<?= http_build_query($params) ?>">Siguiente &raquo;</a>
+        <?php
+        // Barra de info + selector tamano + paginacion compacta
+        $desde = ($paginaActual - 1) * $porPagina + 1;
+        $hasta = min($paginaActual * $porPagina, $totalRegistros);
+        $linkPag = function ($pagina) use ($paginaActual) {
+            $params = $_GET; $params['pagina'] = $pagina;
+            return BASE_URL . '/personas?' . http_build_query($params);
+        };
+        // Construir lista de paginas: 1, ..., (n-2..n+2), ..., total
+        $paginasMostrar = [];
+        if ($totalPaginas <= 7) {
+            for ($i = 1; $i <= $totalPaginas; $i++) $paginasMostrar[] = $i;
+        } else {
+            $paginasMostrar[] = 1;
+            $inicio = max(2, $paginaActual - 2);
+            $fin    = min($totalPaginas - 1, $paginaActual + 2);
+            if ($inicio > 2) $paginasMostrar[] = '...';
+            for ($i = $inicio; $i <= $fin; $i++) $paginasMostrar[] = $i;
+            if ($fin < $totalPaginas - 1) $paginasMostrar[] = '...';
+            $paginasMostrar[] = $totalPaginas;
+        }
+        ?>
+        <div class="pagination-bar">
+            <div class="pagination-info">
+                Mostrando <strong><?= number_format($desde) ?>&ndash;<?= number_format($hasta) ?></strong>
+                de <strong><?= number_format($totalRegistros) ?></strong>
+            </div>
+            <form method="GET" action="<?= BASE_URL ?>/personas" class="pagination-pagesize">
+                <?php foreach (['busqueda','id_sede'] as $k): if (!empty($_GET[$k])): ?>
+                    <input type="hidden" name="<?= $k ?>" value="<?= htmlspecialchars($_GET[$k]) ?>">
+                <?php endif; endforeach; ?>
+                <label for="por_pagina">Por pagina</label>
+                <select id="por_pagina" name="por_pagina" onchange="this.form.submit()">
+                    <?php foreach ([15,30,50,100] as $opt): ?>
+                        <option value="<?= $opt ?>" <?= $porPagina == $opt ? 'selected' : '' ?>><?= $opt ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+            <?php if ($totalPaginas > 1): ?>
+            <nav class="pagination-nav" aria-label="Paginacion">
+                <a class="pg-btn <?= $paginaActual <= 1 ? 'disabled' : '' ?>"
+                   <?= $paginaActual > 1 ? 'href="' . $linkPag($paginaActual - 1) . '"' : '' ?>>&laquo;</a>
+                <?php foreach ($paginasMostrar as $p): ?>
+                    <?php if ($p === '...'): ?>
+                        <span class="pg-ellipsis">&hellip;</span>
+                    <?php elseif ($p == $paginaActual): ?>
+                        <span class="pg-btn active"><?= $p ?></span>
+                    <?php else: ?>
+                        <a class="pg-btn" href="<?= $linkPag($p) ?>"><?= $p ?></a>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                <a class="pg-btn <?= $paginaActual >= $totalPaginas ? 'disabled' : '' ?>"
+                   <?= $paginaActual < $totalPaginas ? 'href="' . $linkPag($paginaActual + 1) . '"' : '' ?>>&raquo;</a>
+            </nav>
             <?php endif; ?>
         </div>
-        <?php endif; ?>
+        <style>
+        .pagination-bar {
+            display:flex; align-items:center; justify-content:space-between;
+            flex-wrap:wrap; gap:14px;
+            margin-top:18px; padding-top:14px;
+            border-top:1px solid #e2e8f0;
+        }
+        .pagination-info { color:#475569; font-size:13px; }
+        .pagination-pagesize { display:flex; align-items:center; gap:8px; margin:0; }
+        .pagination-pagesize label { font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:0.3px; font-weight:600; margin:0; }
+        .pagination-pagesize select {
+            padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px;
+            background:#fff; font-size:13px; cursor:pointer;
+        }
+        .pagination-nav { display:flex; gap:4px; flex-wrap:wrap; }
+        .pg-btn {
+            display:inline-flex; align-items:center; justify-content:center;
+            min-width:34px; height:34px; padding:0 10px;
+            border:1px solid #cbd5e1; border-radius:6px;
+            background:#fff; color:#334155;
+            font-size:13px; font-weight:600;
+            text-decoration:none; cursor:pointer;
+            transition:background 0.12s, border-color 0.12s;
+        }
+        .pg-btn:hover:not(.disabled):not(.active) { background:#f1f5f9; border-color:#94a3b8; }
+        .pg-btn.active { background:#4A1942; color:#fff; border-color:#4A1942; cursor:default; }
+        .pg-btn.disabled { color:#cbd5e1; pointer-events:none; background:#f8fafc; }
+        .pg-ellipsis { display:inline-flex; align-items:center; padding:0 6px; color:#94a3b8; }
+        @media (max-width: 640px) {
+            .pagination-bar { justify-content:center; text-align:center; }
+            .pagination-info { width:100%; }
+        }
+        </style>
         <?php endif; ?>
     </div>
 </div>

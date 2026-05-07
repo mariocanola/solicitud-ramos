@@ -36,7 +36,8 @@ class Persona
         $total = (int)$countStmt->fetchColumn();
 
         // Pagination
-        $porPagina = 15;
+        $porPagina = (int)($filtros['por_pagina'] ?? 15);
+        if (!in_array($porPagina, [15, 30, 50, 100], true)) $porPagina = 15;
         $pagina = max(1, (int)($filtros['pagina'] ?? 1));
         $totalPaginas = max(1, ceil($total / $porPagina));
         $offset = ($pagina - 1) * $porPagina;
@@ -55,6 +56,7 @@ class Persona
             'data' => $stmt->fetchAll(),
             'total' => $total,
             'pagina' => $pagina,
+            'por_pagina' => $porPagina,
             'total_paginas' => $totalPaginas,
         ];
     }

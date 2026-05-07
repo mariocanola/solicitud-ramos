@@ -1,0 +1,13 @@
+{
+    "name": "tandil/flores",
+    "description": "Sistema de gestion de solicitudes de ramos florales",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpoffice/phpspreadsheet": "^3.5"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
