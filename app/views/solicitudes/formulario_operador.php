@@ -19,6 +19,27 @@
         </div>
     </div>
 
+    <!-- Mensaje de Inicio -->
+    <div id="welcome_message" class="welcome-message">
+        <div class="welcome-icon">i</div>
+        <h2>¿Cómo solicitar un ramo?</h2>
+        <p>Siga estos tres pasos. Tomará menos de un minuto.</p>
+        <div class="welcome-steps">
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-text">Ingrese su cédula</span>
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-text">Verifique sus datos</span>
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-text">Complete y envíe la solicitud</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Scanner Section -->
     <div class="scanner-section" id="scanner_section">
         <div class="scanner-header">
@@ -145,27 +166,6 @@
         </div>
     </div>
 
-    <!-- Mensaje de Inicio -->
-    <div id="welcome_message" class="welcome-message">
-        <div class="welcome-icon">i</div>
-        <h2>¿Cómo solicitar un ramo?</h2>
-        <p>Siga estos tres pasos. Tomará menos de un minuto.</p>
-        <div class="welcome-steps">
-            <div class="step">
-                <span class="step-number">1</span>
-                <span class="step-text">Ingrese su cédula</span>
-            </div>
-            <div class="step">
-                <span class="step-number">2</span>
-                <span class="step-text">Verifique sus datos</span>
-            </div>
-            <div class="step">
-                <span class="step-number">3</span>
-                <span class="step-text">Complete y envíe la solicitud</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Pantalla de Éxito -->
     <div id="success_message" class="success-screen hidden">
         <div class="success-icon">&check;</div>
@@ -267,6 +267,11 @@
 
 <!-- Estilos específicos del panel operador -->
 <style>
+/* ===== MODO KIOSCO: ocultar sidebar y expandir contenido ===== */
+body .sidebar { display: none !important; }
+body .app-wrapper { display: block; }
+body .main-content { margin-left: 0 !important; width: 100% !important; max-width: 100% !important; }
+
 /* ===== PALETA EMPRESARIAL MORADA ===== */
 :root {
     --primary-50:  #FBF7FA;
@@ -1538,6 +1543,154 @@
     font-size: 14px;
     color: var(--secondary-600);
     margin-bottom: 24px;
+}
+
+/* ============================================
+   KIOSCO RESPONSIVE — adaptable a cualquier monitor
+   ============================================ */
+
+/* Base fluida con clamp() para cualquier tamaño */
+.operator-panel {
+    max-width: min(1200px, 96vw);
+    padding: clamp(12px, 2vw, 28px);
+    box-sizing: border-box;
+}
+
+.operator-header {
+    padding: clamp(14px, 2vw, 24px) clamp(16px, 2.5vw, 32px);
+    margin-bottom: clamp(16px, 2vw, 28px);
+}
+.operator-title { font-size: clamp(18px, 2.2vw, 26px); }
+.operator-session { font-size: clamp(12px, 1.2vw, 14px); }
+
+.scanner-section,
+.form-section,
+.persona-card,
+.welcome-message,
+#form_section.card,
+.success-screen {
+    padding: clamp(16px, 2.2vw, 28px);
+    margin-bottom: clamp(14px, 1.8vw, 24px);
+}
+
+.scanner-header h2 { font-size: clamp(15px, 1.5vw, 18px); }
+.scanner-input-touch {
+    font-size: clamp(16px, 1.8vw, 20px);
+    height: clamp(48px, 6vw, 64px);
+    padding: clamp(12px, 1.5vw, 18px);
+}
+.btn-scanner {
+    height: clamp(48px, 6vw, 64px);
+    min-width: clamp(110px, 14vw, 180px);
+    font-size: clamp(13px, 1.2vw, 16px);
+    padding: 0 clamp(18px, 2.5vw, 32px);
+}
+
+/* Numpad fluido — siempre cuadrado y proporcional */
+.numpad {
+    max-width: min(480px, 92%);
+    gap: clamp(6px, 1vw, 12px);
+    margin: clamp(12px, 1.6vw, 20px) auto 4px;
+}
+.numpad-key {
+    height: clamp(54px, 7vw, 80px);
+    font-size: clamp(20px, 2.2vw, 28px);
+    border-radius: clamp(8px, 1vw, 12px);
+}
+.numpad-action { font-size: clamp(12px, 1.1vw, 15px); }
+.numpad-back { font-size: clamp(20px, 2.2vw, 28px); }
+
+/* Welcome / instrucciones */
+.welcome-message h2 { font-size: clamp(15px, 1.6vw, 19px); }
+.welcome-message p  { font-size: clamp(13px, 1.2vw, 15px); }
+.welcome-steps {
+    flex-wrap: wrap;
+    gap: clamp(8px, 1vw, 14px);
+}
+.step {
+    min-width: 200px;
+    padding: clamp(10px, 1.2vw, 16px);
+}
+.step-text { font-size: clamp(12px, 1.1vw, 14px); }
+
+/* Persona card */
+.persona-details {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+/* Form */
+.form-row, .row { flex-wrap: wrap; }
+#form_section .form-control {
+    font-size: clamp(13px, 1.2vw, 15px);
+    min-height: clamp(40px, 5vw, 50px);
+}
+
+/* ===== Tablet pequeña / móvil grande ===== */
+@media (max-width: 768px) {
+    .operator-panel { padding: 12px; max-width: 100vw; }
+    .operator-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    .scanner-header { flex-direction: column; gap: 10px; text-align: center; }
+    .scanner-input-area { flex-direction: column; gap: 10px; }
+    .btn-scanner { width: 100%; min-width: 0; }
+    .welcome-steps { flex-direction: column; gap: 10px; }
+    .step { min-width: 0; width: 100%; }
+    .form-row, .row { grid-template-columns: 1fr; }
+    .col-6, .col-md-6, .col-lg-6 { width: 100%; max-width: 100%; flex: 0 0 100%; }
+    .form-actions { flex-direction: column; gap: 10px; align-items: stretch; }
+    .form-actions-left, .form-actions-right { width: 100%; justify-content: stretch; }
+    .form-actions-left .btn, .form-actions-right .btn { flex: 1; }
+    .persona-details { grid-template-columns: 1fr; }
+    .modal { width: 95%; margin: 16px; }
+    .modal-body, .modal-header, .modal-footer { padding: 16px; }
+}
+
+/* ===== Móvil pequeño ===== */
+@media (max-width: 420px) {
+    .numpad-key { height: 56px; font-size: 20px; }
+    .scanner-input-touch { font-size: 16px; height: 48px; }
+    .operator-title { font-size: 17px; }
+}
+
+/* ===== Modo retrato (kiosco vertical típico) ===== */
+@media (orientation: portrait) and (min-width: 600px) {
+    .operator-panel { max-width: 90vw; }
+    .welcome-steps { flex-direction: column; }
+    .step { width: 100%; }
+    .scanner-input-area { flex-direction: column; }
+    .btn-scanner { width: 100%; }
+}
+
+/* ===== Monitor grande (Full HD+) ===== */
+@media (min-width: 1600px) {
+    .operator-panel { max-width: 1400px; }
+}
+
+/* ===== Monitor muy grande / 4K ===== */
+@media (min-width: 2000px) {
+    .operator-panel { max-width: 1600px; }
+    .numpad { max-width: 560px; }
+}
+
+/* ===== Pantallas táctiles — botones más confortables ===== */
+@media (hover: none) and (pointer: coarse) {
+    .numpad-key { min-height: 64px; }
+    .btn { min-height: 48px; }
+    .btn-lg { min-height: 56px; }
+    .form-control { min-height: 48px; }
+}
+
+/* ===== Altura limitada (monitores pequeños o landscape de tablet) ===== */
+@media (max-height: 700px) {
+    .operator-header { padding: 12px 20px; margin-bottom: 14px; }
+    .scanner-section, .welcome-message, .persona-card, #form_section.card {
+        padding: 16px; margin-bottom: 12px;
+    }
+    .numpad-key { height: 54px; font-size: 20px; }
+    .welcome-message { padding: 16px 20px; }
 }
 </style>
 
