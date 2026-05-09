@@ -15,14 +15,14 @@
         </p>
 
         <div style="margin:18px 0;padding:14px 16px;background:#f6f4f8;border-left:3px solid #4A1942;border-radius:6px">
-            <strong>Formatos de archivo aceptados:</strong>
-            <ul style="margin:6px 0 0 18px;padding:0">
-                <li><strong>Plantilla del sistema</strong>: columnas separadas (<code>primer_nombre, segundo_nombre, primer_apellido, segundo_apellido</code>).</li>
-                <li><strong>Maestro empresarial</strong>: una sola columna <code>nombre</code> con el nombre completo - se parsea automaticamente.</li>
+            <strong>El sistema detecta automaticamente el tipo de archivo:</strong>
+            <ul style="margin:8px 0 0 18px;padding:0">
+                <li><strong>Maestro Tandil</strong> (rptMaestroEmpSinSal*.xlsx): personal directo de Tandil. Marca a las personas como empresa <code>TANDIL</code>.</li>
+                <li><strong>Maestro CREOS</strong> (ACTIVOS CREOS*.xls): personal temporal contratado por CREOS que trabaja en Tandil. Marca como empresa <code>CREOS</code> y respeta el campo Estado del archivo.</li>
             </ul>
-            <strong style="display:block;margin-top:10px">Columnas reconocidas:</strong>
-            <code>tipo_documento, documento (o numero_documento), nombre (o primer/segundo_nombre y primer/segundo_apellido), telefono (o telefono_movil), sede</code>.<br>
-            <strong>Sedes:</strong> <code>TN</code> = Tandil, <code>PM</code> = Primavera (acepta tambien <code>TN-PM</code> o <code>TN-TN</code>).<br>
+            <strong style="display:block;margin-top:10px">Sedes reconocidas en cualquiera de los formatos:</strong>
+            <code>TN</code>, <code>TANDIL</code>, <code>FLORES EL TANDIL</code>, <code>TN-TN</code> &rarr; Tandil &middot;
+            <code>PM</code>, <code>PRIMAVERA</code>, <code>TN-PM</code> &rarr; Primavera.<br>
             <strong>Tipos de documento:</strong> CC, CE, TI, PA, NIT, PT.
         </div>
 

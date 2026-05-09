@@ -7,7 +7,7 @@
     <div class="card-header">
         <span>Filtros de Busqueda</span>
         <?php
-            $hayFiltros = !empty($filtros['busqueda']) || !empty($filtros['id_sede']);
+            $hayFiltros = !empty($filtros['busqueda']) || !empty($filtros['id_sede']) || !empty($filtros['empresa']);
         ?>
         <?php if ($hayFiltros): ?>
             <a href="<?= BASE_URL ?>/personas" class="btn btn-outline btn-sm">Limpiar filtros</a>
@@ -37,7 +37,17 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-3" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:16px">
+                <div class="col-3">
+                    <div class="form-group">
+                        <label>Empresa</label>
+                        <select name="empresa" class="form-control">
+                            <option value="">-- Todas --</option>
+                            <option value="TANDIL" <?= ($filtros['empresa'] ?? '') === 'TANDIL' ? 'selected' : '' ?>>Tandil</option>
+                            <option value="CREOS" <?= ($filtros['empresa'] ?? '') === 'CREOS' ? 'selected' : '' ?>>Creos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12" style="display:flex;justify-content:flex-end;gap:8px">
                     <button type="submit" class="btn btn-primary">Buscar</button>
                 </div>
             </div>
@@ -90,7 +100,9 @@
                         <td><?= htmlspecialchars($p['documento']) ?></td>
                         <td><strong><?= htmlspecialchars(Persona::getNombreCompleto($p)) ?></strong></td>
                         <td><?= htmlspecialchars($p['telefono'] ?? '-') ?></td>
-                        <td><?= htmlspecialchars($p['sede_nombre']) ?></td>
+                        <td>
+                            <?= htmlspecialchars($p['sede_nombre']) ?><?php if (($p['empresa'] ?? 'TANDIL') === 'CREOS'): ?><span class="badge-creos">/Creos</span><?php endif; ?>
+                        </td>
                         <td>
                             <?php if ($p['activo']): ?>
                                 <span class="badge" style="background:var(--success)">Activo</span>
@@ -201,6 +213,15 @@
         .pg-btn.active { background:#4A1942; color:#fff; border-color:#4A1942; cursor:default; }
         .pg-btn.disabled { color:#cbd5e1; pointer-events:none; background:#f8fafc; }
         .pg-ellipsis { display:inline-flex; align-items:center; padding:0 6px; color:#94a3b8; }
+        .badge-creos {
+            display:inline-block;
+            margin-left:4px;
+            padding:1px 6px;
+            background:#e0f2fe; color:#0369a1;
+            border-radius:4px;
+            font-size:10px; font-weight:700;
+            letter-spacing:0.3px;
+        }
         @media (max-width: 640px) {
             .pagination-bar { justify-content:center; text-align:center; }
             .pagination-info { width:100%; }

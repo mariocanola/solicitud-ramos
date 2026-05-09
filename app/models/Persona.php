@@ -28,6 +28,11 @@ class Persona
             $params[] = (int)$filtros['id_sede'];
         }
 
+        if (!empty($filtros['empresa']) && in_array($filtros['empresa'], ['TANDIL','CREOS'], true)) {
+            $where[] = "p.empresa = ?";
+            $params[] = $filtros['empresa'];
+        }
+
         $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
         // Count
@@ -100,8 +105,8 @@ class Persona
 
         $stmt = $this->db->prepare(
             "INSERT INTO personas (tipo_documento, documento, primer_nombre, segundo_nombre,
-             primer_apellido, segundo_apellido, telefono, id_sede, activo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+             primer_apellido, segundo_apellido, telefono, id_sede, empresa, activo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $data['tipo_documento'],
@@ -112,6 +117,7 @@ class Persona
             $data['segundo_apellido'] ?? null,
             $data['telefono'] ?? null,
             (int)$data['id_sede'],
+            $data['empresa'] ?? 'TANDIL',
             $data['activo'] ?? 1,
         ]);
         return $this->db->lastInsertId();
@@ -121,7 +127,7 @@ class Persona
     {
         $stmt = $this->db->prepare(
             "UPDATE personas SET tipo_documento = ?, primer_nombre = ?, segundo_nombre = ?,
-             primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?, activo = ?
+             primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?, empresa = ?, activo = ?
              WHERE id = ?"
         );
         return $stmt->execute([
@@ -132,6 +138,7 @@ class Persona
             $data['segundo_apellido'] ?? null,
             $data['telefono'] ?? null,
             (int)$data['id_sede'],
+            $data['empresa'] ?? 'TANDIL',
             $data['activo'] ?? 1,
             (int)$id,
         ]);

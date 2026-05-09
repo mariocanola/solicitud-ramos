@@ -6,38 +6,48 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class MaestroImportService
 {
-    // Aceptamos dos formatos:
-    // (A) Plantilla: tipo_documento, documento, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, telefono, sede
-    // (B) Maestro original: tipo documento, numero documento, nombre, telefono movil, sede
-    // Los nombres de columnas se normalizan: minusculas, sin acentos, espacios -> "_".
-    const COLUMNAS_TODAS = [
-        'tipo_documento', 'documento',
-        'primer_nombre', 'segundo_nombre',
-        'primer_apellido', 'segundo_apellido',
-        'telefono', 'sede',
-    ];
+    // ============================================================
+    // CONSTANTES
+    // ============================================================
 
-    // Sinonimos aceptados por columna (lado izquierdo = nombre canonico)
+    const FORMATO_TANDIL = 'TANDIL';
+    const FORMATO_CREOS  = 'CREOS';
+
+    const TIPOS_VALIDOS = ['CC', 'CE', 'TI', 'PA', 'NIT', 'PT'];
+
+    // Sinonimos de columnas. Lado izquierdo = nombre canonico interno.
     const SINONIMOS = [
-        'tipo_documento'   => ['tipo_documento', 'tipo_de_documento', 'tipodocumento'],
+        'tipo_documento'   => ['tipo_documento', 'tipo_de_documento', 'tipodocumento', 'cod', 'codigo'],
         'documento'        => ['documento', 'numero_documento', 'numero_de_documento', 'no_documento', 'cedula', 'identificacion'],
-        'primer_nombre'    => ['primer_nombre'],
-        'segundo_nombre'   => ['segundo_nombre'],
-        'primer_apellido'  => ['primer_apellido'],
-        'segundo_apellido' => ['segundo_apellido'],
+        'primer_nombre'    => ['primer_nombre', '1_nombre'],
+        'segundo_nombre'   => ['segundo_nombre', '2_nombre'],
+        'primer_apellido'  => ['primer_apellido', '1_apellido'],
+        'segundo_apellido' => ['segundo_apellido', '2_apellido'],
         'nombre_completo'  => ['nombre', 'nombre_completo', 'nombres_y_apellidos', 'nombres'],
-        'sede'             => ['sede', 'lugar_trabajo', 'ubicacion'],
+        'sede'             => ['sede', 'lugar_trabajo', 'ubicacion', 'area'],
+        'estado'           => ['estado', 'estado_persona', 'situacion'],
     ];
 
     // Columnas de telefono detectadas en orden de prioridad: se usa la primera no vacia.
-    // El maestro empresarial usa la columna 'TELEFONO FIJO' para los numeros, por eso va primero.
+    // 'TELEFONO FIJO' del maestro Tandil tiene los celulares reales, por eso va primero.
     const TELEFONO_HEADERS = [
         'telefono_fijo', 'telefono_residencial',
         'telefono_movil', 'telefono_celular', 'celular', 'movil',
         'telefono',
     ];
 
-    const TIPOS_VALIDOS = ['CC', 'CE', 'TI', 'PA', 'NIT', 'PT'];
+    // Tabla de mapeo para los valores literales que pueden aparecer en la columna sede.
+    const SEDE_ALIASES = [
+        'TN'                => 'TN',
+        'TANDIL'            => 'TN',
+        'FLORES EL TANDIL'  => 'TN',
+        'PM'                => 'PM',
+        'PRIMAVERA'         => 'PM',
+    ];
+
+    // ============================================================
+    // ESTADO
+    // ============================================================
 
     private $db;
     private $sedesPorCodigo = [];
@@ -58,82 +68,109 @@ class MaestroImportService
         }
     }
 
+    // ============================================================
+    // LECTURA Y DETECCION DE FORMATO
+    // ============================================================
+
     /**
-     * Lee el archivo XLSX/CSV y devuelve filas asociativas.
-     * Soporta dos formatos: (A) plantilla con columnas separadas, (B) maestro con
-     * columna unica "nombre" que se parsea automaticamente.
-     * Tambien busca la fila de encabezados aunque no este en la primera linea
-     * (por reportes que tienen titulo en filas 1-2).
+     * Lee el archivo y devuelve filas asociativas en formato canonico.
+     * Detecta automaticamente si es maestro Tandil o Creos y aplica el adaptador.
+     * Retorna array con clave especial 'formato' al inicio.
      */
     public function leerArchivo($rutaArchivo)
     {
-        $spreadsheet = IOFactory::load($rutaArchivo);
+        $rows = $this->cargarFilasCrudas($rutaArchivo);
+
+        $deteccion = $this->detectarFormato($rows);
+        if ($deteccion === null) {
+            throw new Exception(
+                'No se pudo detectar el formato del archivo. Debe ser el maestro Tandil ' .
+                '(con columnas TIPO DOCUMENTO, NOMBRE, SEDE) o el maestro CREOS ' .
+                '(con columnas Cod, Documento, 1. Apellido, 1. Nombre, Area).'
+            );
+        }
+
+        [$formato, $filaHeader, $mapeo] = $deteccion;
+        $filas = $this->extraerFilas($rows, $filaHeader, $mapeo, $formato);
+
+        return ['formato' => $formato, 'filas' => $filas];
+    }
+
+    private function cargarFilasCrudas($ruta)
+    {
+        $spreadsheet = IOFactory::load($ruta);
         $sheet = $spreadsheet->getSheet(0);
         $rows = $sheet->toArray(null, true, true, false);
-
         if (empty($rows)) {
             throw new Exception('El archivo esta vacio.');
         }
+        return $rows;
+    }
 
-        // Buscar fila de encabezados: la primera fila que contenga al menos
-        // documento + (nombre o primer_nombre).
-        $filaHeader = -1;
-        $mapeo = [];
+    /**
+     * Recorre las primeras filas buscando una fila de encabezados que permita
+     * identificar el formato. Retorna [formato, indiceFila, mapeo] o null.
+     */
+    private function detectarFormato(array $rows)
+    {
         for ($i = 0; $i < min(10, count($rows)); $i++) {
-            $candidato = $this->mapearEncabezados($rows[$i]);
-            if (isset($candidato['documento']) &&
-                (isset($candidato['primer_nombre']) || isset($candidato['nombre_completo']))) {
-                $filaHeader = $i;
-                $mapeo = $candidato;
-                break;
+            $mapeo = $this->mapearEncabezados($rows[$i]);
+            $formato = $this->clasificarFormato($mapeo);
+            if ($formato !== null) {
+                return [$formato, $i, $mapeo];
             }
         }
-        if ($filaHeader === -1) {
-            throw new Exception(
-                'No se encontro la fila de encabezados. El archivo debe contener una fila con: ' .
-                'documento, y nombre (o primer_nombre/primer_apellido), tipo_documento, sede.'
-            );
-        }
+        return null;
+    }
 
-        // Validar columnas minimas
-        $obligatorias = ['documento', 'sede'];
-        foreach ($obligatorias as $req) {
-            if (!isset($mapeo[$req])) {
-                throw new Exception("Falta columna obligatoria: '$req'.");
-            }
+    private function clasificarFormato(array $mapeo)
+    {
+        // Maestro Creos: columnas separadas (1./2. apellido, 1./2. nombre) + estado
+        $tieneSeparado = isset($mapeo['primer_apellido']) && isset($mapeo['primer_nombre']);
+        if ($tieneSeparado && isset($mapeo['documento'])) {
+            return self::FORMATO_CREOS;
         }
-        $tieneNombreCompleto = isset($mapeo['nombre_completo']);
-        $tieneNombrePartido  = isset($mapeo['primer_nombre']) && isset($mapeo['primer_apellido']);
-        if (!$tieneNombreCompleto && !$tieneNombrePartido) {
-            throw new Exception(
-                'Falta el nombre. Use una columna "nombre" (con nombre completo) ' .
-                'o las columnas "primer_nombre" y "primer_apellido" separadas.'
-            );
+        // Maestro Tandil: columna unica 'nombre' que se parsea
+        if (isset($mapeo['nombre_completo']) && isset($mapeo['documento']) && isset($mapeo['sede'])) {
+            return self::FORMATO_TANDIL;
         }
+        return null;
+    }
 
+    /**
+     * Convierte el array de filas crudas en filas canonicas listas para clasificar.
+     * El parametro $formato decide la empresa por defecto y si se respeta el campo estado.
+     */
+    private function extraerFilas(array $rows, $filaHeader, array $mapeo, $formato)
+    {
+        $empresaPorDefecto = ($formato === self::FORMATO_CREOS) ? 'CREOS' : 'TANDIL';
+        $respetarEstado    = ($formato === self::FORMATO_CREOS);
         $filas = [];
+
         for ($i = $filaHeader + 1; $i < count($rows); $i++) {
             $r = $rows[$i];
             if ($this->filaVacia($r)) continue;
 
-            $fila = [];
-            foreach (self::COLUMNAS_TODAS as $col) {
-                $fila[$col] = $this->valorEnFila($r, $mapeo, $col);
-            }
-            // Telefono: probar todas las columnas detectadas y usar el primer valor no vacio.
-            if (!empty($mapeo['_telefonos'])) {
-                foreach ($mapeo['_telefonos'] as $idxTel) {
-                    $val = isset($r[$idxTel]) ? trim((string)$r[$idxTel]) : '';
-                    if ($val !== '') {
-                        // Excel puede entregar numeros como "3134060326.0" — quitar el ".0" final.
-                        $val = preg_replace('/\.0+$/', '', $val);
-                        $fila['telefono'] = $val;
-                        break;
-                    }
-                }
-            }
-            $fila['_nombre_parseado'] = false;
-            if ($tieneNombreCompleto && empty($fila['primer_nombre']) && empty($fila['primer_apellido'])) {
+            $fila = [
+                'tipo_documento'   => $this->valorEnFila($r, $mapeo, 'tipo_documento'),
+                'documento'        => $this->valorEnFila($r, $mapeo, 'documento'),
+                'primer_nombre'    => $this->valorEnFila($r, $mapeo, 'primer_nombre'),
+                'segundo_nombre'   => $this->valorEnFila($r, $mapeo, 'segundo_nombre'),
+                'primer_apellido'  => $this->valorEnFila($r, $mapeo, 'primer_apellido'),
+                'segundo_apellido' => $this->valorEnFila($r, $mapeo, 'segundo_apellido'),
+                'telefono'         => '',
+                'sede'             => $this->valorEnFila($r, $mapeo, 'sede'),
+                'empresa'          => $empresaPorDefecto,
+                'activo'           => 1,
+                '_linea_excel'     => $i + 1,
+                '_nombre_parseado' => false,
+            ];
+
+            // Telefono: primer valor no vacio entre todas las columnas detectadas.
+            $fila['telefono'] = $this->primerTelefonoNoVacio($r, $mapeo);
+
+            // Si trae una columna 'nombre' completa y faltan las separadas, parsearla.
+            if (isset($mapeo['nombre_completo']) && $fila['primer_nombre'] === '' && $fila['primer_apellido'] === '') {
                 $nc = $this->valorEnFila($r, $mapeo, 'nombre_completo');
                 if ($nc !== '') {
                     $parsed = self::parsearNombreCompleto($nc);
@@ -147,23 +184,55 @@ class MaestroImportService
                 }
             }
 
-            // Normalizar la sede: si viene "TN-PM" o "TN-TN" extraer el sufijo despues del guion.
-            if (!empty($fila['sede']) && strpos($fila['sede'], '-') !== false) {
-                $partes = explode('-', $fila['sede']);
-                $fila['sede'] = trim(end($partes));
+            $fila['sede'] = $this->normalizarSede($fila['sede']);
+
+            if ($respetarEstado) {
+                $estado = strtoupper($this->valorEnFila($r, $mapeo, 'estado'));
+                $fila['activo'] = ($estado === '' || $estado === 'ACTIVO') ? 1 : 0;
             }
 
-            $fila['_linea_excel'] = $i + 1;
             $filas[] = $fila;
         }
 
         return $filas;
     }
 
+    private function primerTelefonoNoVacio(array $r, array $mapeo)
+    {
+        if (empty($mapeo['_telefonos'])) return '';
+        foreach ($mapeo['_telefonos'] as $idxTel) {
+            $val = isset($r[$idxTel]) ? trim((string)$r[$idxTel]) : '';
+            if ($val === '') continue;
+            // Excel a veces devuelve numeros como "3134060326.0".
+            return preg_replace('/\.0+$/', '', $val);
+        }
+        return '';
+    }
+
+    /**
+     * Resuelve la sede del archivo a un codigo del sistema (TN/PM):
+     *   - Soporta valores con guion ("TN-PM" -> "PM")
+     *   - Mapea alias literales ("PRIMAVERA" -> "PM", "FLORES EL TANDIL" -> "TN")
+     *   - Si no encuentra alias devuelve la cadena original normalizada.
+     */
+    private function normalizarSede($valor)
+    {
+        $s = strtoupper(trim((string)$valor));
+        if ($s === '') return '';
+        if (strpos($s, '-') !== false) {
+            $partes = explode('-', $s);
+            $s = trim(end($partes));
+        }
+        return self::SEDE_ALIASES[$s] ?? $s;
+    }
+
+    // ============================================================
+    // MAPEO DE ENCABEZADOS
+    // ============================================================
+
     /**
      * Toma una fila de encabezados y devuelve [columna_canonica => indice]
-     * mapeando sinonimos. Normaliza: lower, sin acentos, espacios y caracteres
-     * especiales -> "_".
+     * mapeando sinonimos. Tambien rellena la lista '_telefonos' en orden de prioridad.
      */
     private function mapearEncabezados(array $headerRow)
     {
@@ -185,14 +254,12 @@ class MaestroImportService
                 $telefonosEncontrados[$clave] = $idx;
             }
         }
-        // Ordenar columnas de telefono por la prioridad de TELEFONO_HEADERS y guardar lista de indices.
         $mapeo['_telefonos'] = [];
         foreach (self::TELEFONO_HEADERS as $h) {
             if (isset($telefonosEncontrados[$h])) {
                 $mapeo['_telefonos'][] = $telefonosEncontrados[$h];
             }
         }
-        // Compatibilidad: si hay telefonos detectados, exponer el primero como 'telefono'
         if (!empty($mapeo['_telefonos']) && !isset($mapeo['telefono'])) {
             $mapeo['telefono'] = $mapeo['_telefonos'][0];
         }
@@ -206,6 +273,9 @@ class MaestroImportService
             'á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ñ'=>'n','ü'=>'u',
             'Á'=>'a','É'=>'e','Í'=>'i','Ó'=>'o','Ú'=>'u','Ñ'=>'n',
         ]);
+        // Caracter de reemplazo Unicode (�) que aparece cuando hay encoding
+        // corrupto en archivos .xls antiguos -> tratar como letra perdida.
+        $s = str_replace("\xEF\xBF\xBD", '', $s);
         $s = preg_replace('/[^a-z0-9]+/', '_', $s);
         return trim($s, '_');
     }
@@ -217,15 +287,25 @@ class MaestroImportService
         return isset($row[$idx]) ? trim((string)$row[$idx]) : '';
     }
 
+    private function filaVacia(array $r)
+    {
+        foreach ($r as $v) {
+            if ($v !== null && trim((string)$v) !== '') return false;
+        }
+        return true;
+    }
+
+    // ============================================================
+    // PARSER DE NOMBRE COMPLETO (CONVENCION COLOMBIANA)
+    // ============================================================
+
     /**
-     * Parsea un nombre completo segun la convencion colombiana:
-     *   APELLIDO1 [APELLIDO2] NOMBRE1 [NOMBRE2 ...]
-     * Heuristica:
+     * Convencion: APELLIDO1 [APELLIDO2] NOMBRE1 [NOMBRE2 ...]
      *   - 2 palabras: apellido1 + nombre1
      *   - 3 palabras: apellido1 + apellido2 + nombre1
      *   - 4 palabras: apellido1 + apellido2 + nombre1 + nombre2
-     *   - 5+ palabras: apellido1 + apellido2 + nombre1 + (resto unido) -> ambiguo=true
-     * Maneja particulas (DE, DEL, LA, LAS, LOS, SAN, SANTA) uniendolas a la palabra siguiente.
+     *   - 5+ palabras: apellido1 + apellido2 + nombre1 + (resto unido) -> ambiguo
+     * Maneja particulas (DE, DEL, LA, ...) uniendolas a la palabra siguiente.
      */
     public static function parsearNombreCompleto($nombre)
     {
@@ -233,7 +313,6 @@ class MaestroImportService
         $crudo = preg_split('/\s+/', trim($nombre));
         $crudo = array_values(array_filter($crudo, function ($w) { return $w !== ''; }));
 
-        // Unir particulas con la palabra siguiente: "DE LA CRUZ" -> "DE_LA_CRUZ"
         $tokens = [];
         $buffer = '';
         foreach ($crudo as $w) {
@@ -273,27 +352,25 @@ class MaestroImportService
             $r['segundo_nombre']   = implode(' ', array_slice($tokens, 3));
             $r['ambiguo']          = true;
         }
-        // Truncar a 50 chars (limite BD)
         foreach (['primer_nombre','segundo_nombre','primer_apellido','segundo_apellido'] as $k) {
             if (mb_strlen($r[$k]) > 50) $r[$k] = mb_substr($r[$k], 0, 50);
         }
         return $r;
     }
 
-    private function filaVacia(array $r)
-    {
-        foreach ($r as $v) {
-            if ($v !== null && trim((string)$v) !== '') return false;
-        }
-        return true;
-    }
+    // ============================================================
+    // CLASIFICACION
+    // ============================================================
 
     /**
-     * Valida y clasifica cada fila contra la BD.
-     * Devuelve: ['nuevas', 'a_actualizar', 'a_reactivar', 'sin_cambios', 'errores', 'resumen'].
+     * Recibe la salida de leerArchivo (con clave 'filas' y 'formato') y clasifica
+     * cada fila en: nuevas, a_actualizar, a_reactivar, sin_cambios, errores.
      */
-    public function clasificar(array $filas)
+    public function clasificar(array $entrada)
     {
+        $filas   = $entrada['filas'] ?? [];
+        $formato = $entrada['formato'] ?? null;
+
         $documentos = [];
         foreach ($filas as $f) {
             if (!empty($f['documento'])) $documentos[] = $f['documento'];
@@ -311,10 +388,10 @@ class MaestroImportService
                 continue;
             }
 
-            // Normalizar
             $f['tipo_documento'] = strtoupper($f['tipo_documento'] ?: 'CC');
-            $f['_id_sede']       = $this->sedesPorCodigo[strtoupper(trim($f['sede']))]['id'];
-            $f['_sede_nombre']   = $this->sedesPorCodigo[strtoupper(trim($f['sede']))]['nombre'];
+            $sede = $this->sedesPorCodigo[strtoupper(trim($f['sede']))];
+            $f['_id_sede']     = $sede['id'];
+            $f['_sede_nombre'] = $sede['nombre'];
 
             $existente = $existentes[$f['documento']] ?? null;
             if (!$existente) {
@@ -324,8 +401,9 @@ class MaestroImportService
 
             $cambios = $this->compararCambios($existente, $f);
             $estabaInactivo = (int)$existente['activo'] === 0;
+            $vaActivo       = (int)$f['activo'] === 1;
 
-            if ($estabaInactivo) {
+            if ($estabaInactivo && $vaActivo) {
                 $f['_id'] = $existente['id'];
                 $f['_cambios'] = $cambios;
                 $aReactivar[] = $f;
@@ -339,6 +417,7 @@ class MaestroImportService
         }
 
         return [
+            'formato'      => $formato,
             'nuevas'       => $nuevas,
             'a_actualizar' => $aActualizar,
             'a_reactivar'  => $aReactivar,
@@ -362,7 +441,7 @@ class MaestroImportService
         $placeholders = implode(',', array_fill(0, count($documentos), '?'));
         $stmt = $this->db->prepare(
             "SELECT id, tipo_documento, documento, primer_nombre, segundo_nombre,
-                    primer_apellido, segundo_apellido, telefono, id_sede, activo
+                    primer_apellido, segundo_apellido, telefono, id_sede, empresa, activo
              FROM personas WHERE documento IN ($placeholders)"
         );
         $stmt->execute($documentos);
@@ -403,7 +482,6 @@ class MaestroImportService
 
     private function compararCambios(array $existente, array $nuevo)
     {
-        $cambios = [];
         $map = [
             'tipo_documento'   => $nuevo['tipo_documento'],
             'primer_nombre'    => $nuevo['primer_nombre'],
@@ -412,10 +490,13 @@ class MaestroImportService
             'segundo_apellido' => $nuevo['segundo_apellido'] ?: null,
             'telefono'         => $nuevo['telefono'] ?: null,
             'id_sede'          => (int)$nuevo['_id_sede'],
+            'empresa'          => $nuevo['empresa'],
+            'activo'           => (int)$nuevo['activo'],
         ];
+        $cambios = [];
         foreach ($map as $campo => $valorNuevo) {
             $valorActual = $existente[$campo] ?? null;
-            if ($campo === 'id_sede') {
+            if ($campo === 'id_sede' || $campo === 'activo') {
                 $valorActual = (int)$valorActual;
             }
             if ((string)$valorActual !== (string)$valorNuevo) {
@@ -425,9 +506,10 @@ class MaestroImportService
         return $cambios;
     }
 
-    /**
-     * Ejecuta INSERT/UPDATE en transaccion. Devuelve contadores reales aplicados.
-     */
+    // ============================================================
+    // EJECUCION (INSERT / UPDATE / REACTIVAR)
+    // ============================================================
+
     public function ejecutar(array $clasificacion)
     {
         $insertadas = 0; $actualizadas = 0; $reactivadas = 0;
@@ -436,45 +518,27 @@ class MaestroImportService
         try {
             $stmtIns = $this->db->prepare(
                 "INSERT INTO personas (tipo_documento, documento, primer_nombre, segundo_nombre,
-                 primer_apellido, segundo_apellido, telefono, id_sede, activo)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)"
+                 primer_apellido, segundo_apellido, telefono, id_sede, empresa, activo)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             foreach ($clasificacion['nuevas'] as $f) {
-                $stmtIns->execute([
-                    $f['tipo_documento'],
-                    $f['documento'],
-                    $f['primer_nombre'],
-                    $f['segundo_nombre'] ?: null,
-                    $f['primer_apellido'],
-                    $f['segundo_apellido'] ?: null,
-                    $f['telefono'] ?: null,
-                    (int)$f['_id_sede'],
-                ]);
+                $stmtIns->execute($this->bindFila($f));
                 $insertadas++;
             }
 
             $stmtUpd = $this->db->prepare(
                 "UPDATE personas SET tipo_documento = ?, primer_nombre = ?, segundo_nombre = ?,
-                 primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?
-                 WHERE id = ?"
+                 primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?, empresa = ?, activo = ?
+                 WHERE documento = ?"
             );
             foreach ($clasificacion['a_actualizar'] as $f) {
-                $stmtUpd->execute([
-                    $f['tipo_documento'],
-                    $f['primer_nombre'],
-                    $f['segundo_nombre'] ?: null,
-                    $f['primer_apellido'],
-                    $f['segundo_apellido'] ?: null,
-                    $f['telefono'] ?: null,
-                    (int)$f['_id_sede'],
-                    (int)$f['_id'],
-                ]);
+                $stmtUpd->execute($this->bindFilaUpdate($f));
                 $actualizadas++;
             }
 
             $stmtReact = $this->db->prepare(
                 "UPDATE personas SET tipo_documento = ?, primer_nombre = ?, segundo_nombre = ?,
-                 primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?, activo = 1
+                 primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?, empresa = ?, activo = 1
                  WHERE id = ?"
             );
             foreach ($clasificacion['a_reactivar'] as $f) {
@@ -486,6 +550,7 @@ class MaestroImportService
                     $f['segundo_apellido'] ?: null,
                     $f['telefono'] ?: null,
                     (int)$f['_id_sede'],
+                    $f['empresa'],
                     (int)$f['_id'],
                 ]);
                 $reactivadas++;
@@ -501,6 +566,38 @@ class MaestroImportService
             'insertadas'   => $insertadas,
             'actualizadas' => $actualizadas,
             'reactivadas'  => $reactivadas,
+        ];
+    }
+
+    private function bindFila(array $f)
+    {
+        return [
+            $f['tipo_documento'],
+            $f['documento'],
+            $f['primer_nombre'],
+            $f['segundo_nombre'] ?: null,
+            $f['primer_apellido'],
+            $f['segundo_apellido'] ?: null,
+            $f['telefono'] ?: null,
+            (int)$f['_id_sede'],
+            $f['empresa'],
+            (int)$f['activo'],
+        ];
+    }
+
+    private function bindFilaUpdate(array $f)
+    {
+        return [
+            $f['tipo_documento'],
+            $f['primer_nombre'],
+            $f['segundo_nombre'] ?: null,
+            $f['primer_apellido'],
+            $f['segundo_apellido'] ?: null,
+            $f['telefono'] ?: null,
+            (int)$f['_id_sede'],
+            $f['empresa'],
+            (int)$f['activo'],
+            $f['documento'],
         ];
     }
 }

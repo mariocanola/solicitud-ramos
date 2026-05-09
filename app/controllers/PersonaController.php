@@ -23,6 +23,7 @@ class PersonaController
         $filtros = [
             'busqueda'   => trim($_GET['busqueda'] ?? ''),
             'id_sede'    => $_GET['id_sede'] ?? '',
+            'empresa'    => $_GET['empresa'] ?? '',
             'pagina'     => $_GET['pagina'] ?? 1,
             'por_pagina' => $_GET['por_pagina'] ?? 15,
         ];
@@ -198,7 +199,8 @@ class PersonaController
         $service = new MaestroImportService();
 
         try {
-            $clasificacion = $service->clasificar($service->leerArchivo($tmp));
+            $entrada = $service->leerArchivo($tmp);
+            $clasificacion = $service->clasificar($entrada);
         } catch (Exception $e) {
             $this->redirectImportError('Error al procesar el archivo: ' . $e->getMessage());
         }

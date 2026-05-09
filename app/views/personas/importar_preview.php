@@ -3,6 +3,10 @@
 /** @var string $archivo */
 $r = $clasificacion['resumen'];
 $puedeImportar = ($r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar']) > 0;
+$formatoDetectado = $clasificacion['formato'] ?? 'desconocido';
+$labelFormato = $formatoDetectado === 'CREOS'
+    ? 'Maestro CREOS (personal temporal)'
+    : 'Maestro Tandil (personal directo)';
 ?>
 
 <style>
@@ -42,6 +46,11 @@ $puedeImportar = ($r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar']) > 0;
     </div>
     <div class="card-body">
 
+        <div style="margin-bottom:16px;padding:10px 14px;background:#f0f9ff;border-left:3px solid #0284c7;border-radius:6px;font-size:13px;color:#0c4a6e">
+            <strong>Formato detectado:</strong> <?= htmlspecialchars($labelFormato) ?>
+            &middot; <strong><?= number_format($r['total']) ?></strong> filas leidas
+        </div>
+
         <div class="kpi-grid">
             <div class="kpi k-total"><div class="kpi-num"><?= $r['total'] ?></div><div class="kpi-lbl">Total</div></div>
             <div class="kpi k-new"><div class="kpi-num"><?= $r['nuevas'] ?></div><div class="kpi-lbl">Nuevas</div></div>
@@ -66,7 +75,7 @@ $puedeImportar = ($r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar']) > 0;
                 return;
             }
             echo '<div style="overflow-x:auto"><table class="preview-table"><thead><tr>';
-            $cols = ['Linea','Doc','Tipo','Nombre','Apellido','Sede','Tel'];
+            $cols = ['Linea','Doc','Tipo','Nombre','Apellido','Sede','Empresa','Tel'];
             if ($tipo === 'errores') $cols[] = 'Error';
             if (in_array($tipo, ['actualizar','reactivar'])) $cols[] = 'Cambios';
             foreach ($cols as $c) echo '<th>'.htmlspecialchars($c).'</th>';
@@ -89,6 +98,10 @@ $puedeImportar = ($r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar']) > 0;
                 echo '<td>'.$nombreCell.'</td>';
                 echo '<td>'.$apellidoCell.'</td>';
                 echo '<td>'.htmlspecialchars($f['_sede_nombre'] ?? $f['sede'] ?? '').'</td>';
+                $emp = $f['empresa'] ?? 'TANDIL';
+                echo '<td>'.($emp === 'CREOS'
+                    ? '<span style="background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700">CREOS</span>'
+                    : '<span style="color:#64748b;font-size:11px">Tandil</span>').'</td>';
                 echo '<td>'.htmlspecialchars($f['telefono'] ?? '').'</td>';
                 if ($tipo === 'errores') {
                     echo '<td style="color:#b91c1c">'.htmlspecialchars($f['_error'] ?? '').'</td>';
