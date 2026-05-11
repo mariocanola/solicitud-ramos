@@ -241,7 +241,9 @@ function _setStatus(msg, type) {
 }
 
 function buscarPersona(documento) {
-    fetch(BASE_URL + '/personas/buscar?documento=' + encodeURIComponent(documento), {
+    // Usar /solicitudes/buscar-persona en lugar de /personas/buscar porque ese endpoint
+    // incluye el flag ya_solicito_mes que onPersonaEncontrada usa para bloquear duplicados.
+    fetch(BASE_URL + '/solicitudes/buscar-persona?documento=' + encodeURIComponent(documento), {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(function(r) { return r.json(); })
