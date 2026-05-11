@@ -1546,9 +1546,8 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
 }
 
 /* ============================================
-   KIOSCO RESPONSIVE — diseño deterministico con breakpoints
-   No usa vw: garantiza apariencia consistente entre navegadores
-   independiente de paneles laterales o niveles de zoom.
+   KIOSCO RESPONSIVE — diseño deterministico, fit-to-screen
+   En pantallas anchas usa grid 2-columnas para que todo quepa sin scroll.
    ============================================ */
 
 /* Reset de tamaño base para evitar herencia de configuraciones del navegador */
@@ -1557,16 +1556,16 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
 /* Contenedor principal — siempre centrado con max-width fijo */
 .operator-panel {
     width: 100%;
-    max-width: 960px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 14px;
     box-sizing: border-box;
 }
 
 /* Header */
-.operator-header { padding: 20px 28px; margin-bottom: 20px; }
-.operator-title   { font-size: 22px; line-height: 1.25; }
-.operator-session { font-size: 14px; }
+.operator-header { padding: 16px 22px; margin-bottom: 14px; }
+.operator-title   { font-size: 21px; line-height: 1.25; }
+.operator-session { font-size: 13px; }
 
 /* Tarjetas */
 .scanner-section,
@@ -1575,8 +1574,8 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
 .welcome-message,
 #form_section.card,
 .success-screen {
-    padding: 22px;
-    margin-bottom: 18px;
+    padding: 18px;
+    margin-bottom: 12px;
 }
 
 .scanner-header h2 { font-size: 16px; }
@@ -1657,18 +1656,63 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
     .numpad-key { height: 50px; font-size: 20px; }
 }
 
-/* ===== Monitores grandes (≥ 1400px) — panel un poco mas ancho ===== */
+/* ===== Monitores grandes (≥ 1400px) ===== */
 @media (min-width: 1400px) {
-    .operator-panel { max-width: 1100px; }
+    .operator-panel { max-width: 1200px; }
 }
 
-/* ===== Altura limitada (≤ 700px) — compactar verticalmente ===== */
-@media (max-height: 700px) {
-    .operator-header { padding: 12px 20px; margin-bottom: 12px; }
-    .scanner-section, .welcome-message, .persona-card, #form_section.card {
-        padding: 16px; margin-bottom: 12px;
+/* ===== Escritorio (≥ 1024px) — layout 2 columnas para evitar scroll =====
+   Header arriba ancho completo, instrucciones a la izquierda,
+   scanner+numpad a la derecha. */
+@media (min-width: 1024px) {
+    .operator-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        grid-template-areas:
+            "header  header"
+            "info    scanner"
+            "info    form"
+            "persona form"
+            "success success";
+        gap: 12px 18px;
+        align-items: start;
     }
-    .numpad-key { height: 54px; font-size: 22px; }
+    .operator-header  { grid-area: header;  margin-bottom: 0; }
+    .welcome-message  { grid-area: info;    margin-bottom: 0; }
+    .scanner-section  { grid-area: scanner; margin-bottom: 0; }
+    .persona-card     { grid-area: persona; margin-bottom: 0; }
+    #form_section.card{ grid-area: form;    margin-bottom: 0; }
+    .success-screen   { grid-area: success; margin-bottom: 0; }
+    .numpad           { max-width: 360px; margin-top: 12px; }
+    .numpad-key       { height: 56px; font-size: 22px; }
+}
+
+/* ===== Altura limitada (≤ 800px) — compactar verticalmente ===== */
+@media (max-height: 800px) {
+    .operator-panel   { padding: 10px; }
+    .operator-header  { padding: 12px 18px; margin-bottom: 10px; }
+    .scanner-section, .welcome-message, .persona-card, #form_section.card {
+        padding: 14px; margin-bottom: 10px;
+    }
+    .scanner-input-touch { height: 50px; }
+    .btn-scanner { height: 50px; }
+    .numpad { margin-top: 10px; }
+    .numpad-key { height: 50px; font-size: 20px; }
+    .welcome-message h2 { font-size: 16px; margin: 0 0 4px 0; }
+    .welcome-message p  { margin: 0 0 10px 0; }
+    .step { padding: 10px 12px; }
+}
+
+/* ===== Altura muy limitada (≤ 650px) ===== */
+@media (max-height: 650px) {
+    .operator-header  { padding: 10px 16px; margin-bottom: 8px; }
+    .operator-title   { font-size: 18px; }
+    .scanner-section, .welcome-message, .persona-card, #form_section.card {
+        padding: 12px; margin-bottom: 8px;
+    }
+    .numpad-key { height: 44px; font-size: 18px; }
+    .scanner-input-touch { height: 44px; font-size: 16px; }
+    .btn-scanner { height: 44px; }
 }
 
 /* ===== Pantallas táctiles — botones más confortables ===== */
