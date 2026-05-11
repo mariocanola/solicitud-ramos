@@ -230,7 +230,7 @@
                     </span>
                     <span class="card-option-content">
                         <span class="card-option-title">Incluir hojas individuales <span class="card-option-pill">remisiones para imprimir</span></span>
-                        <span class="card-option-desc">Al final del PDF se anexan las solicitudes aprobadas en formato carta, dos por hoja con linea de corte.</span>
+                        <span class="card-option-desc">Al final del PDF se anexan las solicitudes aprobadas.</span>
                     </span>
                 </label>
                 <div class="mt-2" style="display:flex;justify-content:flex-end">
@@ -324,7 +324,6 @@
                 .card-option-desc { font-size:12px; color:#64748b; }
                 </style>
             </form>
-            <div id="reporte_msg" class="mt-2"></div>
         </div>
     </div>
 </div>
