@@ -453,6 +453,7 @@ function abrirModalSede() {
 
 function editarSede(id, nombre, codigo, direccion, activo) {
     document.getElementById('modal_sede_titulo').textContent = 'Editar Sede';
+    if (typeof sedeValidator !== 'undefined' && sedeValidator.reset) sedeValidator.reset();
     document.getElementById('sede_id').value = id;
     document.getElementById('sede_nombre').value = nombre;
     document.getElementById('sede_codigo').value = codigo;
@@ -477,10 +478,12 @@ function abrirModalMotivo() {
 
 function editarMotivo(id, nombre, requiereDetalle, orden, activo) {
     document.getElementById('modal_motivo_titulo').textContent = 'Editar Motivo';
+    // Resetear validador antes de llenar para que no queden errores rojos de aperturas previas.
+    if (typeof motivoValidator !== 'undefined' && motivoValidator.reset) motivoValidator.reset();
     document.getElementById('motivo_id').value = id;
     document.getElementById('motivo_nombre').value = nombre;
     document.getElementById('motivo_requiere_detalle').value = requiereDetalle;
-    document.getElementById('motivo_orden').value = orden;
+    document.getElementById('motivo_orden').value = (orden !== null && orden !== undefined) ? orden : 0;
     document.getElementById('motivo_activo').value = activo;
     document.getElementById('modal_motivo').classList.add('show');
 }
@@ -502,6 +505,7 @@ function abrirModalEstado() {
 
 function editarEstado(id, nombre, color, orden) {
     document.getElementById('modal_estado_titulo').textContent = 'Editar Estado';
+    if (typeof estadoValidator !== 'undefined' && estadoValidator.reset) estadoValidator.reset();
     document.getElementById('estado_id').value = id;
     document.getElementById('estado_nombre').value = nombre;
     document.getElementById('estado_color').value = color;
