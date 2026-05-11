@@ -223,18 +223,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-2" style="background:#f6f4f8;border-left:3px solid #4A1942;border-radius:6px;padding:12px 14px">
-                    <label style="display:flex;align-items:flex-start;gap:10px;margin:0;cursor:pointer">
-                        <input type="checkbox" name="incluir_hojas" value="1" style="margin-top:3px;width:18px;height:18px;cursor:pointer">
-                        <span>
-                            <strong>Incluir hojas individuales (remisiones para imprimir)</strong>
-                            <br>
-                            <span style="font-size:12px;color:#64748b">
-                                Al final del PDF se anexan las solicitudes aprobadas en formato carta, dos por hoja con linea de corte.
-                            </span>
-                        </span>
-                    </label>
-                </div>
+                <label class="card-option mt-2">
+                    <input type="checkbox" name="incluir_hojas" value="1" class="card-option-input">
+                    <span class="card-option-toggle" aria-hidden="true">
+                        <span class="card-option-knob"></span>
+                    </span>
+                    <span class="card-option-content">
+                        <span class="card-option-title">Incluir hojas individuales <span class="card-option-pill">remisiones para imprimir</span></span>
+                        <span class="card-option-desc">Al final del PDF se anexan las solicitudes aprobadas en formato carta, dos por hoja con linea de corte.</span>
+                    </span>
+                </label>
                 <div class="mt-2" style="display:flex;justify-content:flex-end">
                     <button type="submit" class="btn-descargar-pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -271,6 +269,59 @@
                     opacity:0.6; cursor:not-allowed; transform:none;
                 }
                 .btn-descargar-pdf svg { flex-shrink:0; }
+
+                /* ===== Opcion en formato tarjeta con toggle estilo switch ===== */
+                .card-option {
+                    display:flex; align-items:center; gap:14px;
+                    padding:14px 16px;
+                    background:#fff;
+                    border:1px solid #e2e8f0;
+                    border-left:3px solid #4A1942;
+                    border-radius:8px;
+                    cursor:pointer;
+                    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+                }
+                .card-option:hover { background:#faf8fb; box-shadow:0 1px 4px rgba(74,25,66,0.08); }
+                .card-option-input { position:absolute; opacity:0; pointer-events:none; }
+                .card-option-toggle {
+                    flex-shrink:0;
+                    width:44px; height:24px;
+                    background:#cbd5e1;
+                    border-radius:999px;
+                    position:relative;
+                    transition: background 0.2s ease;
+                }
+                .card-option-knob {
+                    position:absolute; top:2px; left:2px;
+                    width:20px; height:20px;
+                    background:#fff;
+                    border-radius:50%;
+                    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+                    transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+                }
+                .card-option-input:checked + .card-option-toggle {
+                    background: linear-gradient(135deg, #4A1942, #5C2A47);
+                }
+                .card-option-input:checked + .card-option-toggle .card-option-knob {
+                    transform: translateX(20px);
+                }
+                .card-option-input:focus-visible + .card-option-toggle {
+                    box-shadow: 0 0 0 3px rgba(74,25,66,0.25);
+                }
+                .card-option-content { display:flex; flex-direction:column; gap:3px; line-height:1.35; }
+                .card-option-title {
+                    font-weight:600; font-size:14px; color:#1e293b;
+                    display:inline-flex; align-items:center; gap:8px;
+                }
+                .card-option-pill {
+                    display:inline-block;
+                    background:#f1e8ed;
+                    color:#4A1942;
+                    font-size:10px; font-weight:700;
+                    padding:2px 8px; border-radius:999px;
+                    text-transform:uppercase; letter-spacing:0.4px;
+                }
+                .card-option-desc { font-size:12px; color:#64748b; }
                 </style>
             </form>
             <div id="reporte_msg" class="mt-2"></div>
