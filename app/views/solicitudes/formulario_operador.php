@@ -1677,12 +1677,15 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
            llenar la pantalla, generando un gap enorme entre filas. */
         align-content: start;
     }
-    .operator-header  { grid-column: 1 / -1; margin-bottom: 0; }
-    .welcome-message,
-    .persona-card     { grid-column: 1 / 2;  margin-bottom: 0; }
-    .scanner-section,
-    #form_section.card{ grid-column: 2 / 3;  margin-bottom: 0; }
-    .success-screen   { grid-column: 1 / -1; margin-bottom: 0; }
+    /* Layout en dos estados:
+       Estado 1 (inicial)  : welcome (izq) + scanner (der)
+       Estado 2 (identificado): persona + formulario apilados a todo el ancho */
+    .operator-header   { grid-column: 1 / -1; margin-bottom: 0; }
+    .welcome-message   { grid-column: 1 / 2;  margin-bottom: 0; }
+    .scanner-section   { grid-column: 2 / 3;  margin-bottom: 0; }
+    .persona-card      { grid-column: 1 / -1; margin-bottom: 0; }
+    #form_section.card { grid-column: 1 / -1; margin-bottom: 0; }
+    .success-screen    { grid-column: 1 / -1; margin-bottom: 0; }
     .numpad           { max-width: 360px; margin-top: 12px; }
     .numpad-key       { height: 56px; font-size: 22px; }
 }
@@ -2021,6 +2024,8 @@ function limpiarFormulario() {
     document.getElementById('persona_info').classList.add('hidden');
     document.getElementById('form_section').classList.add('hidden');
     document.getElementById('welcome_message').classList.remove('hidden');
+    document.getElementById('scanner_section').classList.remove('hidden');
+    mostrarNumpad();
     document.getElementById('scanner_input').value = '';
     document.getElementById('scanner_status').textContent = '';
 
@@ -2055,6 +2060,9 @@ function limpiarFormulario() {
 // Función para mostrar formulario cuando se encuentra persona
 function mostrarFormularioSolicitud() {
     document.getElementById('welcome_message').classList.add('hidden');
+    // Ocultamos el scanner una vez identificada la persona — el flujo continua
+    // en el formulario, y el boton Cancelar permite volver al scanner.
+    document.getElementById('scanner_section').classList.add('hidden');
     document.getElementById('form_section').classList.remove('hidden');
     ocultarNumpad();
 }
