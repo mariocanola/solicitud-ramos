@@ -22,6 +22,7 @@
                 $groups = [
                     'Organizacion' => ['nombre_organizacion', 'logo_path'],
                     'Cupos' => ['cupo_default'],
+                    'Hoja individual (PDF de remision)' => ['empresa_destinataria', 'destinatario_solicitudes'],
                 ];
                 $configMap = [];
                 foreach ($configuraciones as $c) {
@@ -134,7 +135,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>#</th>
                             <th>Nombre</th>
                             <th>Codigo</th>
                             <th>Direccion</th>
@@ -143,9 +144,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($todasSedes as $sede): ?>
+                    <?php $i = 1; foreach ($todasSedes as $sede): ?>
                     <tr>
-                        <td><?= $sede['id'] ?></td>
+                        <td><?= $i++ ?></td>
                         <td><strong><?= htmlspecialchars($sede['nombre']) ?></strong></td>
                         <td><?= htmlspecialchars($sede['codigo']) ?></td>
                         <td><?= htmlspecialchars($sede['direccion'] ?? '-') ?></td>
@@ -191,7 +192,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>#</th>
                             <th>Nombre</th>
                             <th>Requiere Detalle</th>
                             <th>Orden</th>
@@ -200,9 +201,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($motivos as $motivo): ?>
+                    <?php $i = 1; foreach ($motivos as $motivo): ?>
                     <tr>
-                        <td><?= $motivo['id'] ?></td>
+                        <td><?= $i++ ?></td>
                         <td><strong><?= htmlspecialchars($motivo['nombre']) ?></strong></td>
                         <td><?= $motivo['requiere_detalle'] ? 'Si' : 'No' ?></td>
                         <td><?= $motivo['orden'] ?></td>
@@ -248,7 +249,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>#</th>
                             <th>Nombre</th>
                             <th>Color</th>
                             <th>Orden</th>
@@ -256,9 +257,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($estadosSolicitud as $estado): ?>
+                    <?php $i = 1; foreach ($estadosSolicitud as $estado): ?>
                     <tr>
-                        <td><?= $estado['id'] ?></td>
+                        <td><?= $i++ ?></td>
                         <td>
                             <span class="badge" style="background:<?= htmlspecialchars($estado['color'] ?? '#6c757d') ?>">
                                 <?= htmlspecialchars($estado['nombre']) ?>

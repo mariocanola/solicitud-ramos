@@ -45,6 +45,19 @@
                 </div>
             </div>
 
+            <div class="mt-2" style="background:#f6f4f8;border-left:3px solid #4A1942;border-radius:6px;padding:12px 14px">
+                <label style="display:flex;align-items:flex-start;gap:10px;margin:0;cursor:pointer">
+                    <input type="checkbox" name="incluir_hojas" value="1" style="margin-top:3px;width:18px;height:18px;cursor:pointer">
+                    <span>
+                        <strong>Incluir hojas individuales (remisiones para imprimir)</strong>
+                        <br>
+                        <span style="font-size:12px;color:#64748b">
+                            Al final del PDF se anexan las solicitudes aprobadas en formato carta, dos por hoja con linea de corte.
+                        </span>
+                    </span>
+                </label>
+            </div>
+
             <div class="mt-2 d-flex gap-1">
                 <button type="submit" class="btn btn-dark btn-lg">
                     Descargar PDF

@@ -29,7 +29,7 @@ class PdfService
         $this->usableW = $this->pageWidth - 2 * $this->marginX;
     }
 
-    public function generarConsolidado($filtros = [])
+    public function generarConsolidado($filtros = [], $incluirHojasIndividuales = false)
     {
         require_once BASE_PATH . '/vendor/fpdf/fpdf.php';
 
@@ -93,16 +93,183 @@ class PdfService
             $pdf->Ln(2);
         }
 
-        // === PÁGINA DE RESUMEN ===
-        $pdf->AddPage();
-        $this->headerPagina($pdf, $nombreOrg, $filtros, true);
-        $this->paginaResumen($pdf, $totalGeneral, $totalesSede, $totalesMotivo);
+        if ($incluirHojasIndividuales) {
+            $aprobadas = $this->filtrarAprobadas($solicitudes);
+            if (!empty($aprobadas)) {
+                $this->anexarHojasIndividuales($pdf, $aprobadas, $configModel);
+            }
+        }
 
         // Guardar
         $nombre = 'reporte_ramos_' . date('Ymd_His') . '.pdf';
         $ruta = PDF_PATH . '/' . $nombre;
         $pdf->Output('F', $ruta);
         return $ruta;
+    }
+
+    private function filtrarAprobadas(array $solicitudes)
+    {
+        return array_values(array_filter($solicitudes, function ($s) {
+            return strcasecmp(trim($s['estado_nombre'] ?? ''), 'Aprobada') === 0;
+        }));
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // HOJAS INDIVIDUALES (Letter vertical, 2 por hoja, cortable a la mitad)
+    // ────────────────────────────────────────────────────────────
+    private function anexarHojasIndividuales($pdf, array $aprobadas, $configModel)
+    {
+        $empresa      = $configModel->get('empresa_destinataria')     ?: 'FLORES EL TANDIL';
+        $destinatario = $configModel->get('destinatario_solicitudes') ?: 'ING. RODRIGO PERDOMO';
+
+        // Cambiar a orientacion vertical para las siguientes paginas.
+        // Letter portrait: 215.9 x 279.4 mm. Dividimos en dos mitades de ~135 mm.
+        $pageW = 215.9;
+        $pageH = 279.4;
+        $halfH = $pageH / 2;
+
+        // Procesar de a 2 (una en mitad superior, otra en mitad inferior).
+        $n = count($aprobadas);
+        for ($i = 0; $i < $n; $i += 2) {
+            $pdf->AddPage('P', [$pageW, $pageH]);
+            $this->renderHojaIndividual($pdf, $aprobadas[$i], $empresa, $destinatario, 12, $pageW);
+
+            // Linea punteada divisoria a la mitad (guia de corte)
+            $this->lineaCorte($pdf, $halfH, $pageW);
+
+            if (isset($aprobadas[$i + 1])) {
+                $this->renderHojaIndividual($pdf, $aprobadas[$i + 1], $empresa, $destinatario, $halfH + 6, $pageW);
+            }
+        }
+    }
+
+    private function lineaCorte($pdf, $y, $pageW)
+    {
+        $pdf->SetDrawColor(...$this->border);
+        $pdf->SetLineWidth(0.15);
+        $x = 8;
+        while ($x < $pageW - 8) {
+            $pdf->Line($x, $y, $x + 2, $y);
+            $x += 4;
+        }
+        // Marca de tijera en el centro
+        $pdf->SetFont('Helvetica', '', 7);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->SetXY(0, $y - 1.6);
+        $pdf->Cell($pageW, 3, $this->toLatin1('— corte aqui —'), 0, 0, 'C');
+    }
+
+    /**
+     * Renderiza una solicitud individual en formato carta en la posicion (originX=12, originY=$startY).
+     * Disponible: ~131 mm de alto, $pageW - 24 mm de ancho.
+     */
+    private function renderHojaIndividual($pdf, $s, $empresa, $destinatario, $startY, $pageW)
+    {
+        $marginX = 14;
+        $w       = $pageW - 2 * $marginX;
+        $x       = $marginX;
+        $y       = $startY;
+
+        // Logo arriba a la derecha
+        $logoPath = BASE_PATH . '/public/img/logo-tandil.png';
+        if (file_exists($logoPath)) {
+            $pdf->Image($logoPath, $pageW - $marginX - 22, $y, 22);
+        }
+
+        // Fecha
+        $pdf->SetTextColor(...$this->text);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->SetXY($x, $y);
+        $fechaFmt = $this->fechaEspanol($s['fecha_solicitud'] ?? date('Y-m-d'));
+        $pdf->Cell($w - 30, 5, $this->toLatin1('Fecha: ' . $fechaFmt), 0, 1, 'L');
+
+        // Encabezado destinatario
+        $y += 8;
+        $pdf->SetXY($x, $y);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell($w, 5, $this->toLatin1('Señores'), 0, 1, 'L');
+        $pdf->SetXY($x, $y + 5);
+        $pdf->SetFont('Helvetica', 'B', 10);
+        $pdf->Cell($w, 5, $this->toLatin1($empresa), 0, 1, 'L');
+        $pdf->SetXY($x, $y + 10);
+        $pdf->Cell($w, 5, $this->toLatin1($destinatario), 0, 1, 'L');
+
+        // Saludo + cuerpo
+        $y += 19;
+        $pdf->SetXY($x, $y);
+        $pdf->SetFont('Helvetica', '', 10);
+
+        $nombrePersona = Persona::getNombreCompleto($s);
+        $documento     = $s['documento'] ?? '';
+
+        $parrafo = 'Cordialmente, yo ' . $nombrePersona . ' identificado con documento '
+            . $documento . ' solicito amablemente un ramo de obsequio de rosas para:';
+        $pdf->MultiCell($w, 5, $this->toLatin1($parrafo), 0, 'L');
+
+        // Caja con el motivo + observaciones
+        $cajaY = $pdf->GetY() + 2;
+        $cajaH = 28;
+        $pdf->SetDrawColor(...$this->border);
+        $pdf->SetLineWidth(0.25);
+        $pdf->Rect($x, $cajaY, $w, $cajaH);
+
+        $pdf->SetFont('Helvetica', '', 8);
+        $pdf->SetTextColor(...$this->textSoft);
+        $pdf->SetXY($x + 1.5, $cajaY + 1);
+        $pdf->Cell($w - 3, 3.5, $this->toLatin1('Describa el motivo de su solicitud:'), 0, 1, 'L');
+
+        $pdf->SetTextColor(...$this->text);
+        $pdf->SetFont('Helvetica', '', 9.5);
+        $contenido = $this->motivoCompleto($s);
+        $obs = trim($s['observaciones'] ?? '');
+        if ($obs !== '') $contenido .= "\n" . $obs;
+        $pdf->SetXY($x + 1.5, $cajaY + 5);
+        $pdf->MultiCell($w - 3, 4.5, $this->toLatin1($contenido), 0, 'L');
+
+        // Pie
+        $y = $cajaY + $cajaH + 3;
+        $pdf->SetXY($x, $y);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell($w, 5, $this->toLatin1('Quedo atento/a a su respuesta.'), 0, 1, 'L');
+        $pdf->SetXY($x, $y + 6);
+        $pdf->Cell($w, 5, $this->toLatin1('Cordialmente,'), 0, 1, 'L');
+
+        // Datos del solicitante (rellenos automaticamente)
+        $datosY = $y + 14;
+        $pdf->SetFont('Helvetica', '', 9);
+        $colW = $w / 2;
+        $sede = $s['sede_nombre'] ?? '';
+        $tel  = $s['telefono'] ?? '';
+
+        $this->campoConLinea($pdf, $x,              $datosY,      $colW - 4, 'Nombre:',   $nombrePersona);
+        $this->campoConLinea($pdf, $x + $colW,      $datosY,      $colW - 4, 'C.C:',      $documento);
+        $this->campoConLinea($pdf, $x,              $datosY + 7,  $colW - 4, 'Telefono:', $tel);
+        $this->campoConLinea($pdf, $x + $colW,      $datosY + 7,  $colW - 4, 'Sede:',     $sede);
+    }
+
+    private function campoConLinea($pdf, $x, $y, $w, $label, $valor)
+    {
+        $pdf->SetXY($x, $y);
+        $pdf->SetFont('Helvetica', 'B', 9);
+        $labelW = $pdf->GetStringWidth($this->toLatin1($label)) + 1.5;
+        $pdf->Cell($labelW, 5, $this->toLatin1($label), 0, 0, 'L');
+
+        $pdf->SetFont('Helvetica', '', 9);
+        $valorW = $w - $labelW;
+        $pdf->Cell($valorW, 5, $this->toLatin1((string)$valor), 0, 0, 'L');
+
+        // Linea de subrayado bajo el valor
+        $pdf->SetDrawColor(...$this->border);
+        $pdf->Line($x + $labelW, $y + 5, $x + $w, $y + 5);
+    }
+
+    private function fechaEspanol($fecha)
+    {
+        $meses = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        $t = strtotime($fecha);
+        if (!$t) return $fecha;
+        return date('d', $t) . ' ' . $meses[(int)date('n', $t)] . ' ' . date('Y', $t);
     }
 
     // ────────────────────────────────────────────────────────────

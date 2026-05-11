@@ -116,7 +116,6 @@
                             <th>Fecha</th>
                             <th>Solicitante</th>
                             <th>Documento</th>
-                            <th>Destinatario</th>
                             <th>Sede</th>
                             <th>Motivo</th>
                             <th>Estado</th>
@@ -133,7 +132,6 @@
                             <td style="white-space:nowrap"><?= $s['fecha_solicitud'] ?></td>
                             <td><?= htmlspecialchars(Persona::getNombreCompleto($s)) ?></td>
                             <td><?= htmlspecialchars($s['documento']) ?></td>
-                            <td><?= htmlspecialchars($s['nombre_destinatario'] ?? '') ?></td>
                             <td><?= htmlspecialchars($s['sede_nombre']) ?></td>
                             <td><?= htmlspecialchars($s['motivo_nombre']) ?></td>
                             <td>

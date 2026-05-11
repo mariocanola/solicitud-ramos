@@ -31,10 +31,11 @@ class ReporteController
             'id_sede'     => $_POST['id_sede'] ?? '',
             'id_estado'   => $_POST['id_estado'] ?? '',
         ];
+        $incluirHojas = !empty($_POST['incluir_hojas']);
 
         try {
             $pdfService = new PdfService();
-            $ruta = $pdfService->generarConsolidado($filtros);
+            $ruta = $pdfService->generarConsolidado($filtros, $incluirHojas);
 
             // Clean any output buffers to prevent corrupted PDF downloads
             while (ob_get_level()) {
