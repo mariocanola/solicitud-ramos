@@ -206,7 +206,7 @@ class PdfService
         $pdf->SetXY($x, $y);
         $pdf->SetFont('Helvetica', '', 10);
 
-        $nombrePersona = Persona::getNombreCompleto($s);
+        $nombrePersona = $this->titleCase(Persona::getNombreCompleto($s));
         $documento     = $s['documento'] ?? '';
 
         $parrafo = 'Cordialmente, yo ' . $nombrePersona . ' identificado con documento '
@@ -227,9 +227,9 @@ class PdfService
 
         $pdf->SetTextColor(...$this->text);
         $pdf->SetFont('Helvetica', '', 9.5);
-        $contenido = $this->motivoCompleto($s);
+        $contenido = $this->titleCase($this->motivoCompleto($s));
         $obs = trim($s['observaciones'] ?? '');
-        if ($obs !== '') $contenido .= "\n" . $obs;
+        if ($obs !== '') $contenido .= "\n" . $this->titleCase($obs);
         $pdf->SetXY($x + 1.5, $cajaY + 5);
         $pdf->MultiCell($w - 3, 4.5, $this->toLatin1($contenido), 0, 'L');
 
@@ -245,7 +245,7 @@ class PdfService
         $datosY = $y + 14;
         $pdf->SetFont('Helvetica', '', 9);
         $colW = $w / 2;
-        $sede = $s['sede_nombre'] ?? '';
+        $sede = $this->titleCase($s['sede_nombre'] ?? '');
         $tel  = $s['telefono'] ?? '';
 
         $this->campoConLinea($pdf, $x,              $datosY,      $colW - 4, 'Nombre:',   $nombrePersona);
@@ -423,13 +423,13 @@ class PdfService
         $pdf->SetTextColor(...$this->text);
         $pdf->SetDrawColor(...$this->border);
 
-        // Datos formateados
-        $solic  = Persona::getNombreCompleto($r);
+        // Datos formateados (todo en mayusculas en el pdf, sin tocar la BD)
+        $solic  = $this->upper(Persona::getNombreCompleto($r));
         $fecha  = date('d/m/Y', strtotime($r['fecha_solicitud']));
         $doc    = $r['documento'] ?? '';
         $tel    = $r['telefono'] ?? '';
-        $motivo = $this->motivoCompleto($r);
-        $obs    = ($r['observaciones'] ?? '') ?: '—';
+        $motivo = $this->upper($this->motivoCompleto($r));
+        $obs    = $this->upper(($r['observaciones'] ?? '') ?: '—');
 
         // Alto de la fila (basado en columnas con wrap)
         $solicL  = $this->nbLines($pdf, $w['solic']  - 2, $solic);
@@ -680,5 +680,19 @@ class PdfService
     private function toLatin1($str)
     {
         return mb_convert_encoding((string)$str, 'ISO-8859-1', 'UTF-8');
+    }
+
+    /** Convierte un valor a mayusculas respetando acentos (utf-8). */
+    private function upper($str)
+    {
+        return mb_strtoupper((string)$str, 'UTF-8');
+    }
+
+    /** Title Case: primera letra de cada palabra en mayuscula, resto minuscula.
+     *  Util para uniformizar nombres que vienen en CAPS del maestro a
+     *  un formato profesional tipo "Mario Cañola" en las remisiones. */
+    private function titleCase($str)
+    {
+        return mb_convert_case(mb_strtolower((string)$str, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
     }
 }
