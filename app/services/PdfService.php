@@ -361,11 +361,12 @@ class PdfService
     {
         // Suman ≈ usableW (255 mm en Letter horizontal con márgenes de 12 mm)
         return [
-            'no'      => 12,
-            'fecha'   => 26,
-            'solic'   => 80,
-            'doc'     => 32,
-            'motivo'  => 55,
+            'no'      => 10,
+            'fecha'   => 22,
+            'solic'   => 65,
+            'doc'     => 28,
+            'tel'     => 30,
+            'motivo'  => 50,
             'obs'     => 50,  // ocupa el resto vía auto-extend
         ];
     }
@@ -373,7 +374,7 @@ class PdfService
     private function tablaHeader($pdf)
     {
         $w = $this->colWidths();
-        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['motivo']);
+        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['tel'] + $w['motivo']);
 
         $pdf->SetFont('Helvetica', 'B', 8);
         $pdf->SetFillColor(245, 243, 245);
@@ -385,6 +386,7 @@ class PdfService
         $pdf->Cell($w['fecha'],  $h, 'Fecha',         'B', 0, 'C', true);
         $pdf->Cell($w['solic'],  $h, 'Solicitante',   'B', 0, 'L', true);
         $pdf->Cell($w['doc'],    $h, 'Documento',     'B', 0, 'C', true);
+        $pdf->Cell($w['tel'],    $h, $this->toLatin1('Teléfono'), 'B', 0, 'C', true);
         $pdf->Cell($w['motivo'], $h, 'Motivo',        'B', 0, 'L', true);
         $pdf->Cell($w['obs'],    $h, 'Observaciones', 'B', 1, 'L', true);
     }
@@ -395,7 +397,7 @@ class PdfService
     private function calcularAlturaFila($pdf, $r, $n)
     {
         $w = $this->colWidths();
-        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['motivo']);
+        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['tel'] + $w['motivo']);
 
         $pdf->SetFont('Helvetica', '', 8);
         $solic  = $this->nbLines($pdf, $w['solic']  - 2, Persona::getNombreCompleto($r));
@@ -408,7 +410,7 @@ class PdfService
     private function renderFila($pdf, $r, $n)
     {
         $w = $this->colWidths();
-        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['motivo']);
+        $w['obs'] = $this->usableW - ($w['no'] + $w['fecha'] + $w['solic'] + $w['doc'] + $w['tel'] + $w['motivo']);
 
         $pdf->SetFont('Helvetica', '', 8);
         $pdf->SetTextColor(...$this->text);
@@ -418,6 +420,7 @@ class PdfService
         $solic  = Persona::getNombreCompleto($r);
         $fecha  = date('d/m/Y', strtotime($r['fecha_solicitud']));
         $doc    = $r['documento'] ?? '';
+        $tel    = $r['telefono'] ?? '';
         $motivo = $this->motivoCompleto($r);
         $obs    = ($r['observaciones'] ?? '') ?: '—';
 
@@ -458,6 +461,11 @@ class PdfService
         $pdf->SetXY($x, $y0);
         $pdf->Cell($w['doc'], $rowH, $doc, 0, 0, 'C');
         $x += $w['doc'];
+
+        // Telefono
+        $pdf->SetXY($x, $y0);
+        $pdf->Cell($w['tel'], $rowH, $tel, 0, 0, 'C');
+        $x += $w['tel'];
 
         // Motivo (wrap)
         $pdf->SetXY($x + 1, $y0 + 0.7);

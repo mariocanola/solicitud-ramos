@@ -98,7 +98,7 @@ class Solicitud
 
         $sql = "SELECT s.*,
                        p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
-                       p.documento,
+                       p.documento, p.telefono,
                        se.nombre AS sede_nombre,
                        m.nombre AS motivo_nombre,
                        e.nombre AS estado_nombre, e.color AS estado_color
@@ -160,7 +160,7 @@ class Solicitud
 
         $sql = "SELECT s.*,
                        p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido,
-                       p.documento,
+                       p.documento, p.telefono,
                        se.nombre AS sede_nombre,
                        m.nombre AS motivo_nombre,
                        e.nombre AS estado_nombre
