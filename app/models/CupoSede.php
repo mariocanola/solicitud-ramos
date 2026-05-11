@@ -85,10 +85,28 @@ class CupoSede
 
     public function getResumen()
     {
+        // Calculamos cupo_usado en tiempo real desde la tabla solicitudes para evitar
+        // que el contador almacenado quede desincronizado al borrar solicitudes.
+        // Cuenta solo solicitudes en estados activos (Pendiente, Aprobada, Entregada),
+        // consistente con tieneSolicitudEnMes() del modelo Solicitud.
         $periodo = date('Y-m-01');
         $stmt = $this->db->prepare(
-            "SELECT cs.*, s.nombre AS sede_nombre,
-                    ROUND((cs.cupo_usado / cs.cupo_maximo) * 100, 1) AS porcentaje
+            "SELECT cs.id, cs.id_sede, cs.periodo, cs.cupo_maximo, cs.notificado,
+                    s.nombre AS sede_nombre,
+                    COALESCE((
+                        SELECT COUNT(*) FROM solicitudes sol
+                        INNER JOIN estados_solicitud e ON e.id = sol.id_estado
+                        WHERE sol.id_sede = cs.id_sede
+                          AND DATE_FORMAT(sol.fecha_solicitud, '%Y-%m-01') = cs.periodo
+                          AND e.nombre IN ('Pendiente','Aprobada','Entregada')
+                    ), 0) AS cupo_usado,
+                    ROUND(COALESCE((
+                        SELECT COUNT(*) FROM solicitudes sol
+                        INNER JOIN estados_solicitud e ON e.id = sol.id_estado
+                        WHERE sol.id_sede = cs.id_sede
+                          AND DATE_FORMAT(sol.fecha_solicitud, '%Y-%m-01') = cs.periodo
+                          AND e.nombre IN ('Pendiente','Aprobada','Entregada')
+                    ), 0) / cs.cupo_maximo * 100, 1) AS porcentaje
              FROM cupos_sede cs
              INNER JOIN sedes s ON s.id = cs.id_sede
              WHERE cs.periodo = ?
