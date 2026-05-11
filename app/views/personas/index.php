@@ -59,10 +59,36 @@
 <div class="card mt-2">
     <div class="card-header">
         <span>Personas</span>
-        <div style="display:flex;gap:8px">
-            <a href="<?= BASE_URL ?>/personas/importar" class="btn btn-outline btn-sm">Cargar maestro</a>
+        <div style="display:flex;gap:8px;align-items:center">
+            <a href="<?= BASE_URL ?>/personas/importar" class="btn-cargar-maestro">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span>Cargar maestro</span>
+            </a>
             <button class="btn btn-success btn-sm" onclick="abrirModalPersona()">+ Nueva Persona</button>
         </div>
+        <style>
+        .btn-cargar-maestro {
+            display:inline-flex; align-items:center; gap:7px;
+            background:#fff;
+            color:#4A1942;
+            border:1.5px solid #4A1942;
+            padding:6px 14px;
+            font-size:13px; font-weight:600;
+            border-radius:6px;
+            text-decoration:none;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        }
+        .btn-cargar-maestro:hover {
+            background:#4A1942;
+            color:#fff;
+            box-shadow:0 2px 6px rgba(74,25,66,0.25);
+        }
+        .btn-cargar-maestro svg { flex-shrink:0; }
+        </style>
     </div>
     <div class="card-body">
         <?php if (empty($personas)): ?>
