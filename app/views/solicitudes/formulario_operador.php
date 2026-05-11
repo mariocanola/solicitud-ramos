@@ -1673,6 +1673,9 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
         column-gap: 18px;
         row-gap: 12px;
         align-items: start;
+        /* Sin esto el grid con min-height:100vh estira las filas para
+           llenar la pantalla, generando un gap enorme entre filas. */
+        align-content: start;
     }
     .operator-header  { grid-column: 1 / -1; margin-bottom: 0; }
     .welcome-message,
