@@ -176,15 +176,22 @@ class PdfService
             $pdf->Image($logoPath, $pageW - $marginX - 22, $y, 22);
         }
 
+        // Numero de remision (codigo unico, util para imprimir y archivar)
+        $codigo = 'RAM-' . str_pad((string)($s['id'] ?? 0), 5, '0', STR_PAD_LEFT);
+        $pdf->SetFont('Helvetica', 'B', 9);
+        $pdf->SetTextColor(...$this->accent);
+        $pdf->SetXY($x, $y);
+        $pdf->Cell($w - 30, 5, $this->toLatin1('Remision N°: ' . $codigo), 0, 1, 'L');
+
         // Fecha
         $pdf->SetTextColor(...$this->text);
         $pdf->SetFont('Helvetica', '', 10);
-        $pdf->SetXY($x, $y);
+        $pdf->SetXY($x, $y + 5);
         $fechaFmt = $this->fechaEspanol($s['fecha_solicitud'] ?? date('Y-m-d'));
         $pdf->Cell($w - 30, 5, $this->toLatin1('Fecha: ' . $fechaFmt), 0, 1, 'L');
 
         // Encabezado destinatario
-        $y += 8;
+        $y += 13;
         $pdf->SetXY($x, $y);
         $pdf->SetFont('Helvetica', '', 10);
         $pdf->Cell($w, 5, $this->toLatin1('Señores'), 0, 1, 'L');

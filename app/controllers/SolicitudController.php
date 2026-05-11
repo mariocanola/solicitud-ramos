@@ -4,6 +4,7 @@ require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/MotivoRamo.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
 require_once BASE_PATH . '/app/models/Persona.php';
+require_once BASE_PATH . '/app/models/Solicitud.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 require_once BASE_PATH . '/app/helpers/Session.php';
 require_once BASE_PATH . '/app/middleware/Csrf.php';
@@ -24,7 +25,7 @@ class SolicitudController
     public function buscarPersona()
     {
         $documento = trim($_GET['documento'] ?? '');
-        
+
         if (empty($documento)) {
             Response::error('El documento es requerido');
             return;
@@ -33,11 +34,14 @@ class SolicitudController
         $personaModel = new Persona();
         $persona = $personaModel->buscarPorDocumento($documento);
 
-        if ($persona) {
-            Response::success($persona, 'Persona encontrada');
-        } else {
+        if (!$persona) {
             Response::error('Persona no encontrada');
+            return;
         }
+
+        $solicitudModel = new Solicitud();
+        $persona['ya_solicito_mes'] = $solicitudModel->tieneSolicitudEnMes($persona['id'], date('Y-m-d'));
+        Response::success($persona, 'Persona encontrada');
     }
 
     /**

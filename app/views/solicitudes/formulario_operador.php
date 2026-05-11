@@ -1822,15 +1822,20 @@ function buscarManual() {
     
     ajaxGet(BASE_URL + '/solicitudes/buscar-persona?documento=' + encodeURIComponent(documento), function(data) {
         if (data.success) {
+            if (data.data && data.data.ya_solicito_mes) {
+                actualizarScannerIndicator('error', 'Ya solicito ramo este mes');
+                alertarSolicitudExistente(data.data);
+                return;
+            }
             actualizarScannerIndicator('success', 'Persona encontrada');
             mostrarPersona(data.data);
             mostrarFormularioSolicitud();
-            
+
             // Auto-llenar campos ocultos
             document.getElementById('id_sede').value = data.data.id_sede || '';
-            document.getElementById('nombre_destinatario').value = data.data.nombre_completo || 
+            document.getElementById('nombre_destinatario').value = data.data.nombre_completo ||
                 (data.data.primer_nombre + ' ' + data.data.primer_apellido);
-            
+
             // Habilitar botón de guardar
             var btnGuardar = document.getElementById('btn_guardar');
             btnGuardar.disabled = false;
@@ -1943,9 +1948,9 @@ function mostrarPantallaExito() {
     document.getElementById('form_section').classList.add('hidden');
     document.getElementById('welcome_message').classList.add('hidden');
     document.getElementById('success_message').classList.remove('hidden');
-    // Auto-reinicio tras 8s para uso desatendido en kiosko
+    // Auto-reinicio tras 4s para liberar el kiosko rapido y listo para el siguiente usuario
     if (window.__kioskoTimer) clearTimeout(window.__kioskoTimer);
-    window.__kioskoTimer = setTimeout(reiniciarKiosco, 8000);
+    window.__kioskoTimer = setTimeout(reiniciarKiosco, 4000);
 }
 
 // Vuelve al estado inicial del kiosko (para el siguiente usuario).
@@ -2121,8 +2126,31 @@ var Toast = {
     }
 };
 
+// Muestra alerta cuando la persona ya tiene una solicitud activa este mes
+// y deja el kiosco en estado limpio para el siguiente usuario.
+function alertarSolicitudExistente(persona) {
+    var nombre = persona.nombre_completo || ((persona.primer_nombre || '') + ' ' + (persona.primer_apellido || '')).trim();
+    var msg = (nombre || 'Esta persona') + ' ya tiene una solicitud de ramo registrada en el mes actual. Solo se permite una por mes.';
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Solicitud ya registrada',
+            text: msg,
+            confirmButtonText: 'Entendido',
+        }).then(function () { limpiarFormulario(); });
+    } else {
+        alert(msg);
+        limpiarFormulario();
+    }
+}
+
 // Override de funciones existentes para el panel operador
 window.onPersonaEncontrada = function(persona) {
+    if (persona && persona.ya_solicito_mes) {
+        actualizarScannerIndicator('error', 'Ya solicito ramo este mes');
+        alertarSolicitudExistente(persona);
+        return;
+    }
     actualizarScannerIndicator('success', 'Persona encontrada');
     mostrarPersona(persona);
     mostrarFormularioSolicitud();
