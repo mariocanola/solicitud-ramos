@@ -20,7 +20,7 @@
                 <?= $csrfField ?>
                 <?php
                 $groups = [
-                    'Organizacion' => ['nombre_organizacion', 'logo_path'],
+                    'Organizacion' => ['nombre_organizacion'],
                     'Cupos' => ['cupo_default'],
                     'Hoja individual (PDF de remision)' => ['empresa_destinataria', 'destinatario_solicitudes'],
                 ];

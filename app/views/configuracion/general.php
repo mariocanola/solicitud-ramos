@@ -13,7 +13,7 @@
             <?php
             // Group configs by category
             $groups = [
-                'Organización' => ['nombre_organizacion', 'logo_path'],
+                'Organización' => ['nombre_organizacion'],
                 'Correo' => ['correo_destino', 'correo_cc'],
                 'SMTP' => ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_secure'],
                 'Cupos' => ['cupo_default'],

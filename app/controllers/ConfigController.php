@@ -60,7 +60,7 @@ class ConfigController
         }
 
         $configModel = new Configuracion();
-        $claves = ['cupo_default', 'nombre_organizacion', 'logo_path', 'empresa_destinataria', 'destinatario_solicitudes'];
+        $claves = ['cupo_default', 'nombre_organizacion', 'empresa_destinataria', 'destinatario_solicitudes'];
 
         foreach ($claves as $clave) {
             if (isset($_POST[$clave])) {
