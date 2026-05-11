@@ -1943,14 +1943,24 @@ function enviarSolicitud() {
 
 // Muestra la pantalla de éxito y oculta lo demás. El usuario presiona "Registrar otra solicitud" para reiniciar.
 function mostrarPantallaExito() {
-    document.getElementById('scanner_section').classList.add('hidden');
-    document.getElementById('persona_info').classList.add('hidden');
-    document.getElementById('form_section').classList.add('hidden');
-    document.getElementById('welcome_message').classList.add('hidden');
-    document.getElementById('success_message').classList.remove('hidden');
-    // Auto-reinicio tras 4s para liberar el kiosko rapido y listo para el siguiente usuario
-    if (window.__kioskoTimer) clearTimeout(window.__kioskoTimer);
-    window.__kioskoTimer = setTimeout(reiniciarKiosco, 4000);
+    // En lugar de mostrar una pantalla intermedia con boton, lanzamos un swal que
+    // se autocierra y reinicia el kiosco — el usuario solo ve la confirmacion y
+    // de inmediato vuelve al estado inicial listo para la siguiente solicitud.
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'success',
+            title: 'Solicitud registrada',
+            text: 'Su solicitud ha sido enviada correctamente.',
+            timer: 2500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        }).then(function () { reiniciarKiosco(); });
+    } else {
+        alert('Solicitud registrada con exito.');
+        reiniciarKiosco();
+    }
 }
 
 // Vuelve al estado inicial del kiosko (para el siguiente usuario).
