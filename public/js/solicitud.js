@@ -249,6 +249,18 @@ function buscarPersona(documento) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.success && data.data) {
+            // Bloquear duplicado mensual antes de mostrar cualquier dato de la persona.
+            if (data.data.ya_solicito_mes) {
+                _setStatus('Ya solicito ramo este mes', 'error');
+                if (window.onScannerStatusChange) {
+                    window.onScannerStatusChange('error', 'Ya solicito ramo este mes');
+                }
+                if (typeof alertarSolicitudExistente === 'function') {
+                    alertarSolicitudExistente(data.data);
+                }
+                return;
+            }
+
             // Persona encontrada - mostrar directamente el formulario
             mostrarPersona(data.data);
             _setStatus('Persona encontrada', 'success');
