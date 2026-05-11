@@ -1546,100 +1546,102 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
 }
 
 /* ============================================
-   KIOSCO RESPONSIVE — adaptable a cualquier monitor
+   KIOSCO RESPONSIVE — diseño deterministico con breakpoints
+   No usa vw: garantiza apariencia consistente entre navegadores
+   independiente de paneles laterales o niveles de zoom.
    ============================================ */
 
-/* Base fluida con clamp() para cualquier tamaño */
+/* Reset de tamaño base para evitar herencia de configuraciones del navegador */
+.operator-panel { font-size: 16px; }
+
+/* Contenedor principal — siempre centrado con max-width fijo */
 .operator-panel {
-    max-width: min(1200px, 96vw);
-    padding: clamp(12px, 2vw, 28px);
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
     box-sizing: border-box;
 }
 
-.operator-header {
-    padding: clamp(14px, 2vw, 24px) clamp(16px, 2.5vw, 32px);
-    margin-bottom: clamp(16px, 2vw, 28px);
-}
-.operator-title { font-size: clamp(18px, 2.2vw, 26px); }
-.operator-session { font-size: clamp(12px, 1.2vw, 14px); }
+/* Header */
+.operator-header { padding: 20px 28px; margin-bottom: 20px; }
+.operator-title   { font-size: 22px; line-height: 1.25; }
+.operator-session { font-size: 14px; }
 
+/* Tarjetas */
 .scanner-section,
 .form-section,
 .persona-card,
 .welcome-message,
 #form_section.card,
 .success-screen {
-    padding: clamp(16px, 2.2vw, 28px);
-    margin-bottom: clamp(14px, 1.8vw, 24px);
+    padding: 22px;
+    margin-bottom: 18px;
 }
 
-.scanner-header h2 { font-size: clamp(15px, 1.5vw, 18px); }
+.scanner-header h2 { font-size: 16px; }
 .scanner-input-touch {
-    font-size: clamp(16px, 1.8vw, 20px);
-    height: clamp(48px, 6vw, 64px);
-    padding: clamp(12px, 1.5vw, 18px);
+    font-size: 18px;
+    height: 56px;
+    padding: 14px 18px;
 }
 .btn-scanner {
-    height: clamp(48px, 6vw, 64px);
-    min-width: clamp(110px, 14vw, 180px);
-    font-size: clamp(13px, 1.2vw, 16px);
-    padding: 0 clamp(18px, 2.5vw, 32px);
+    height: 56px;
+    min-width: 150px;
+    font-size: 14px;
+    padding: 0 26px;
 }
 
-/* Numpad fluido — siempre cuadrado y proporcional */
+/* Numpad — centrado, anchura fija, teclas grandes */
 .numpad {
-    max-width: min(480px, 92%);
-    gap: clamp(6px, 1vw, 12px);
-    margin: clamp(12px, 1.6vw, 20px) auto 4px;
+    width: 100%; max-width: 420px;
+    gap: 10px;
+    margin: 16px auto 4px;
 }
-.numpad-key {
-    height: clamp(54px, 7vw, 80px);
-    font-size: clamp(20px, 2.2vw, 28px);
-    border-radius: clamp(8px, 1vw, 12px);
-}
-.numpad-action { font-size: clamp(12px, 1.1vw, 15px); }
-.numpad-back { font-size: clamp(20px, 2.2vw, 28px); }
+.numpad-key { height: 64px; font-size: 24px; border-radius: 10px; }
+.numpad-action { font-size: 14px; }
+.numpad-back   { font-size: 26px; }
 
-/* Welcome / instrucciones */
-.welcome-message h2 { font-size: clamp(15px, 1.6vw, 19px); }
-.welcome-message p  { font-size: clamp(13px, 1.2vw, 15px); }
-.welcome-steps {
-    flex-wrap: wrap;
-    gap: clamp(8px, 1vw, 14px);
-}
-.step {
-    min-width: 200px;
-    padding: clamp(10px, 1.2vw, 16px);
-}
-.step-text { font-size: clamp(12px, 1.1vw, 14px); }
+/* Welcome */
+.welcome-message h2 { font-size: 17px; }
+.welcome-message p  { font-size: 14px; }
+.welcome-steps { display: flex; flex-wrap: wrap; gap: 12px; }
+.step { flex: 1; min-width: 220px; padding: 14px; }
+.step-text { font-size: 13px; }
 
 /* Persona card */
-.persona-details {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
+.persona-details { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
 /* Form */
 .form-row, .row { flex-wrap: wrap; }
-#form_section .form-control {
-    font-size: clamp(13px, 1.2vw, 15px);
-    min-height: clamp(40px, 5vw, 50px);
-}
+#form_section .form-control { font-size: 14px; min-height: 44px; }
 
-/* ===== Tablet pequeña / móvil grande ===== */
-@media (max-width: 768px) {
-    .operator-panel { padding: 12px; max-width: 100vw; }
-    .operator-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    .scanner-header { flex-direction: column; gap: 10px; text-align: center; }
-    .scanner-input-area { flex-direction: column; gap: 10px; }
-    .btn-scanner { width: 100%; min-width: 0; }
+/* ===== Tablet (≤ 900px) — apila scanner+boton y pasos ===== */
+@media (max-width: 900px) {
+    .operator-panel { max-width: 100%; padding: 14px; }
+    .operator-header { padding: 16px 20px; }
     .welcome-steps { flex-direction: column; gap: 10px; }
     .step { min-width: 0; width: 100%; }
-    .form-row, .row { grid-template-columns: 1fr; }
+}
+
+/* ===== Móvil (≤ 600px) — todo en columna ===== */
+@media (max-width: 600px) {
+    .operator-panel { padding: 10px; }
+    .operator-header {
+        flex-direction: column; text-align: center; gap: 10px;
+        padding: 14px 16px;
+    }
+    .operator-title { font-size: 18px; }
+    .scanner-header { flex-direction: column; gap: 8px; text-align: center; }
+    .scanner-section, .welcome-message, .persona-card, #form_section.card {
+        padding: 16px;
+    }
+    .scanner-input-area { flex-direction: column; gap: 10px; }
+    .btn-scanner { width: 100%; min-width: 0; }
+    .numpad { max-width: 100%; }
+    .numpad-key { height: 56px; font-size: 22px; }
     .col-6, .col-md-6, .col-lg-6 { width: 100%; max-width: 100%; flex: 0 0 100%; }
+    .form-row, .row { grid-template-columns: 1fr; }
     .form-actions { flex-direction: column; gap: 10px; align-items: stretch; }
     .form-actions-left, .form-actions-right { width: 100%; justify-content: stretch; }
     .form-actions-left .btn, .form-actions-right .btn { flex: 1; }
@@ -1648,31 +1650,25 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
     .modal-body, .modal-header, .modal-footer { padding: 16px; }
 }
 
-/* ===== Móvil pequeño ===== */
-@media (max-width: 420px) {
-    .numpad-key { height: 56px; font-size: 20px; }
-    .scanner-input-touch { font-size: 16px; height: 48px; }
-    .operator-title { font-size: 17px; }
+/* ===== Móvil muy pequeño (≤ 380px) ===== */
+@media (max-width: 380px) {
+    .operator-title { font-size: 16px; }
+    .scanner-input-touch { font-size: 16px; height: 50px; }
+    .numpad-key { height: 50px; font-size: 20px; }
 }
 
-/* ===== Modo retrato (kiosco vertical típico) ===== */
-@media (orientation: portrait) and (min-width: 600px) {
-    .operator-panel { max-width: 90vw; }
-    .welcome-steps { flex-direction: column; }
-    .step { width: 100%; }
-    .scanner-input-area { flex-direction: column; }
-    .btn-scanner { width: 100%; }
+/* ===== Monitores grandes (≥ 1400px) — panel un poco mas ancho ===== */
+@media (min-width: 1400px) {
+    .operator-panel { max-width: 1100px; }
 }
 
-/* ===== Monitor grande (Full HD+) ===== */
-@media (min-width: 1600px) {
-    .operator-panel { max-width: 1400px; }
-}
-
-/* ===== Monitor muy grande / 4K ===== */
-@media (min-width: 2000px) {
-    .operator-panel { max-width: 1600px; }
-    .numpad { max-width: 560px; }
+/* ===== Altura limitada (≤ 700px) — compactar verticalmente ===== */
+@media (max-height: 700px) {
+    .operator-header { padding: 12px 20px; margin-bottom: 12px; }
+    .scanner-section, .welcome-message, .persona-card, #form_section.card {
+        padding: 16px; margin-bottom: 12px;
+    }
+    .numpad-key { height: 54px; font-size: 22px; }
 }
 
 /* ===== Pantallas táctiles — botones más confortables ===== */
