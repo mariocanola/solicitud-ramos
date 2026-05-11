@@ -1662,27 +1662,24 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
 }
 
 /* ===== Escritorio (≥ 1024px) — layout 2 columnas para evitar scroll =====
-   Header arriba ancho completo, instrucciones a la izquierda,
-   scanner+numpad a la derecha. */
+   Header arriba ancho completo, columna izquierda con instrucciones o
+   tarjeta de persona, columna derecha con scanner o formulario.
+   Usamos grid-column en cada hijo en vez de grid-template-areas para que
+   los elementos display:none no reserven filas vacias. */
 @media (min-width: 1024px) {
     .operator-panel {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-        grid-template-areas:
-            "header  header"
-            "info    scanner"
-            "info    form"
-            "persona form"
-            "success success";
-        gap: 12px 18px;
+        column-gap: 18px;
+        row-gap: 12px;
         align-items: start;
     }
-    .operator-header  { grid-area: header;  margin-bottom: 0; }
-    .welcome-message  { grid-area: info;    margin-bottom: 0; }
-    .scanner-section  { grid-area: scanner; margin-bottom: 0; }
-    .persona-card     { grid-area: persona; margin-bottom: 0; }
-    #form_section.card{ grid-area: form;    margin-bottom: 0; }
-    .success-screen   { grid-area: success; margin-bottom: 0; }
+    .operator-header  { grid-column: 1 / -1; margin-bottom: 0; }
+    .welcome-message,
+    .persona-card     { grid-column: 1 / 2;  margin-bottom: 0; }
+    .scanner-section,
+    #form_section.card{ grid-column: 2 / 3;  margin-bottom: 0; }
+    .success-screen   { grid-column: 1 / -1; margin-bottom: 0; }
     .numpad           { max-width: 360px; margin-top: 12px; }
     .numpad-key       { height: 56px; font-size: 22px; }
 }
