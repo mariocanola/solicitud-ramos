@@ -235,9 +235,43 @@
                         </span>
                     </label>
                 </div>
-                <div class="mt-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-dark btn-lg">Descargar PDF</button>
+                <div class="mt-2" style="display:flex;justify-content:flex-end">
+                    <button type="submit" class="btn-descargar-pdf">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>Descargar PDF</span>
+                    </button>
                 </div>
+                <style>
+                .btn-descargar-pdf {
+                    display:inline-flex; align-items:center; gap:10px;
+                    background: linear-gradient(135deg, #4A1942 0%, #5C2A47 100%);
+                    color:#fff;
+                    border:none;
+                    padding:12px 26px;
+                    font-size:14px; font-weight:600; letter-spacing:0.3px;
+                    border-radius:8px;
+                    cursor:pointer;
+                    box-shadow:0 2px 6px rgba(74,25,66,0.25);
+                    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+                }
+                .btn-descargar-pdf:hover {
+                    background: linear-gradient(135deg, #5C2A47 0%, #7A4866 100%);
+                    box-shadow:0 4px 12px rgba(74,25,66,0.35);
+                    transform: translateY(-1px);
+                }
+                .btn-descargar-pdf:active {
+                    transform: translateY(0);
+                    box-shadow:0 1px 3px rgba(74,25,66,0.25);
+                }
+                .btn-descargar-pdf:disabled {
+                    opacity:0.6; cursor:not-allowed; transform:none;
+                }
+                .btn-descargar-pdf svg { flex-shrink:0; }
+                </style>
             </form>
             <div id="reporte_msg" class="mt-2"></div>
         </div>
