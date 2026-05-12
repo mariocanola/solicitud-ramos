@@ -1,20 +1,32 @@
+<!-- Indicador de auto-actualizacion -->
+<div id="auto-refresh-bar" style="display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:12px;color:#64748b;margin-bottom:10px">
+    <span class="live-dot" style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;animation:liveBeat 2s infinite"></span>
+    <span>Auto-actualizando · <span id="last-update">recien actualizado</span></span>
+</div>
+<style>
+@keyframes liveBeat { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+.stat-value, .progress-bar { transition: all 0.4s ease; }
+.flash-update { animation: flashUpdate 0.8s ease; }
+@keyframes flashUpdate { 0% { background:#fef9c3; } 100% { background:transparent; } }
+</style>
+
 <!-- KPI Cards -->
 <div class="row">
     <div class="col-3">
         <div class="stat-card primary">
-            <div class="stat-value"><?= $estadisticas['total'] ?? 0 ?></div>
+            <div class="stat-value" id="kpi-total"><?= $estadisticas['total'] ?? 0 ?></div>
             <div class="stat-label">Total Solicitudes</div>
         </div>
     </div>
     <div class="col-3">
         <div class="stat-card info">
-            <div class="stat-value"><?= $estadisticas['total_mes'] ?? 0 ?></div>
+            <div class="stat-value" id="kpi-mes"><?= $estadisticas['total_mes'] ?? 0 ?></div>
             <div class="stat-label">Solicitudes del Mes</div>
         </div>
     </div>
     <div class="col-3">
         <div class="stat-card success">
-            <div class="stat-value"><?= $estadisticas['total_semana'] ?? 0 ?></div>
+            <div class="stat-value" id="kpi-semana"><?= $estadisticas['total_semana'] ?? 0 ?></div>
             <div class="stat-label">Solicitudes esta Semana</div>
         </div>
     </div>
@@ -64,15 +76,15 @@
 <!-- Cupos por Sede -->
 <div class="card mt-2">
     <div class="card-header">Control de Cupos por Sede</div>
-    <div class="card-body">
+    <div class="card-body" id="cupos-container">
         <?php if (empty($cupos)): ?>
             <p class="text-muted">No hay cupos configurados para el periodo actual.</p>
         <?php else: ?>
             <?php foreach ($cupos as $cupo): ?>
-            <div style="margin-bottom:15px">
+            <div class="cupo-row" data-sede="<?= (int)$cupo['id_sede'] ?>" style="margin-bottom:15px">
                 <div class="d-flex justify-between mb-1">
                     <strong><?= htmlspecialchars($cupo['sede_nombre']) ?></strong>
-                    <span><?= $cupo['cupo_usado'] ?> / <?= $cupo['cupo_maximo'] ?></span>
+                    <span class="cupo-num"><?= $cupo['cupo_usado'] ?> / <?= $cupo['cupo_maximo'] ?></span>
                 </div>
                 <?php
                     $pct = $cupo['cupo_maximo'] > 0 ? round(($cupo['cupo_usado'] / $cupo['cupo_maximo']) * 100) : 0;
@@ -98,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (pieData.data.length > 0) {
         var pieTotal = pieData.data.reduce(function(a, b) { return a + b; }, 0);
 
-        new Chart(document.getElementById('chartPie').getContext('2d'), {
+        window._chartPie = new Chart(document.getElementById('chartPie').getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: pieData.labels,
@@ -160,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // === GRAFICA DE BARRAS: Total solicitudes por sede ===
     if (barData.data.length > 0) {
-        new Chart(document.getElementById('chartBar').getContext('2d'), {
+        window._chartBar = new Chart(document.getElementById('chartBar').getContext('2d'), {
             type: 'bar',
             data: {
                 labels: barData.labels,
@@ -214,5 +226,84 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ============================================================
+    // AUTO-ACTUALIZACION (polling cada 15 segundos)
+    // ============================================================
+    var BASE_URL = '<?= BASE_URL ?>';
+    var REFRESH_MS = 15000;
+
+    function setBlink(el) { if (!el) return; el.classList.remove('flash-update'); void el.offsetWidth; el.classList.add('flash-update'); }
+    function updateText(el, nuevo) {
+        if (!el) return;
+        if (String(el.textContent).trim() !== String(nuevo).trim()) {
+            el.textContent = nuevo;
+            setBlink(el);
+        }
+    }
+
+    function aplicarResumen(data) {
+        if (!data || !data.estadisticas) return;
+        var s = data.estadisticas;
+        updateText(document.getElementById('kpi-total'),  s.total);
+        updateText(document.getElementById('kpi-mes'),    s.total_mes);
+        updateText(document.getElementById('kpi-semana'), s.total_semana);
+
+        // Cupos
+        if (Array.isArray(data.cupos)) {
+            data.cupos.forEach(function (c) {
+                var row = document.querySelector('.cupo-row[data-sede="' + c.id_sede + '"]');
+                if (!row) return;
+                var num = row.querySelector('.cupo-num');
+                var bar = row.querySelector('.progress-bar');
+                var pct = c.cupo_maximo > 0 ? Math.round((c.cupo_usado / c.cupo_maximo) * 100) : 0;
+                var color = pct >= 90 ? 'var(--danger)' : (pct >= 70 ? 'var(--warning)' : 'var(--success)');
+                updateText(num, c.cupo_usado + ' / ' + c.cupo_maximo);
+                if (bar) {
+                    bar.style.width = pct + '%';
+                    bar.style.background = color;
+                    bar.textContent = pct + '%';
+                }
+            });
+        }
+
+        // Charts
+        if (window._chartPie && data.pie) {
+            window._chartPie.data.labels   = data.pie.labels;
+            window._chartPie.data.datasets[0].data = data.pie.data;
+            window._chartPie.data.datasets[0].backgroundColor = data.pie.colors;
+            window._chartPie.data.datasets[0].borderColor = data.pie.borders;
+            window._chartPie.update('none');
+        }
+        if (window._chartBar && data.bar) {
+            window._chartBar.data.labels   = data.bar.labels;
+            window._chartBar.data.datasets[0].data = data.bar.data;
+            window._chartBar.data.datasets[0].backgroundColor = data.bar.colors;
+            window._chartBar.data.datasets[0].borderColor = data.bar.borders;
+            window._chartBar.update('none');
+        }
+
+        var last = document.getElementById('last-update');
+        if (last) {
+            var d = new Date();
+            last.textContent = 'hace un momento (' + d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + ')';
+        }
+    }
+
+    function poll() {
+        fetch(BASE_URL + '/api/dashboard/resumen', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (j && j.success) aplicarResumen(j.data); })
+            .catch(function () { /* silencioso: si falla la red simplemente reintenta al siguiente tick */ });
+    }
+
+    // Solo actualizar mientras la pestaña este visible (ahorra red y CPU).
+    var pollerId = null;
+    function startPoller() { if (!pollerId) pollerId = setInterval(poll, REFRESH_MS); }
+    function stopPoller()  { if (pollerId) { clearInterval(pollerId); pollerId = null; } }
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stopPoller(); else { startPoller(); poll(); }
+    });
+    startPoller();
 });
 </script>

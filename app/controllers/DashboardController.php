@@ -55,11 +55,15 @@ class DashboardController
     public function resumen()
     {
         $reporteService = new ReporteService();
-        $cupoService = new CupoService();
+        $cupoService    = new CupoService();
+        $solicitudModel = new Solicitud();
 
         Response::success([
             'estadisticas' => $reporteService->getEstadisticas(),
             'cupos'        => $cupoService->getResumen(),
+            'pie'          => $this->buildPieData($solicitudModel->getSolicitudesSemanaActualPorSede()),
+            'bar'          => $this->buildBarData($solicitudModel->getTotalPorSede()),
+            'timestamp'    => time(),
         ]);
     }
 

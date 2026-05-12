@@ -623,6 +623,39 @@ var personaValidator = new FormValidator('form_persona', {
     'primer_apellido': [V.required('El primer apellido es requerido'), V.maxLength(50)],
     'id_sede': [V.required('Debe seleccionar una sede')]
 });
+
+// ============================================================
+// AUTO-REFRESH del listado cuando un operador registra una solicitud nueva.
+// Polea cada 15s; si el conteo total subio, recarga la pagina conservando
+// filtros y pagina actual a traves de la URL.
+// ============================================================
+(function () {
+    var REFRESH_MS = 15000;
+    var totalActual = <?= isset($totalRegistros) ? (int)$totalRegistros : 0 ?>;
+    var pollerId = null;
+
+    function chequearCambios() {
+        fetch(BASE_URL + '/api/dashboard/resumen', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+                if (!j || !j.success || !j.data || !j.data.estadisticas) return;
+                var nuevo = parseInt(j.data.estadisticas.total, 10);
+                if (!isNaN(nuevo) && nuevo !== totalActual) {
+                    // Hubo cambio: recargar conservando filtros / pagina actual
+                    location.reload();
+                }
+            })
+            .catch(function () { /* silencioso */ });
+    }
+
+    function start() { if (!pollerId) pollerId = setInterval(chequearCambios, REFRESH_MS); }
+    function stop()  { if (pollerId) { clearInterval(pollerId); pollerId = null; } }
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stop(); else { start(); chequearCambios(); }
+    });
+    start();
+})();
 </script>
 <?php
   $jsScannerVer = @filemtime(BASE_PATH . '/public/js/scanner.js') ?: time();
