@@ -1,13 +1,5 @@
-<!-- Indicador de auto-actualizacion -->
-<div id="auto-refresh-bar" style="display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:12px;color:#64748b;margin-bottom:10px">
-    <span class="live-dot" style="width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block;animation:liveBeat 2s infinite"></span>
-    <span>Auto-actualizando · <span id="last-update">recien actualizado</span></span>
-</div>
 <style>
-@keyframes liveBeat { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
 .stat-value, .progress-bar { transition: all 0.4s ease; }
-.flash-update { animation: flashUpdate 0.8s ease; }
-@keyframes flashUpdate { 0% { background:#fef9c3; } 100% { background:transparent; } }
 </style>
 
 <!-- KPI Cards -->
@@ -233,12 +225,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var BASE_URL = '<?= BASE_URL ?>';
     var REFRESH_MS = 15000;
 
-    function setBlink(el) { if (!el) return; el.classList.remove('flash-update'); void el.offsetWidth; el.classList.add('flash-update'); }
     function updateText(el, nuevo) {
         if (!el) return;
         if (String(el.textContent).trim() !== String(nuevo).trim()) {
             el.textContent = nuevo;
-            setBlink(el);
         }
     }
 
@@ -281,12 +271,6 @@ document.addEventListener('DOMContentLoaded', function() {
             window._chartBar.data.datasets[0].backgroundColor = data.bar.colors;
             window._chartBar.data.datasets[0].borderColor = data.bar.borders;
             window._chartBar.update('none');
-        }
-
-        var last = document.getElementById('last-update');
-        if (last) {
-            var d = new Date();
-            last.textContent = 'hace un momento (' + d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + ')';
         }
     }
 
