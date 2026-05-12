@@ -220,10 +220,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ============================================================
-    // AUTO-ACTUALIZACION (polling cada 15 segundos)
+    // AUTO-ACTUALIZACION (heartbeat cada 2s + fetch completo solo si cambia)
     // ============================================================
     var BASE_URL = '<?= BASE_URL ?>';
-    var REFRESH_MS = 15000;
+    var HEARTBEAT_MS = 2000;
+    var ultimoHash = null;
 
     function updateText(el, nuevo) {
         if (!el) return;
@@ -274,16 +275,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function poll() {
+    function fetchCompleto() {
         fetch(BASE_URL + '/api/dashboard/resumen', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.json(); })
             .then(function (j) { if (j && j.success) aplicarResumen(j.data); })
-            .catch(function () { /* silencioso: si falla la red simplemente reintenta al siguiente tick */ });
+            .catch(function () {});
     }
 
-    // Solo actualizar mientras la pestaña este visible (ahorra red y CPU).
+    function poll() {
+        fetch(BASE_URL + '/api/dashboard/heartbeat', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+                if (!j || !j.success) return;
+                var hash = j.data.total + ':' + j.data.last;
+                if (hash !== ultimoHash) {
+                    ultimoHash = hash;
+                    fetchCompleto();
+                }
+            })
+            .catch(function () {});
+    }
+
     var pollerId = null;
-    function startPoller() { if (!pollerId) pollerId = setInterval(poll, REFRESH_MS); }
+    function startPoller() { if (!pollerId) pollerId = setInterval(poll, HEARTBEAT_MS); }
     function stopPoller()  { if (pollerId) { clearInterval(pollerId); pollerId = null; } }
     document.addEventListener('visibilitychange', function () {
         if (document.hidden) stopPoller(); else { startPoller(); poll(); }

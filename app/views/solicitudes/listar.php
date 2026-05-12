@@ -625,32 +625,28 @@ var personaValidator = new FormValidator('form_persona', {
 });
 
 // ============================================================
-// AUTO-REFRESH del listado cuando un operador registra una solicitud nueva.
-// Polea cada 15s; si el conteo total subio, recarga la pagina conservando
-// filtros y pagina actual a traves de la URL.
+// AUTO-REFRESH del listado: heartbeat cada 2s al endpoint ligero;
+// si detecta cambios, recarga la pagina conservando filtros y pagina actual.
 // ============================================================
 (function () {
-    var REFRESH_MS = 15000;
-    var totalActual = <?= isset($totalRegistros) ? (int)$totalRegistros : 0 ?>;
+    var HEARTBEAT_MS = 2000;
+    var ultimoHash = null;
     var pollerId = null;
 
     function chequearCambios() {
-        fetch(BASE_URL + '/api/dashboard/resumen', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        fetch(BASE_URL + '/api/dashboard/heartbeat', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.json(); })
             .then(function (j) {
-                if (!j || !j.success || !j.data || !j.data.estadisticas) return;
-                var nuevo = parseInt(j.data.estadisticas.total, 10);
-                if (!isNaN(nuevo) && nuevo !== totalActual) {
-                    // Hubo cambio: recargar conservando filtros / pagina actual
-                    location.reload();
-                }
+                if (!j || !j.success) return;
+                var hash = j.data.total + ':' + j.data.last;
+                if (ultimoHash === null) { ultimoHash = hash; return; }
+                if (hash !== ultimoHash) { location.reload(); }
             })
-            .catch(function () { /* silencioso */ });
+            .catch(function () {});
     }
 
-    function start() { if (!pollerId) pollerId = setInterval(chequearCambios, REFRESH_MS); }
+    function start() { if (!pollerId) pollerId = setInterval(chequearCambios, HEARTBEAT_MS); }
     function stop()  { if (pollerId) { clearInterval(pollerId); pollerId = null; } }
-
     document.addEventListener('visibilitychange', function () {
         if (document.hidden) stop(); else { start(); chequearCambios(); }
     });

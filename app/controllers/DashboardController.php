@@ -3,6 +3,7 @@ require_once BASE_PATH . '/app/services/ReporteService.php';
 require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/models/Solicitud.php';
 require_once BASE_PATH . '/app/models/Sede.php';
+require_once BASE_PATH . '/app/models/Database.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 
 class DashboardController
@@ -64,6 +65,20 @@ class DashboardController
             'pie'          => $this->buildPieData($solicitudModel->getSolicitudesSemanaActualPorSede()),
             'bar'          => $this->buildBarData($solicitudModel->getTotalPorSede()),
             'timestamp'    => time(),
+        ]);
+    }
+
+    /**
+     * Endpoint ultra-ligero para detectar cambios. Solo cuenta filas + maximo updated_at
+     * de la tabla solicitudes. Pensado para polling agresivo (cada 2s) sin saturar la BD.
+     */
+    public function heartbeat()
+    {
+        $db = Database::getInstance()->getConnection();
+        $row = $db->query("SELECT COUNT(*) AS total, COALESCE(MAX(updated_at), '0') AS last FROM solicitudes")->fetch();
+        Response::success([
+            'total' => (int)($row['total'] ?? 0),
+            'last'  => $row['last'] ?? '0',
         ]);
     }
 

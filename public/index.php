@@ -141,6 +141,7 @@ $publicRoutes = [
 $adminRoutes = [
     'GET:dashboard',
     'GET:api/dashboard/resumen',
+    'GET:api/dashboard/heartbeat',
     'GET:personas',
     'POST:personas/actualizar',
     'POST:personas/eliminar',
@@ -183,7 +184,8 @@ $routes = [
 
     // Dashboard
     'GET:dashboard'             => ['DashboardController', 'index'],
-    'GET:api/dashboard/resumen' => ['DashboardController', 'resumen'],
+    'GET:api/dashboard/resumen'   => ['DashboardController', 'resumen'],
+    'GET:api/dashboard/heartbeat' => ['DashboardController', 'heartbeat'],
 
     // Personas
     'GET:personas'              => ['PersonaController', 'index'],
