@@ -1706,6 +1706,24 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
     .step { padding: 10px 12px; }
 }
 
+/* ===== Estilos del swal de duplicado mensual (alerta del kiosco) ===== */
+.swal-tandil {
+    border-radius: 14px !important;
+    box-shadow: 0 20px 50px rgba(74,25,66,0.18) !important;
+}
+.swal-tandil-btn {
+    padding: 10px 28px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(74,25,66,0.3) !important;
+    margin-top: 8px !important;
+}
+.swal-tandil-btn:hover {
+    box-shadow: 0 4px 14px rgba(74,25,66,0.4) !important;
+    transform: translateY(-1px);
+}
+
 /* ===== Altura muy limitada (≤ 650px) ===== */
 @media (max-height: 650px) {
     .operator-header  { padding: 10px 16px; margin-bottom: 8px; }
@@ -2187,17 +2205,69 @@ var Toast = {
 // Muestra alerta cuando la persona ya tiene una solicitud activa este mes
 // y deja el kiosco en estado limpio para el siguiente usuario.
 function alertarSolicitudExistente(persona) {
-    var nombre = persona.nombre_completo || ((persona.primer_nombre || '') + ' ' + (persona.primer_apellido || '')).trim();
-    var msg = (nombre || 'Esta persona') + ' ya tiene una solicitud de ramo registrada en el mes actual. Solo se permite una por mes.';
+    var nombreCrudo = persona.nombre_completo || ((persona.primer_nombre || '') + ' ' + (persona.primer_apellido || '')).trim();
+    var nombre = nombreCrudo.toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+
+    var existente = persona.solicitud_existente || {};
+    var fechaTxt = '';
+    if (existente.fecha_solicitud) {
+        var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        var d = new Date(existente.fecha_solicitud + 'T00:00:00');
+        if (!isNaN(d)) fechaTxt = d.getDate() + ' de ' + meses[d.getMonth()] + ' de ' + d.getFullYear();
+        else fechaTxt = existente.fecha_solicitud;
+    }
+    var motivoTxt = existente.motivo_nombre || '';
+    var estadoTxt = existente.estado_nombre || '';
+
+    var iconHTML =
+        '<div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#4A1942,#5C2A47);'
+        + 'display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 16px rgba(74,25,66,0.3)">'
+        + '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
+        + '</div>';
+
+    var detallesHTML = '';
+    if (fechaTxt || motivoTxt) {
+        detallesHTML = '<div style="background:#faf8fb;border-radius:8px;padding:14px 16px;margin-top:18px;text-align:left;border-left:3px solid #4A1942">'
+            + '<div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:#7A4866;text-transform:uppercase;margin-bottom:6px">Solicitud previa</div>';
+        if (fechaTxt) {
+            detallesHTML += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">'
+                + '<span style="color:#64748b">Fecha</span><strong style="color:#1e293b">' + fechaTxt + '</strong></div>';
+        }
+        if (motivoTxt) {
+            detallesHTML += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">'
+                + '<span style="color:#64748b">Motivo</span><strong style="color:#1e293b">' + motivoTxt + '</strong></div>';
+        }
+        if (estadoTxt) {
+            detallesHTML += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">'
+                + '<span style="color:#64748b">Estado</span><strong style="color:#1e293b">' + estadoTxt + '</strong></div>';
+        }
+        detallesHTML += '</div>';
+    }
+
+    var html =
+        iconHTML +
+        '<h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:18px 0 4px 0">Ya solicitó su ramo</h2>' +
+        '<p style="font-size:14px;color:#64748b;margin:0">Hola <strong style="color:#4A1942">' + (nombre || 'estimado usuario') + '</strong></p>' +
+        '<p style="font-size:14px;color:#475569;margin:14px 0 0 0;line-height:1.5">' +
+        'Ya tienes una solicitud registrada en el mes actual. ' +
+        'Solo se permite <strong>una solicitud por persona cada mes</strong>.</p>' +
+        detallesHTML;
+
     if (typeof Swal !== 'undefined') {
         Swal.fire({
-            icon: 'warning',
-            title: 'Solicitud ya registrada',
-            text: msg,
+            html: html,
+            showConfirmButton: true,
             confirmButtonText: 'Entendido',
+            confirmButtonColor: '#4A1942',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            width: 460,
+            padding: '28px 24px 22px',
+            customClass: { popup: 'swal-tandil', confirmButton: 'swal-tandil-btn' }
         }).then(function () { limpiarFormulario(); });
     } else {
-        alert(msg);
+        alert('Ya tiene una solicitud registrada en el mes actual.');
         limpiarFormulario();
     }
 }

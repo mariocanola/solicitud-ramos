@@ -199,6 +199,23 @@ class Solicitud
         return (int)$stmt->fetchColumn() > 0;
     }
 
+    /** Devuelve la solicitud activa del mes para mostrar detalles en la alerta del kiosco. */
+    public function getSolicitudActivaEnMes($persona_id, $fecha)
+    {
+        $stmt = $this->db->prepare(
+            "SELECT s.id, s.fecha_solicitud, m.nombre AS motivo_nombre, e.nombre AS estado_nombre
+             FROM solicitudes s
+             INNER JOIN estados_solicitud e ON e.id = s.id_estado
+             INNER JOIN motivos_ramo m       ON m.id = s.id_motivo
+             WHERE s.persona_id = ?
+               AND DATE_FORMAT(s.fecha_solicitud, '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
+               AND e.nombre IN ('Aprobada','Pendiente','Entregada')
+             ORDER BY s.fecha_solicitud DESC LIMIT 1"
+        );
+        $stmt->execute([(int)$persona_id, $fecha]);
+        return $stmt->fetch() ?: null;
+    }
+
     public function getEstadisticas()
     {
         $stats = [];

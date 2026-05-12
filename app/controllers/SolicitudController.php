@@ -40,7 +40,11 @@ class SolicitudController
         }
 
         $solicitudModel = new Solicitud();
-        $persona['ya_solicito_mes'] = $solicitudModel->tieneSolicitudEnMes($persona['id'], date('Y-m-d'));
+        $solicitudExistente = $solicitudModel->getSolicitudActivaEnMes($persona['id'], date('Y-m-d'));
+        $persona['ya_solicito_mes'] = !empty($solicitudExistente);
+        if ($persona['ya_solicito_mes']) {
+            $persona['solicitud_existente'] = $solicitudExistente;
+        }
         Response::success($persona, 'Persona encontrada');
     }
 
