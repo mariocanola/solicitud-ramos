@@ -4,6 +4,7 @@ require_once BASE_PATH . '/app/models/Solicitud.php';
 require_once BASE_PATH . '/app/models/Persona.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/MotivoRamo.php';
+require_once BASE_PATH . '/app/models/Configuracion.php';
 require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/helpers/Validator.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
@@ -51,15 +52,28 @@ class SolicitudService
             return ['success' => false, 'message' => 'La sede no es válida o no está activa'];
         }
 
-        // Check cupo
-        $fecha = $data['fecha_solicitud'] ?? DateHelper::today();
+        // Check cupo. Si no viene fecha del formulario, usamos now() con hora real
+        // para que la regla del corte de 6 AM (modo weekly) aplique correctamente.
+        $fecha = !empty($data['fecha_solicitud']) ? $data['fecha_solicitud'] : DateHelper::now();
         if (!$this->cupoService->verificarDisponibilidad($data['id_sede'], $fecha)) {
-            return ['success' => false, 'message' => 'No hay cupo disponible para esta sede en el periodo actual'];
+            $tipo = Configuracion::getPeriodoTipo();
+            $mensajePeriodo = $tipo === 'weekly' 
+                ? 'semana' 
+                : 'mes';
+            return [
+                'success' => false,
+                'message' => "Lo sentimos, se han agotado los cupos disponibles para esta sede en esta {$mensajePeriodo}."
+            ];
         }
 
-        // Check si la persona ya tiene una solicitud en el mismo mes
-        if ($this->solicitudModel->tieneSolicitudEnMes($data['persona_id'], $fecha)) {
-            return ['success' => false, 'message' => 'La persona ya tiene una solicitud registrada en este mes. Solo se permite un ramo por mes por persona.'];
+        // Check si la persona ya tiene una solicitud en el mismo período
+        // Siempre verificar contra la fecha actual, no contra la fecha de la solicitud
+        // Esto evita que el usuario cambie la fecha para hacer múltiples solicitudes
+        $tipo = Configuracion::getPeriodoTipo();
+        $fechaActual = DateHelper::now();
+        if ($this->solicitudModel->tieneSolicitudEnPeriodo($data['persona_id'], $fechaActual, $tipo)) {
+            $mensajePeriodo = $tipo === 'weekly' ? 'semana' : 'mes';
+            return ['success' => false, 'message' => "La persona ya tiene una solicitud registrada en esta {$mensajePeriodo}. Solo se permite un ramo por {$mensajePeriodo} por persona."];
         }
 
         // Check motivo "otro"
@@ -78,7 +92,9 @@ class SolicitudService
             $data['id_estado'] = 2; // 2 = Aprobada
             $id = $this->solicitudModel->create($data);
 
-            $this->cupoService->incrementar($data['id_sede'], $fecha);
+            // Aseguramos que el registro cupos_sede exista para el periodo.
+            // El conteo "usado" se calcula en tiempo real desde solicitudes.
+            $this->cupoService->asegurarRegistro($data['id_sede'], $fecha);
 
             $db->commit();
 
@@ -107,11 +123,8 @@ class SolicitudService
             return ['success' => false, 'message' => 'Solicitud no encontrada'];
         }
 
-        // If cancelling, decrement cupo
-        if ((int)$id_estado === 5 && (int)$solicitud['id_estado'] !== 5) {
-            $this->cupoService->decrementar($solicitud['id_sede'], $solicitud['fecha_solicitud']);
-        }
-
+        // El cupo se calcula en tiempo real desde solicitudes filtrando por estado activo,
+        // asi que cambiar a Cancelada automaticamente la saca del conteo. No requiere decrementar.
         $this->solicitudModel->cambiarEstado($id, $id_estado);
         return ['success' => true, 'message' => 'Estado actualizado'];
     }
@@ -122,12 +135,7 @@ class SolicitudService
         if (!$solicitud) {
             return ['success' => false, 'message' => 'Solicitud no encontrada'];
         }
-
-        // If it was counted in cupo, decrement
-        $estadosCancelados = ['Cancelada', 'Rechazada'];
-        if (!in_array($solicitud['estado_nombre'], $estadosCancelados)) {
-            $this->cupoService->decrementar($solicitud['id_sede'], $solicitud['fecha_solicitud']);
-        }
+        // Cupo en tiempo real: al borrar la fila desaparece del conteo automaticamente.
 
         $this->solicitudModel->delete($id);
         return ['success' => true, 'message' => 'Solicitud eliminada exitosamente'];
