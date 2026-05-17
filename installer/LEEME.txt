@@ -1,0 +1,165 @@
+==========================================
+  SISTEMA FLORES - INSTRUCCIONES
+==========================================
+
+CONTENIDO DEL PAQUETE
+
+  flores/                  Codigo de la aplicacion
+  sql/                     Scripts SQL de instalacion
+    01_schema.sql            Estructura de tablas
+    02_seed.sql              Datos iniciales (sedes, configuracion)
+    03_eventos.sql           Evento de reinicio semanal de cupos
+  instalar_servidor.bat    Instala el sistema en el PC servidor
+  instalar_cliente.bat     Crea accesos directos en un PC cliente
+  generar_icono.ps1        Genera el icono de flor para los accesos directos
+  LEEME.txt                Este archivo
+
+==========================================
+  REQUISITOS PREVIOS
+==========================================
+
+EN EL PC SERVIDOR:
+  - Windows 10 u 11
+  - Laragon instalado en C:\laragon
+    (el instalador puede descargarlo automaticamente si no esta)
+  - Laragon detenido o corriendo (el script configura todo
+    y avisa cuando hacer "Start All")
+  - PHP disponible en el PATH (Laragon lo provee)
+  - Composer disponible en el PATH (para generar vendor/)
+
+EN LOS PC CLIENTE:
+  - Estar conectado a la misma red local que el servidor
+  - Tener Chrome, Edge o cualquier navegador moderno
+  - No requiere nada instalado
+
+==========================================
+  INSTALAR EL SERVIDOR
+==========================================
+
+El instalador realiza 9 pasos automaticamente:
+
+  1. Ejecuta instalar_servidor.bat como administrador
+     (clic derecho -> "Ejecutar como administrador")
+
+  2. El script te pedira:
+     - Password de root MySQL
+       (en Laragon por defecto es vacia, solo presiona Enter)
+     - Email, nombre completo y password del primer administrador
+     - IP del equipo en la red (se detecta automaticamente;
+       puedes aceptarla con Enter o escribir otra)
+
+  3. El script hace todo lo demas solo:
+     - Crea la base de datos flores_db
+     - Importa esquema, datos iniciales y eventos SQL
+     - Crea el usuario administrador
+     - Copia el proyecto a C:\laragon\www\flores
+     - Genera el archivo .env con la configuracion de BD
+     - Crea las carpetas de almacenamiento (logs, pdfs, imports)
+     - Abre el puerto 8001 en el firewall de Windows
+     - Crea un acceso directo "Iniciar Flores" en el escritorio
+
+  4. Al terminar veras:
+       URL del sistema:  http://[IP]:8001
+       Usuario admin:    [email que indicaste]
+
+  5. Abre Laragon y presiona "Start All" (o usa el acceso
+     directo "Iniciar Flores" del escritorio)
+
+  6. Comparte la URL con quienes vayan a usar el sistema
+
+NOTA: Si ya existe C:\laragon\www\flores, el instalador
+pregunta si deseas sobreescribirlo antes de continuar.
+
+==========================================
+  INSTALAR EL CLIENTE
+==========================================
+
+En cada PC que necesite acceder al sistema:
+
+  1. Copia instalar_cliente.bat a ese PC
+     (no hace falta nada mas del paquete)
+
+  2. Doble click al .bat
+
+  3. Indica la IP del servidor
+     - Si ya lo instalaste antes, muestra la IP guardada;
+       presiona Enter para mantenerla o escribe una nueva
+
+  4. Indica el puerto del servidor
+     - Por defecto: 8001
+     - Si ya lo instalaste antes, muestra el puerto guardado;
+       presiona Enter para mantenerlo o escribe uno nuevo
+
+  5. Elige el tipo de cliente:
+       1) Kiosco     -> pantalla completa, formulario de solicitudes
+       2) Admin      -> dashboard administrativo normal
+       3) Ambos      -> crea los dos accesos directos
+
+  6. Aparecen los accesos directos en el escritorio:
+     - "Flores Kiosco" -> abre http://[IP]:[PUERTO]/solicitudes/nueva
+                          en modo pantalla completa (kiosk)
+     - "Flores Admin"  -> abre http://[IP]:[PUERTO]/dashboard
+
+La IP y el puerto quedan guardados en:
+  %USERPROFILE%\.flores_cliente_ip.txt
+  %USERPROFILE%\.flores_cliente_port.txt
+
+La proxima vez que ejecutes el instalador en ese mismo PC,
+los valores se precargan automaticamente.
+
+==========================================
+  GENERAR EL PAQUETE DISTRIBUIBLE
+==========================================
+
+Si modificaste el codigo y quieres armar un ZIP nuevo
+para distribuir:
+
+  1. Abre una terminal en la carpeta installer\
+  2. Ejecuta empaquetar.bat
+  3. El script genera flores-instalador.zip listo para entregar
+
+El ZIP incluye el codigo del proyecto (con vendor/ de
+produccion si Composer esta disponible), los scripts SQL
+y los instaladores .bat.
+
+==========================================
+  PROBLEMAS COMUNES
+==========================================
+
+  > El instalador dice "no se pudo conectar a MySQL"
+    -> Verifica que Laragon este corriendo (boton "Start All")
+    -> La password root por defecto en Laragon es vacia
+    -> Si la cambiaste, ingresala correctamente
+
+  > Los clientes no abren el sistema (error de conexion)
+    -> Comprueba que el servidor este encendido y Laragon corriendo
+    -> Verifica que esten en la misma red local
+    -> Reinstala el cliente con la IP y puerto correctos
+    -> Verifica que el puerto este abierto en el firewall del servidor
+       (el instalador del servidor lo abre automaticamente)
+
+  > La IP del servidor cambio
+    -> En el servidor, configura una IP fija en Windows
+    -> Reinstala los clientes con la IP nueva (ejecuta
+       instalar_cliente.bat de nuevo; el puerto se mantiene)
+
+  > El puerto cambio o se usa un puerto distinto al 8001
+    -> Reinstala el cliente con el nuevo puerto
+    -> Verifica en el servidor que Laragon escucha en ese puerto
+       (Menu -> Apache/Nginx -> Port)
+
+  > "Flores Kiosco" abre el navegador normal sin pantalla completa
+    -> El modo kiosk requiere Chrome o Edge; verifica que
+       alguno de los dos este instalado
+
+==========================================
+  ARRANQUE AUTOMATICO DEL SERVIDOR
+==========================================
+
+Para que el servidor inicie solo al prender el PC:
+
+  1. Abre Laragon
+  2. Menu -> Settings (icono de la rueda)
+  3. Marca "Auto start" y "Start Laragon when Windows starts"
+  4. Marca tambien "Run as service" si quieres que funcione
+     sin que ningun usuario haya iniciado sesion

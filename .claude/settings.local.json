@@ -6,7 +6,12 @@
       "Bash(mysql:*)",
       "Bash(curl -s http://localhost/flores/public/)",
       "Bash(cmd //c \"mklink /J C:\\\\\\\\laragon\\\\\\\\www\\\\\\\\flores \\\\\"C:\\\\\\\\Users\\\\\\\\Mario Cañola\\\\\\\\Desktop\\\\\\\\flores\\\\\"\" 2>&1)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ipconfig)",
+      "Bash(netsh advfirewall:*)",
+      "Bash(netstat -ano)",
+      "Bash(tasklist)",
+      "Bash(\"/c/laragon/bin/apache/httpd-2.4.66-260223-Win64-VS18/bin/httpd.exe\" -S)"
     ]
   }
 }

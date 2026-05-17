@@ -4,3 +4,5 @@
 /storage/maestro_imports/
 /vendor/
 /backups/
+/installer/_build_tmp/
+/installer/*.zip
