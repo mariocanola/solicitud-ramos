@@ -7,6 +7,11 @@ class Response
     {
         http_response_code($code);
         header('Content-Type: application/json; charset=utf-8');
+        // Anti-cache: las respuestas JSON nunca deben cachearse por browsers o proxies,
+        // sobre todo el heartbeat del dashboard y los endpoints de validacion en tiempo real.
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
         // Include fresh CSRF token in every JSON response
         if (session_status() === PHP_SESSION_ACTIVE) {
             $data['csrf_token'] = Session::getCsrfToken();

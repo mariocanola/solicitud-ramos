@@ -15,6 +15,81 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Antes de abrir cualquier modal de SweetAlert quitamos el foco del elemento activo
+ * y enganchamos un willOpen para asegurarnos justo antes del aria-hidden.
+ * Evita el warning "Blocked aria-hidden on an element because its descendant retained focus".
+ */
+if (typeof Swal !== 'undefined' && !Swal.__blurPatched) {
+    var __blurActive = function () {
+        var el = document.activeElement;
+        if (el && el !== document.body && typeof el.blur === 'function') {
+            el.blur();
+        }
+    };
+    // Reemplaza aria-hidden por inert en los hermanos del modal Swal.
+    // inert bloquea foco e interaccion, asi que es lo que necesitabamos sin el warning aria.
+    var __swapAriaForInert = function () {
+        document.querySelectorAll('[aria-hidden="true"]').forEach(function (el) {
+            if (el.classList && el.classList.contains('swal2-container')) return;
+            if (el.closest && el.closest('.swal2-container')) return;
+            el.removeAttribute('aria-hidden');
+            el.setAttribute('inert', '');
+            el.__swalInert = true;
+        });
+    };
+    var __restoreFromInert = function () {
+        document.querySelectorAll('[inert]').forEach(function (el) {
+            if (el.__swalInert) {
+                el.removeAttribute('inert');
+                delete el.__swalInert;
+            }
+        });
+    };
+
+    // Observa el body para reaccionar al instante en que Swal anada aria-hidden.
+    // Diferimos hasta que document.body exista (este script se carga en <head>).
+    var __startAriaObserver = function () {
+        if (window.__swalAriaObs || typeof MutationObserver === 'undefined' || !document.body) return;
+        var __obs = new MutationObserver(function (muts) {
+            for (var i = 0; i < muts.length; i++) {
+                if (muts[i].attributeName === 'aria-hidden') {
+                    __swapAriaForInert();
+                    break;
+                }
+            }
+        });
+        __obs.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['aria-hidden'] });
+        window.__swalAriaObs = __obs;
+    };
+    if (document.body) {
+        __startAriaObserver();
+    } else {
+        document.addEventListener('DOMContentLoaded', __startAriaObserver);
+    }
+
+    var __origFire = Swal.fire.bind(Swal);
+    Swal.fire = function () {
+        __blurActive();
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+            var userWillOpen = args[0].willOpen;
+            var userDidClose = args[0].didClose;
+            args[0].willOpen = function (popup) {
+                __blurActive();
+                __swapAriaForInert();
+                if (typeof userWillOpen === 'function') userWillOpen(popup);
+            };
+            args[0].didClose = function () {
+                __restoreFromInert();
+                if (typeof userDidClose === 'function') userDidClose();
+            };
+        }
+        return __origFire.apply(Swal, args);
+    };
+    Swal.__blurPatched = true;
+}
+
+/**
  * SweetAlert2 helpers
  */
 var Toast = typeof Swal !== 'undefined' ? Swal.mixin({
