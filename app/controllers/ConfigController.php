@@ -10,21 +10,28 @@ require_once BASE_PATH . '/app/helpers/Validator.php';
 
 class ConfigController
 {
+    private $configModel;
+
+    public function __construct()
+    {
+        $this->configModel = new Configuracion();
+    }
+
     public function index()
     {
-        $configModel = new Configuracion();
         $sedeModel = new Sede();
         $cupoService = new CupoService();
         $motivoModel = new MotivoRamo();
         $estadoModel = new EstadoSolicitud();
 
-        $configuraciones = $configModel->getAllWithDescriptions();
+        $configuraciones = $this->configModel->getAllWithDescriptions();
         $sedes = $sedeModel->getActivas();
         $todasSedes = $sedeModel->getAll();
         $cupos = $cupoService->getResumen();
         $motivos = $motivoModel->getAll();
         $estadosSolicitud = $estadoModel->getAll();
-        $periodoActual = DateHelper::currentPeriod();
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodoActual = DateHelper::getCurrentPeriodStart($tipo);
         $periodoTexto = DateHelper::mesAnio($periodoActual);
 
         $pageTitle = 'Configuracion';
@@ -52,6 +59,13 @@ class ConfigController
             }
         }
 
+        if (isset($_POST['periodo_tipo']) && $_POST['periodo_tipo'] !== '') {
+            $periodoTipo = $_POST['periodo_tipo'];
+            if (!in_array($periodoTipo, ['monthly', 'weekly'])) {
+                $errors['periodo_tipo'] = 'El tipo de periodo debe ser monthly o weekly';
+            }
+        }
+
         if (!empty($errors)) {
             Session::flash('mensaje', 'Error de validacion: ' . implode('. ', $errors));
             Session::flash('tipo', 'danger');
@@ -59,17 +73,36 @@ class ConfigController
             return;
         }
 
-        $configModel = new Configuracion();
-        $claves = ['cupo_default', 'nombre_organizacion', 'empresa_destinataria', 'destinatario_solicitudes'];
+        $tipoAnterior = $this->configModel->get('periodo_tipo') ?? 'monthly';
+        $claves = ['cupo_default', 'nombre_organizacion', 'empresa_destinataria', 'destinatario_solicitudes', 'periodo_tipo'];
 
         foreach ($claves as $clave) {
             if (isset($_POST[$clave])) {
-                $configModel->set($clave, trim($_POST[$clave]));
+                $this->configModel->set($clave, trim($_POST[$clave]));
             }
+        }
+
+        $tipoNuevo = $_POST['periodo_tipo'] ?? $tipoAnterior;
+        if ($tipoNuevo !== $tipoAnterior && in_array($tipoNuevo, ['monthly', 'weekly'], true)) {
+            $this->inicializarCuposParaPeriodo($tipoNuevo);
         }
 
         Session::flash('mensaje', 'Configuracion guardada exitosamente');
         Session::flash('tipo', 'success');
         Response::redirect('configuracion');
+    }
+
+    private function inicializarCuposParaPeriodo($tipo)
+    {
+        $sedeModel = new Sede();
+        $cupoModel = new CupoSede();
+        $cupoService = new CupoService();
+
+        $periodo = DateHelper::getPeriodStart(DateHelper::today(), $tipo);
+        $cupoDefault = $cupoService->obtenerCupoDefault();
+
+        foreach ($sedeModel->getActivas() as $sede) {
+            $cupoModel->existeOCrear((int)$sede['id'], $periodo, $cupoDefault);
+        }
     }
 }

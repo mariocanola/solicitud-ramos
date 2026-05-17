@@ -2,6 +2,7 @@
 require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/CupoSede.php';
+require_once BASE_PATH . '/app/models/Configuracion.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 
 class CupoController
@@ -27,7 +28,8 @@ class CupoController
         }
 
         $cupoModel = new CupoSede();
-        $periodo = DateHelper::currentPeriod();
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodo = DateHelper::getCurrentPeriodStart($tipo);
         $cupoService = new CupoService();
 
         // Ensure record exists
@@ -51,26 +53,28 @@ class CupoController
         }
 
         $cupoModel = new CupoSede();
-        $periodo = DateHelper::currentPeriod();
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodo = DateHelper::getCurrentPeriodStart($tipo);
         $cupoService = new CupoService();
 
         // Obtener o crear registro de cupos para el periodo actual
-        $cupo = $cupoModel->obtenerPorSedePeriodo($id_sede, $periodo);
-        
+        $cupo = $cupoModel->getBySedeYPeriodo($id_sede, $periodo);
+
         if (!$cupo) {
-            // Crear con cupo default si no existe
             $cupo_default = $cupoService->obtenerCupoDefault();
             $cupoModel->existeOCrear($id_sede, $periodo, $cupo_default);
-            $cupo = $cupoModel->obtenerPorSedePeriodo($id_sede, $periodo);
+            $cupo = $cupoModel->getBySedeYPeriodo($id_sede, $periodo);
         }
 
+        // cupo_usado se calcula en tiempo real desde solicitudes (fuente unica).
+        $usado = $cupoModel->contarSolicitudesActivas($id_sede, $periodo, $tipo);
+        $maximo = (int)$cupo['cupo_maximo'];
+
         $data = [
-            'cupo_maximo' => (int)$cupo['cupo_maximo'],
-            'cupo_usado' => (int)$cupo['cupo_usado'],
-            'disponible' => (int)$cupo['cupo_maximo'] - (int)$cupo['cupo_usado'],
-            'porcentaje_usado' => $cupo['cupo_maximo'] > 0 
-                ? round(($cupo['cupo_usado'] / $cupo['cupo_maximo']) * 100, 1) 
-                : 0
+            'cupo_maximo' => $maximo,
+            'cupo_usado' => $usado,
+            'disponible' => max(0, $maximo - $usado),
+            'porcentaje_usado' => $maximo > 0 ? round(($usado / $maximo) * 100, 1) : 0,
         ];
 
         Response::success($data, 'Información de cupos obtenida');
