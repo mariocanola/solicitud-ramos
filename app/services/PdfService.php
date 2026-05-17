@@ -445,42 +445,43 @@ class PdfService
         $x0 = $pdf->GetX();
         $y0 = $pdf->GetY();
         $x  = $x0;
+        $topY = $y0 + 0.7; // todos los campos arrancan en la misma linea de tope
 
         // Pintar fondo completo de la fila primero
         $pdf->Rect($x0, $y0, $this->usableW, $rowH, 'F');
 
         // No.
-        $pdf->SetXY($x, $y0);
-        $pdf->Cell($w['no'], $rowH, $n, 0, 0, 'C');
+        $pdf->SetXY($x, $topY);
+        $pdf->Cell($w['no'], 4.6, $n, 0, 0, 'C');
         $x += $w['no'];
 
         // Fecha
-        $pdf->SetXY($x, $y0);
-        $pdf->Cell($w['fecha'], $rowH, $fecha, 0, 0, 'C');
+        $pdf->SetXY($x, $topY);
+        $pdf->Cell($w['fecha'], 4.6, $fecha, 0, 0, 'C');
         $x += $w['fecha'];
 
         // Solicitante (wrap)
-        $pdf->SetXY($x + 1, $y0 + 0.7);
+        $pdf->SetXY($x + 1, $topY);
         $pdf->MultiCell($w['solic'] - 2, 4.6, $this->toLatin1($solic), 0, 'L');
         $x += $w['solic'];
 
         // Documento
-        $pdf->SetXY($x, $y0);
-        $pdf->Cell($w['doc'], $rowH, $doc, 0, 0, 'C');
+        $pdf->SetXY($x, $topY);
+        $pdf->Cell($w['doc'], 4.6, $doc, 0, 0, 'C');
         $x += $w['doc'];
 
         // Telefono
-        $pdf->SetXY($x, $y0);
-        $pdf->Cell($w['tel'], $rowH, $tel, 0, 0, 'C');
+        $pdf->SetXY($x, $topY);
+        $pdf->Cell($w['tel'], 4.6, $tel, 0, 0, 'C');
         $x += $w['tel'];
 
         // Motivo (wrap)
-        $pdf->SetXY($x + 1, $y0 + 0.7);
+        $pdf->SetXY($x + 1, $topY);
         $pdf->MultiCell($w['motivo'] - 2, 4.6, $this->toLatin1($motivo), 0, 'L');
         $x += $w['motivo'];
 
         // Observaciones (wrap)
-        $pdf->SetXY($x + 1, $y0 + 0.7);
+        $pdf->SetXY($x + 1, $topY);
         $pdf->SetTextColor(...$this->text);
         $pdf->MultiCell($w['obs'] - 2, 4.6, $this->toLatin1($obs), 0, 'L');
 
@@ -679,7 +680,21 @@ class PdfService
 
     private function toLatin1($str)
     {
-        return mb_convert_encoding((string)$str, 'ISO-8859-1', 'UTF-8');
+        // Transliteramos caracteres Unicode comunes que no existen en ISO-8859-1
+        // (em-dash, en-dash, comillas tipograficas, puntos suspensivos, etc.)
+        // a equivalentes representables. Sin esto mb_convert_encoding los reemplaza por '?'.
+        $map = [
+            "\xE2\x80\x94" => '-',   // — em dash
+            "\xE2\x80\x93" => '-',   // – en dash
+            "\xE2\x80\x98" => "'",   // ' left single quote
+            "\xE2\x80\x99" => "'",   // ' right single quote
+            "\xE2\x80\x9C" => '"',   // " left double quote
+            "\xE2\x80\x9D" => '"',   // " right double quote
+            "\xE2\x80\xA6" => '...', // … ellipsis
+            "\xC2\xA0"     => ' ',   //   non-breaking space
+        ];
+        $str = strtr((string)$str, $map);
+        return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
     }
 
     /** Convierte un valor a mayusculas respetando acentos (utf-8). */
