@@ -5,6 +5,7 @@ require_once BASE_PATH . '/app/models/MotivoRamo.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
 require_once BASE_PATH . '/app/models/Persona.php';
 require_once BASE_PATH . '/app/models/Solicitud.php';
+require_once BASE_PATH . '/app/models/Configuracion.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 require_once BASE_PATH . '/app/helpers/Session.php';
 require_once BASE_PATH . '/app/middleware/Csrf.php';
@@ -35,16 +36,38 @@ class SolicitudController
         $persona = $personaModel->buscarPorDocumento($documento);
 
         if (!$persona) {
-            Response::error('Persona no encontrada');
+            // 200 con success:false porque "no encontrada" no es un error de request,
+            // es un resultado normal que dispara el flujo de registro de nueva persona.
+            Response::error('Persona no encontrada', 200);
             return;
         }
 
         $solicitudModel = new Solicitud();
-        $solicitudExistente = $solicitudModel->getSolicitudActivaEnMes($persona['id'], date('Y-m-d'));
-        $persona['ya_solicito_mes'] = !empty($solicitudExistente);
-        if ($persona['ya_solicito_mes']) {
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodoLabel = $tipo === 'weekly' ? 'semana' : 'mes';
+
+        // 1) Bloqueo: ya tiene solicitud activa en el periodo
+        $solicitudExistente = $solicitudModel->getSolicitudActivaEnPeriodo($persona['id'], DateHelper::now(), $tipo);
+        $persona['ya_solicito_periodo'] = !empty($solicitudExistente);
+        $persona['ya_solicito_mes']     = $persona['ya_solicito_periodo']; // compat frontend
+        $persona['periodo_label']       = $periodoLabel;
+        if ($persona['ya_solicito_periodo']) {
             $persona['solicitud_existente'] = $solicitudExistente;
+            Response::success($persona, 'Persona encontrada');
+            return;
         }
+
+        // 2) Bloqueo: no hay cupos disponibles en la sede de la persona
+        require_once BASE_PATH . '/app/services/CupoService.php';
+        $cupoService = new CupoService();
+        $fechaActual = DateHelper::now();
+        $persona['sin_cupo'] = !$cupoService->verificarDisponibilidad((int)$persona['id_sede'], $fechaActual);
+        if ($persona['sin_cupo']) {
+            $persona['mensaje_sin_cupo'] = $tipo === 'weekly'
+                ? 'Los cupos para esta sede se han agotado en la semana actual.'
+                : 'Los cupos para esta sede se han agotado este mes.';
+        }
+
         Response::success($persona, 'Persona encontrada');
     }
 
@@ -104,7 +127,7 @@ class SolicitudController
         
         $data = [
             'persona_id'         => (int)($_POST['persona_id'] ?? 0),
-            'fecha_solicitud'    => $_POST['fecha_solicitud'] ?? DateHelper::today(),
+            'fecha_solicitud'    => !empty($_POST['fecha_solicitud']) ? $_POST['fecha_solicitud'] : DateHelper::now(),
             'id_sede'            => (int)($_POST['id_sede'] ?? 0),
             'nombre_destinatario'=> trim($_POST['nombre_destinatario'] ?? 'Solicitante'),
             'id_motivo'          => (int)($_POST['id_motivo'] ?? 0),
@@ -173,7 +196,7 @@ class SolicitudController
 
         $data = [
             'persona_id'         => (int)($_POST['persona_id'] ?? 0),
-            'fecha_solicitud'    => $_POST['fecha_solicitud'] ?? DateHelper::today(),
+            'fecha_solicitud'    => !empty($_POST['fecha_solicitud']) ? $_POST['fecha_solicitud'] : DateHelper::now(),
             'id_sede'            => (int)($_POST['id_sede'] ?? 0),
             'nombre_destinatario'=> trim($_POST['nombre_destinatario'] ?? ''),
             'id_motivo'          => (int)($_POST['id_motivo'] ?? 0),

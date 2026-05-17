@@ -1883,19 +1883,31 @@ function buscarManual() {
     
     ajaxGet(BASE_URL + '/solicitudes/buscar-persona?documento=' + encodeURIComponent(documento), function(data) {
         if (data.success) {
-            if (data.data && data.data.ya_solicito_mes) {
-                actualizarScannerIndicator('error', 'Ya solicito ramo este mes');
-                alertarSolicitudExistente(data.data);
+            var p = data.data || {};
+            var periodoLabel = p.periodo_label || 'mes';
+
+            // Bloqueo 1: ya tiene solicitud activa en el periodo
+            if (p.ya_solicito_periodo || p.ya_solicito_mes) {
+                actualizarScannerIndicator('error', 'Ya solicitó ramo esta ' + periodoLabel);
+                alertarSolicitudExistente(p);
                 return;
             }
+
+            // Bloqueo 2: no hay cupos disponibles en la sede de la persona
+            if (p.sin_cupo) {
+                actualizarScannerIndicator('error', 'Sin cupos disponibles');
+                alertarSinCupo(p);
+                return;
+            }
+
             actualizarScannerIndicator('success', 'Persona encontrada');
-            mostrarPersona(data.data);
+            mostrarPersona(p);
             mostrarFormularioSolicitud();
 
             // Auto-llenar campos ocultos
-            document.getElementById('id_sede').value = data.data.id_sede || '';
-            document.getElementById('nombre_destinatario').value = data.data.nombre_completo ||
-                (data.data.primer_nombre + ' ' + data.data.primer_apellido);
+            document.getElementById('id_sede').value = p.id_sede || '';
+            document.getElementById('nombre_destinatario').value = p.nombre_completo ||
+                (p.primer_nombre + ' ' + p.primer_apellido);
 
             // Habilitar botón de guardar
             var btnGuardar = document.getElementById('btn_guardar');
@@ -2085,49 +2097,38 @@ function mostrarFormularioSolicitud() {
     ocultarNumpad();
 }
 
-// Función ajaxGet para peticiones GET
+// Helper compartido: parsea respuestas JSON aun si el status HTTP es 4xx/5xx.
+// El backend retorna {success, message, ...} con codigos como 400 para validaciones,
+// asi que no debemos descartar el body por el status code.
+function __handleAjax(xhr, callback) {
+    if (xhr.readyState !== 4) return;
+    // Status 0 = error de red real (CORS, sin conexion, abort).
+    if (xhr.status === 0) {
+        callback({ success: false, message: 'Error de conexión' });
+        return;
+    }
+    try {
+        var data = JSON.parse(xhr.responseText);
+        callback(data);
+    } catch (e) {
+        console.error('Error parsing JSON:', e);
+        callback({ success: false, message: 'Error en la respuesta del servidor' });
+    }
+}
+
 function ajaxGet(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    callback(data);
-                } catch (e) {
-                    console.error('Error parsing JSON:', e);
-                    callback({success: false, message: 'Error en la respuesta del servidor'});
-                }
-            } else {
-                callback({success: false, message: 'Error de conexión'});
-            }
-        }
-    };
+    xhr.onreadystatechange = function () { __handleAjax(xhr, callback); };
     xhr.send();
 }
 
-// Función ajaxPost para peticiones POST
 function ajaxPost(url, formData, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    callback(data);
-                } catch (e) {
-                    console.error('Error parsing JSON:', e);
-                    callback({success: false, message: 'Error en la respuesta del servidor'});
-                }
-            } else {
-                callback({success: false, message: 'Error de conexión'});
-            }
-        }
-    };
+    xhr.onreadystatechange = function () { __handleAjax(xhr, callback); };
     xhr.send(formData);
 }
 
@@ -2245,13 +2246,17 @@ function alertarSolicitudExistente(persona) {
         detallesHTML += '</div>';
     }
 
+    var periodoLabel = persona.periodo_label || 'mes';
+    var periodoActualTxt = periodoLabel === 'semana' ? 'la semana actual' : 'el mes actual';
+    var periodoSinglularTxt = periodoLabel === 'semana' ? 'semana' : 'mes';
+
     var html =
         iconHTML +
         '<h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:18px 0 4px 0">Ya solicitó su ramo</h2>' +
         '<p style="font-size:14px;color:#64748b;margin:0">Hola <strong style="color:#4A1942">' + (nombre || 'estimado usuario') + '</strong></p>' +
         '<p style="font-size:14px;color:#475569;margin:14px 0 0 0;line-height:1.5">' +
-        'Ya tienes una solicitud registrada en el mes actual. ' +
-        'Solo se permite <strong>una solicitud por persona cada mes</strong>.</p>' +
+        'Ya tienes una solicitud registrada en ' + periodoActualTxt + '. ' +
+        'Solo se permite <strong>una solicitud por persona cada ' + periodoSinglularTxt + '</strong>.</p>' +
         detallesHTML;
 
     if (typeof Swal !== 'undefined') {
@@ -2267,16 +2272,58 @@ function alertarSolicitudExistente(persona) {
             customClass: { popup: 'swal-tandil', confirmButton: 'swal-tandil-btn' }
         }).then(function () { limpiarFormulario(); });
     } else {
-        alert('Ya tiene una solicitud registrada en el mes actual.');
+        alert('Ya tiene una solicitud registrada en ' + (periodoLabel === 'semana' ? 'la semana actual.' : 'el mes actual.'));
+        limpiarFormulario();
+    }
+}
+
+// Muestra alerta cuando la sede de la persona no tiene cupos disponibles.
+function alertarSinCupo(persona) {
+    var nombreCrudo = persona.nombre_completo || ((persona.primer_nombre || '') + ' ' + (persona.primer_apellido || '')).trim();
+    var nombre = nombreCrudo.toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    var mensaje = persona.mensaje_sin_cupo || 'No hay cupos disponibles en esta sede.';
+
+    var iconHTML =
+        '<div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#b91c1c,#dc2626);'
+        + 'display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 16px rgba(185,28,28,0.3)">'
+        + '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+        + '</div>';
+
+    var html =
+        iconHTML +
+        '<h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:18px 0 4px 0">Sin cupos disponibles</h2>' +
+        '<p style="font-size:14px;color:#64748b;margin:0">Hola <strong style="color:#b91c1c">' + (nombre || 'estimado usuario') + '</strong></p>' +
+        '<p style="font-size:14px;color:#475569;margin:14px 0 0 0;line-height:1.5">' + mensaje + '</p>';
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            html: html,
+            showConfirmButton: true,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#b91c1c',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            width: 460,
+            padding: '28px 24px 22px'
+        }).then(function () { limpiarFormulario(); });
+    } else {
+        alert(mensaje);
         limpiarFormulario();
     }
 }
 
 // Override de funciones existentes para el panel operador
 window.onPersonaEncontrada = function(persona) {
-    if (persona && persona.ya_solicito_mes) {
-        actualizarScannerIndicator('error', 'Ya solicito ramo este mes');
+    if (persona && (persona.ya_solicito_periodo || persona.ya_solicito_mes)) {
+        var pl = persona.periodo_label || 'mes';
+        actualizarScannerIndicator('error', 'Ya solicitó ramo esta ' + pl);
         alertarSolicitudExistente(persona);
+        return;
+    }
+    if (persona && persona.sin_cupo) {
+        actualizarScannerIndicator('error', 'Sin cupos disponibles');
+        alertarSinCupo(persona);
         return;
     }
     actualizarScannerIndicator('success', 'Persona encontrada');

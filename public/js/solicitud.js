@@ -249,20 +249,28 @@ function buscarPersona(documento) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.success && data.data) {
-            // Bloquear duplicado mensual antes de mostrar cualquier dato de la persona.
-            if (data.data.ya_solicito_mes) {
-                _setStatus('Ya solicito ramo este mes', 'error');
-                if (window.onScannerStatusChange) {
-                    window.onScannerStatusChange('error', 'Ya solicito ramo este mes');
-                }
-                if (typeof alertarSolicitudExistente === 'function') {
-                    alertarSolicitudExistente(data.data);
-                }
+            var p = data.data;
+            var periodoLabel = p.periodo_label || 'mes';
+
+            // Bloquear duplicado en el periodo actual antes de mostrar cualquier dato.
+            if (p.ya_solicito_periodo || p.ya_solicito_mes) {
+                var msg = 'Ya solicitó ramo esta ' + periodoLabel;
+                _setStatus(msg, 'error');
+                if (window.onScannerStatusChange) window.onScannerStatusChange('error', msg);
+                if (typeof alertarSolicitudExistente === 'function') alertarSolicitudExistente(p);
+                return;
+            }
+
+            // Bloquear si la sede esta sin cupos disponibles.
+            if (p.sin_cupo) {
+                _setStatus('Sin cupos disponibles', 'error');
+                if (window.onScannerStatusChange) window.onScannerStatusChange('error', 'Sin cupos disponibles');
+                if (typeof alertarSinCupo === 'function') alertarSinCupo(p);
                 return;
             }
 
             // Persona encontrada - mostrar directamente el formulario
-            mostrarPersona(data.data);
+            mostrarPersona(p);
             _setStatus('Persona encontrada', 'success');
 
             // Actualizar indicador visual
@@ -272,7 +280,7 @@ function buscarPersona(documento) {
 
             // Llamar a función global para manejar persona encontrada
             if (window.onPersonaEncontrada) {
-                window.onPersonaEncontrada(data.data);
+                window.onPersonaEncontrada(p);
             }
         } else {
             // Persona no encontrada - mostrar modal para crearla
