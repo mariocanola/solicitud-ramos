@@ -44,4 +44,14 @@ class Configuracion
         return $stmt->fetchAll();
     }
 
+    public static function getPeriodoTipo()
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+        $valor = (new self())->get('periodo_tipo');
+        $cache = in_array($valor, ['monthly', 'weekly'], true) ? $valor : 'monthly';
+        return $cache;
+    }
 }
