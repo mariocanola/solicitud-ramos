@@ -48,10 +48,10 @@
         </div>
     </div>
 
-    <!-- Grafica de Barras: Total solicitudes por sede -->
+    <!-- Grafica de Barras: Solicitudes del periodo actual por sede -->
     <div class="col-6">
         <div class="card">
-            <div class="card-header">Total Solicitudes por Sede</div>
+            <div class="card-header">Solicitudes de la <?= $tipo === 'weekly' ? 'Semana' : 'Mes' ?> por Sede</div>
             <div class="card-body">
                 <?php if (empty($barData['data'])): ?>
                     <p class="text-muted text-center" style="padding:40px 0">No hay solicitudes registradas.</p>
@@ -287,7 +287,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(function (r) { return r.json(); })
             .then(function (j) {
                 if (!j || !j.success) return;
-                var hash = j.data.total + ':' + j.data.last;
+                // El periodo entra en el hash: cuando cruza el limite (lunes 6 AM o 1 del mes)
+                // el dashboard se refresca aunque no haya solicitudes nuevas.
+                var hash = j.data.total + ':' + j.data.last + ':' + (j.data.period || '');
                 if (hash !== ultimoHash) {
                     ultimoHash = hash;
                     fetchCompleto();

@@ -4,6 +4,7 @@ require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/models/Solicitud.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/Database.php';
+require_once BASE_PATH . '/app/models/Configuracion.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 
 class DashboardController
@@ -30,19 +31,18 @@ class DashboardController
 
             $estadisticas = $reporteService->getEstadisticas();
             $cupos = $cupoService->getResumen();
-            $periodoActual = DateHelper::mesAnio(DateHelper::currentPeriod());
-            // Pie chart: solicitudes de esta semana por sede
-            $semanaPorSede = $solicitudModel->getSolicitudesSemanaActualPorSede();
-            $pieData = $this->buildPieData($semanaPorSede);
-
-            // Bar chart: total solicitudes por sede (historico)
-            $totalPorSede = $solicitudModel->getTotalPorSede();
-            $barData = $this->buildBarData($totalPorSede);
+            $tipo = Configuracion::getPeriodoTipo();
+            $periodoActual = DateHelper::mesAnio(DateHelper::getCurrentPeriodStart($tipo));
+            // Ambos charts muestran el periodo actual (semana o mes segun config).
+            $periodoPorSede = $solicitudModel->getSolicitudesPeriodoActualPorSede($tipo);
+            $pieData = $this->buildPieData($periodoPorSede);
+            $barData = $this->buildBarData($periodoPorSede);
         } catch (Exception $e) {
             error_log("DashboardController::index - " . $e->getMessage());
             $estadisticas = ['total' => 0, 'total_mes' => 0, 'total_semana' => 0, 'por_sede' => []];
             $cupos = [];
-            $periodoActual = DateHelper::mesAnio(DateHelper::currentPeriod());
+            $tipo = Configuracion::getPeriodoTipo();
+            $periodoActual = DateHelper::mesAnio(DateHelper::getCurrentPeriodStart($tipo));
             $pieData = ['labels' => [], 'data' => [], 'colors' => [], 'borders' => []];
             $barData = ['labels' => [], 'data' => [], 'colors' => [], 'borders' => []];
         }
@@ -58,12 +58,14 @@ class DashboardController
         $reporteService = new ReporteService();
         $cupoService    = new CupoService();
         $solicitudModel = new Solicitud();
+        $tipo           = Configuracion::getPeriodoTipo();
+        $periodoPorSede = $solicitudModel->getSolicitudesPeriodoActualPorSede($tipo);
 
         Response::success([
             'estadisticas' => $reporteService->getEstadisticas(),
             'cupos'        => $cupoService->getResumen(),
-            'pie'          => $this->buildPieData($solicitudModel->getSolicitudesSemanaActualPorSede()),
-            'bar'          => $this->buildBarData($solicitudModel->getTotalPorSede()),
+            'pie'          => $this->buildPieData($periodoPorSede),
+            'bar'          => $this->buildBarData($periodoPorSede),
             'timestamp'    => time(),
         ]);
     }
@@ -76,9 +78,14 @@ class DashboardController
     {
         $db = Database::getInstance()->getConnection();
         $row = $db->query("SELECT COUNT(*) AS total, COALESCE(MAX(updated_at), '0') AS last FROM solicitudes")->fetch();
+        // Incluimos el inicio del periodo actual en el heartbeat para que el dashboard
+        // se refresque automaticamente al cruzar el limite (lunes 6 AM en weekly,
+        // 1 de cada mes en monthly), incluso si no hay solicitudes nuevas.
+        $periodoActual = DateHelper::getCurrentPeriodStart(Configuracion::getPeriodoTipo());
         Response::success([
-            'total' => (int)($row['total'] ?? 0),
-            'last'  => $row['last'] ?? '0',
+            'total'  => (int)($row['total'] ?? 0),
+            'last'   => $row['last'] ?? '0',
+            'period' => $periodoActual,
         ]);
     }
 
