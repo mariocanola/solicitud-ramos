@@ -50,4 +50,27 @@ class DateHelper
         $dt = new DateTime($date);
         return $meses[(int)$dt->format('m')] . ' ' . $dt->format('Y');
     }
+
+    /**
+     * Inicio del período (monthly = día 1 del mes; weekly = lunes de la semana).
+     * Para weekly con datetime (hora incluida) aplica el corte de las 06:00 AM:
+     * un lunes a las 05:30 cuenta como semana anterior. Para fechas sin hora
+     * (input de formulario) no se aplica el corte: el día se considera completo.
+     */
+    public static function getPeriodStart($date, $type = 'monthly')
+    {
+        if ($type === 'weekly') {
+            $ts = strtotime($date);
+            if (preg_match('/\d{1,2}:\d{2}/', $date)) {
+                $ts -= 6 * 3600;
+            }
+            return date('Y-m-d', strtotime('monday this week', $ts));
+        }
+        return date('Y-m-01', strtotime($date));
+    }
+
+    public static function getCurrentPeriodStart($type = 'monthly')
+    {
+        return self::getPeriodStart(self::now(), $type);
+    }
 }
