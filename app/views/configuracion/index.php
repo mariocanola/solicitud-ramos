@@ -21,7 +21,7 @@
                 <?php
                 $groups = [
                     'Organizacion' => ['nombre_organizacion'],
-                    'Cupos' => ['cupo_default'],
+                    'Cupos' => ['cupo_default', 'periodo_tipo'],
                     'Hoja individual (PDF de remision)' => ['empresa_destinataria', 'destinatario_solicitudes'],
                 ];
                 $configMap = [];
@@ -36,16 +36,29 @@
                 <div class="row">
                     <?php foreach ($claves as $clave):
                         $config = $configMap[$clave] ?? null;
-                        $tipo = ($clave === 'cupo_default') ? 'number' : 'text';
+                        $valor = $config['valor'] ?? '';
                     ?>
+                    <?php if ($clave === 'periodo_tipo'): ?>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label><?= htmlspecialchars($config['descripcion'] ?? 'Tipo de período') ?></label>
+                            <select name="<?= htmlspecialchars($clave) ?>" class="form-control">
+                                <option value="monthly" <?= $valor === 'monthly' ? 'selected' : '' ?>>Mensual (reinicia el 1° de cada mes)</option>
+                                <option value="weekly" <?= $valor === 'weekly' ? 'selected' : '' ?>>Semanal (reinicia cada lunes a las 6:00 AM)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <?php $tipo = ($clave === 'cupo_default') ? 'number' : 'text'; ?>
                     <div class="col-6">
                         <div class="form-group">
                             <label><?= htmlspecialchars($config['descripcion'] ?? $clave) ?></label>
                             <input type="<?= $tipo ?>" name="<?= htmlspecialchars($clave) ?>"
                                    class="form-control"
-                                   value="<?= htmlspecialchars($config['valor'] ?? '') ?>">
+                                   value="<?= htmlspecialchars($valor) ?>">
                         </div>
                     </div>
+                    <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
                 <?php endforeach; ?>
