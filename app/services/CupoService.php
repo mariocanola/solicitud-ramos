@@ -1,6 +1,7 @@
 <?php
 require_once BASE_PATH . '/app/models/CupoSede.php';
 require_once BASE_PATH . '/app/models/Configuracion.php';
+require_once BASE_PATH . '/app/helpers/DateHelper.php';
 
 class CupoService
 {
@@ -15,29 +16,31 @@ class CupoService
 
     public function verificarDisponibilidad($id_sede, $fecha)
     {
-        $periodo = date('Y-m-01', strtotime($fecha));
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodo = DateHelper::getPeriodStart($fecha, $tipo);
         $cupoDefault = $this->obtenerCupoDefault();
         $cupo = $this->cupoModel->existeOCrear($id_sede, $periodo, $cupoDefault);
-        return $cupo['cupo_usado'] < $cupo['cupo_maximo'];
+        // Contamos en tiempo real para evitar desincronizacion con el campo cupo_usado almacenado.
+        $usadoReal = $this->cupoModel->contarSolicitudesActivas($id_sede, $periodo, $tipo);
+        return $usadoReal < (int)$cupo['cupo_maximo'];
     }
 
-    public function incrementar($id_sede, $fecha)
+    /**
+     * Asegura que exista el registro cupos_sede para la sede y periodo.
+     * Antes era incrementar(), pero el conteo se calcula en tiempo real,
+     * asi que solo necesitamos garantizar la existencia del registro.
+     */
+    public function asegurarRegistro($id_sede, $fecha)
     {
-        $periodo = date('Y-m-01', strtotime($fecha));
-        $cupoDefault = $this->obtenerCupoDefault();
-        $this->cupoModel->existeOCrear($id_sede, $periodo, $cupoDefault);
-        $this->cupoModel->incrementar($id_sede, $periodo);
-    }
-
-    public function decrementar($id_sede, $fecha)
-    {
-        $periodo = date('Y-m-01', strtotime($fecha));
-        $this->cupoModel->decrementar($id_sede, $periodo);
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodo = DateHelper::getPeriodStart($fecha, $tipo);
+        $this->cupoModel->existeOCrear($id_sede, $periodo, $this->obtenerCupoDefault());
     }
 
     public function getResumen()
     {
-        return $this->cupoModel->getResumen();
+        $tipo = Configuracion::getPeriodoTipo();
+        return $this->cupoModel->getResumen($tipo);
     }
 
     public function obtenerCupoDefault()
