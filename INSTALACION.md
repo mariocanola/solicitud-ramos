@@ -1,200 +1,144 @@
-# Manual de instalación — Sistema de Solicitud de Ramos Florales
+# Cómo instalar el Sistema de Ramos Florales
 
-Este documento describe paso a paso cómo instalar el sistema en un PC nuevo con Windows, desde cero.
+Esta guía está pensada para alguien que **nunca ha instalado un programa técnico**. Sigue los pasos en orden, sin saltarte ninguno. Si algo no funciona, ve al final (Sección 6: "Si algo sale mal").
 
----
-
-## 1. Requisitos del equipo
-
-| Componente | Mínimo | Recomendado |
-|---|---|---|
-| Sistema operativo | Windows 10 64-bit | Windows 11 64-bit |
-| Procesador | Dual Core 2 GHz | Quad Core 2.5 GHz |
-| Memoria RAM | 4 GB | 8 GB |
-| Disco duro | 10 GB libres | 20 GB libres en SSD |
-| Conexión a internet | Solo para instalar | No requerida después |
-| Navegador | Edge (incluido en Windows) | Chrome última versión |
+Tiempo estimado: **30 minutos**.
 
 ---
 
-## 2. Software a instalar
+## Lo que vas a necesitar
 
-### 2.1 Laragon Full (Apache + PHP + MySQL en un solo paquete)
-
-1. Descargar desde **https://laragon.org/download/** la versión **Laragon Full** para Windows.
-2. Ejecutar el instalador. Aceptar la ruta por defecto `C:\laragon`.
-3. Al final pedirá que configure preferencias — dejar todo por defecto.
-
-**Verificación rápida:** abrir Laragon → debería verse el panel principal con botones "Start All" y "Menu".
-
-### 2.2 Composer (gestor de dependencias PHP)
-
-Laragon Full ya incluye Composer. Para verificar:
-1. Abrir Laragon.
-2. Menú → **Terminal** → escribir `composer --version`.
-3. Debe responder la versión de Composer.
-
-### 2.3 Git (opcional pero recomendado)
-
-Si quieres actualizar el sistema con futuras versiones:
-1. Descargar desde **https://git-scm.com/download/win**.
-2. Instalar con opciones por defecto.
+- Un PC con **Windows 10 u 11**.
+- **Conexión a internet** (solo para instalar, después ya no hace falta).
+- La carpeta **`flores`** del sistema (te la entregan por USB o por descarga).
 
 ---
 
-## 3. Instalación del sistema
+## Paso 1 — Instalar Laragon
 
-### 3.1 Copiar el proyecto
+Laragon es el programa que hace funcionar el sistema por dentro. Solo se instala **una vez**.
 
-1. Obtener la carpeta `flores` (por USB, clonación de git o descarga).
-2. Copiarla a **`C:\laragon\www\flores`**. La estructura debe quedar así:
-   ```
-   C:\laragon\www\flores\
-       app\
-       public\
-       sql\
-       vendor\           ← si no existe, ver paso 3.2
-       composer.json
-       iniciar.bat
-       ...
-   ```
+1. Abre el navegador y entra a **https://laragon.org/download/**
+2. Haz clic en el botón grande que dice **"Download Laragon - Full"**.
+3. Cuando termine la descarga, haz **doble clic** en el archivo descargado.
+4. Si Windows pregunta "¿Desea permitir que esta app haga cambios?" → **Sí**.
+5. En la ventana de instalación, **deja todo como está** y haz clic en **Next** hasta que aparezca **Install**.
+6. Espera a que termine (unos 2 minutos) y haz clic en **Finish**.
 
-### 3.2 Instalar dependencias (solo si no existe la carpeta `vendor`)
-
-1. En Laragon → Menú → **Terminal**.
-2. Ejecutar:
-   ```
-   cd C:\laragon\www\flores
-   composer install
-   ```
-3. Esperar a que termine (puede tomar 2-3 minutos la primera vez).
-
-### 3.3 Crear y poblar la base de datos
-
-**Opción A — desde phpMyAdmin (más visual):**
-1. Iniciar Laragon → click en **Start All**.
-2. Click en **Menu** → **MySQL** → **phpMyAdmin** (se abre en el navegador).
-3. Click en pestaña **SQL**.
-4. Abrir el archivo `C:\laragon\www\flores\sql\instalar_db.sql`, copiar todo el contenido y pegarlo.
-5. Click en **Continuar / Go**.
-
-**Opción B — desde terminal (más rápido):**
-1. Laragon → Menu → Terminal.
-2. Ejecutar:
-   ```
-   cd C:\laragon\www\flores\sql
-   mysql -u root < instalar_db.sql
-   ```
-3. Si pide contraseña, presionar Enter (Laragon viene sin password por defecto).
-
-### 3.4 Configurar el puerto de Apache
-
-Por defecto el sistema usa el puerto `8001`. Si tu Laragon usa otro:
-
-1. Laragon → Menu → Apache → **httpd.conf**.
-2. Buscar la línea `Listen 80` y cambiar a `Listen 8001`.
-3. Buscar `<VirtualHost ...>` y ajustar también el puerto si aparece.
-4. Reiniciar Laragon (botón **Stop All** y luego **Start All**).
-
-**Si vas a permitir acceso desde otras máquinas de la red**, cambiar `Listen 127.0.0.1:8001` por `Listen 0.0.0.0:8001` y abrir el puerto 8001 en el Firewall de Windows.
+Al terminar se abre solo el panel de Laragon. Ya puedes cerrarlo por ahora.
 
 ---
 
-## 4. Primera prueba
+## Paso 2 — Copiar la carpeta del sistema
 
-1. Iniciar Laragon → **Start All**.
-2. Abrir el navegador en **http://localhost:8001/login**.
-3. Ingresar con las credenciales de fábrica:
-   - Usuario: `admin`
-   - Contraseña: `admin`
-4. **CAMBIAR INMEDIATAMENTE LA CONTRASEÑA** del usuario admin.
+1. Abre el **Explorador de Archivos** (la carpeta amarilla de la barra de tareas).
+2. En la barra de arriba, escribe esta ruta exacta y presiona Enter:
+   ```
+   C:\laragon\www
+   ```
+3. **Copia ahí dentro** la carpeta `flores` que te entregaron.
+
+Debe quedar así: `C:\laragon\www\flores`
+
+> ⚠️ **Importante:** la carpeta tiene que llamarse exactamente `flores`, todo en minúsculas.
 
 ---
 
-## 5. Configurar el "ejecutable"
+## Paso 3 — Crear la base de datos
 
-El sistema incluye dos lanzadores en la raíz del proyecto:
+Aquí es donde se guardarán los datos de las solicitudes.
 
-| Archivo | Cuándo usar |
-|---|---|
-| **`iniciar.bat`** | Abre el navegador normal en la URL del kiosco. Ideal para uso diario. |
-| **`iniciar_kiosco.bat`** | Abre Chrome/Edge en pantalla completa sin barras. Ideal para PC dedicado al kiosco. |
+1. Abre **Laragon** (busca el ícono verde con forma de rana en el escritorio o el menú inicio).
+2. Haz clic en el botón grande que dice **"Start All"**. Espera 5 segundos hasta que los textos se pongan en **verde**.
+3. Haz clic en **"Menu"** (abajo a la derecha) → **MySQL** → **phpMyAdmin**.
+4. Se abre el navegador con una página azul. Haz clic en la pestaña **"SQL"** (arriba al centro).
+5. En otra ventana, abre la carpeta `C:\laragon\www\flores\sql` y abre el archivo `instalar_db.sql` con el **Bloc de notas** (clic derecho → Abrir con → Bloc de notas).
+6. Selecciona **todo el texto** (Ctrl + A), **cópialo** (Ctrl + C).
+7. Vuelve a la pestaña SQL de phpMyAdmin y **pégalo** ahí dentro (Ctrl + V).
+8. Haz clic en el botón **"Continuar"** (esquina inferior derecha).
 
-### 5.1 Crear accesos directos en el escritorio
+Si aparece un mensaje verde diciendo "Su consulta SQL se ha ejecutado con éxito" → ✅ listo.
 
-1. Click derecho en `C:\laragon\www\flores\iniciar.bat` → **Enviar a** → **Escritorio (crear acceso directo)**.
-2. Renombrar el acceso directo a **"Sistema de Ramos"**.
-3. Click derecho en el acceso → **Propiedades** → **Cambiar icono** → elegir un icono apropiado (puedes usar el logo de Tandil convertido a `.ico`).
+---
 
-### 5.2 Auto-arranque con Windows (opcional)
+## Paso 4 — Entrar al sistema por primera vez
 
-Para que Laragon arranque solo al prender el PC:
-1. Abrir Laragon → click en el ícono de **engranaje** (Preferences).
-2. Pestaña **General** → marcar:
+1. Abre el navegador (Chrome, Edge, lo que uses).
+2. Escribe esta dirección en la barra de arriba y presiona Enter:
+   ```
+   http://localhost:8001/login
+   ```
+3. Aparece la pantalla de inicio de sesión. Entra con:
+   - **Usuario:** `admin`
+   - **Contraseña:** `admin`
+
+> 🔒 **Lo primero que debes hacer:** cambiar esa contraseña por una tuya. Ve a tu perfil (arriba a la derecha) → Cambiar contraseña.
+
+---
+
+## Paso 5 — Crear un acceso directo en el escritorio
+
+Para no tener que escribir la dirección cada vez:
+
+1. Abre el Explorador de Archivos y entra a `C:\laragon\www\flores`.
+2. Busca el archivo **`iniciar.bat`** (es el que tiene engranajes como ícono).
+3. **Clic derecho** sobre él → **Enviar a** → **Escritorio (crear acceso directo)**.
+4. En el escritorio, **clic derecho** sobre el nuevo acceso → **Cambiar nombre** → escribe **"Sistema de Ramos"**.
+
+Ahora, con **doble clic** en ese ícono, se abre el sistema directamente.
+
+### ¿Quieres modo pantalla completa (kiosco)?
+
+Si este PC se va a usar **solo para el sistema** (por ejemplo, en una recepción), usa el archivo `iniciar_kiosco.bat` en lugar de `iniciar.bat`. Se abre a pantalla completa sin barras del navegador.
+
+Para salir del modo kiosco: presiona **Alt + F4**.
+
+---
+
+## Paso 6 — Que arranque solo al prender el PC (opcional)
+
+Para que no tengas que abrir Laragon manualmente cada vez:
+
+1. Abre Laragon.
+2. Haz clic en el ícono de **engranaje** (arriba a la derecha).
+3. En la pestaña **General**, marca estas dos casillas:
    - ✅ Auto-start Laragon when Windows boots
    - ✅ Start All when Laragon starts
-3. Click en **OK**.
+4. Clic en **OK**.
 
-### 5.3 Auto-arranque del kiosco al iniciar sesión (opcional, modo kiosco dedicado)
-
-1. Presionar **Win + R**, escribir `shell:startup`, Enter.
-2. Copiar el acceso directo a `iniciar_kiosco.bat` dentro de esa carpeta.
-3. Reiniciar Windows. Al iniciar sesión el kiosco aparecerá automáticamente a pantalla completa.
-
-Para **salir** del modo kiosco en pantalla completa: presionar `Alt + F4`.
+Listo. La próxima vez que prendas el PC, el sistema estará funcionando solo.
 
 ---
 
-## 6. Convertir el `.bat` en `.exe` (opcional)
+## Hacer copias de seguridad (¡importante!)
 
-Si prefieres un archivo `.exe` con icono propio en lugar del `.bat`:
+**Una vez por semana** como mínimo, haz una copia de la base de datos:
 
-1. Descargar **Bat To Exe Converter** desde **https://www.f2ko.de/en/b2e.php** (gratis).
-2. Abrir el programa.
-3. **Batch file** → seleccionar `C:\laragon\www\flores\iniciar.bat`.
-4. **Save as** → elegir el nombre y carpeta destino.
-5. En la pestaña **Versioninformations** → poner nombre del producto, versión, autor.
-6. En la pestaña **Icon** → cargar el icono `.ico` deseado.
-7. Click en **Compile**.
+1. Abre Laragon → Menu → MySQL → **phpMyAdmin**.
+2. En el panel de la izquierda, haz clic en **`flores_db`**.
+3. Pestaña **"Exportar"** (arriba) → botón **"Continuar"**.
+4. Se descarga un archivo `.sql`. **Guárdalo en un USB o en la nube**.
 
-Te queda un `.exe` que hace exactamente lo mismo que el `.bat` pero con apariencia de programa profesional.
+Si algún día el PC falla, con ese archivo puedes restaurar todo.
 
 ---
 
-## 7. Mantenimiento
+## Si algo sale mal
 
-### 7.1 Backup de la base de datos
-
-Recomendado al menos semanal. Desde la terminal de Laragon:
-```
-mysqldump -u root flores_db > C:\backups\flores_%date:~-4%%date:~3,2%%date:~0,2%.sql
-```
-
-Puedes automatizarlo en el **Programador de tareas de Windows** ejecutando un `.bat` con esa línea.
-
-### 7.2 Actualizar el sistema
-
-Cuando lleguen nuevas versiones:
-1. Hacer backup de la BD.
-2. Reemplazar la carpeta `C:\laragon\www\flores` con la nueva versión, **conservando**:
-   - El archivo `app/config/database.php` si tiene credenciales personalizadas.
-   - La carpeta `storage/` si quieres conservar PDFs ya generados.
-3. Aplicar las nuevas migraciones desde `sql/`.
+| Qué pasa | Qué hacer |
+|---|---|
+| "No se puede acceder a localhost:8001" | Abre Laragon y haz clic en **Start All**. Espera a que se ponga verde. |
+| Al entrar dice "Database not found" | Repite el **Paso 3** (crear la base de datos). |
+| El acceso directo no abre nada | Asegúrate de que Laragon esté abierto y en verde antes de hacer doble clic. |
+| Otros PCs de la red no pueden entrar | Llama al soporte técnico — hay que abrir un puerto en el firewall. |
+| Olvidé la contraseña de admin | Llama al soporte técnico. |
 
 ---
 
-## 8. Solución de problemas comunes
+## Soporte
 
-| Síntoma | Causa probable | Solución |
-|---|---|---|
-| "No se puede acceder a localhost:8001" | Laragon no está corriendo | Abrir Laragon → Start All |
-| "Database not found" al loguear | BD no se importó | Repetir paso 3.3 |
-| El navegador no abre desde el `.bat` | Sin navegador por defecto | Configurar Chrome/Edge como default |
-| Otros PCs de la red no pueden entrar | Apache solo escucha localhost | Ver sección 3.4 (red) |
-| El cron de cupos no se actualiza | Servicio MySQL caído | Reiniciar Laragon |
+Si nada de lo anterior funciona, contacta al soporte técnico con esta información:
 
----
-
-## 9. Contacto técnico
-
-Mantener este documento accesible al usuario final y al equipo de soporte técnico de la organización.
+- **Qué hiciste** justo antes de que fallara.
+- **Mensaje de error** completo (puedes hacer captura de pantalla con la tecla `Impr Pant`).
+- **Versión de Windows** (Win + R → escribe `winver` → Enter).
