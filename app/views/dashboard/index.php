@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // AUTO-ACTUALIZACION (heartbeat cada 2s + fetch completo solo si cambia)
     // ============================================================
     var BASE_URL = '<?= BASE_URL ?>';
-    var HEARTBEAT_MS = 2000;
+    var HEARTBEAT_MS = 10000;
     var ultimoHash = null;
 
     function updateText(el, nuevo) {

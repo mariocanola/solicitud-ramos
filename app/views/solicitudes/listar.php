@@ -629,7 +629,7 @@ var personaValidator = new FormValidator('form_persona', {
 // si detecta cambios, recarga la pagina conservando filtros y pagina actual.
 // ============================================================
 (function () {
-    var HEARTBEAT_MS = 2000;
+    var HEARTBEAT_MS = 10000;
     var ultimoHash = null;
     var pollerId = null;
 
