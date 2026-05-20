@@ -64,10 +64,7 @@ $labelFormato = $formatoDetectado === 'CREOS'
 
         <?php if ($r['a_desactivar'] > 0): ?>
         <div style="margin-bottom:16px;padding:12px 14px;background:#fff7ed;border-left:3px solid #ea580c;border-radius:6px;font-size:13px;color:#7c2d12">
-            <strong>⚠ <?= $r['a_desactivar'] ?> persona<?= $r['a_desactivar'] > 1 ? 's' : '' ?> ser<?= $r['a_desactivar'] > 1 ? 'án' : 'á' ?> dada<?= $r['a_desactivar'] > 1 ? 's' : '' ?> de baja</strong>
-            — están activas en el sistema pero no aparecen en este maestro, y no tienen solicitudes asociadas.
-            Solo se desactivan personas de empresa <strong><?= htmlspecialchars($clasificacion['formato'] === 'CREOS' ? 'CREOS' : 'TANDIL') ?></strong>.
-            Las personas de sede Servitures nunca se ven afectadas.
+            ⚠ <strong><?= $r['a_desactivar'] ?> persona<?= $r['a_desactivar'] > 1 ? 's' : '' ?> ser<?= $r['a_desactivar'] > 1 ? 'án' : 'á' ?> dada<?= $r['a_desactivar'] > 1 ? 's' : '' ?> de baja.</strong>
         </div>
         <?php endif; ?>
 

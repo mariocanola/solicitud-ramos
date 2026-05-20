@@ -374,7 +374,6 @@ function editarPersona(p) {
     document.getElementById('persona_edit_id').value = p.id;
     document.getElementById('pe_tipo_documento').value = p.tipo_documento;
     document.getElementById('pe_documento').value = p.documento;
-    document.getElementById('pe_documento').readOnly = true;
     document.getElementById('pe_primer_nombre').value = p.primer_nombre || '';
     document.getElementById('pe_segundo_nombre').value = p.segundo_nombre || '';
     document.getElementById('pe_primer_apellido').value = p.primer_apellido || '';

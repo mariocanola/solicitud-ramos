@@ -79,6 +79,7 @@ class PersonaController
         $id = (int)($_POST['id'] ?? 0);
         $data = [
             'tipo_documento'  => trim($_POST['tipo_documento'] ?? ''),
+            'documento'       => trim($_POST['documento'] ?? ''),
             'primer_nombre'   => trim($_POST['primer_nombre'] ?? ''),
             'segundo_nombre'  => trim($_POST['segundo_nombre'] ?? '') ?: null,
             'primer_apellido' => trim($_POST['primer_apellido'] ?? ''),
@@ -93,6 +94,11 @@ class PersonaController
             return;
         }
 
+        if (empty($data['documento']) || !preg_match('/^\d{4,20}$/', $data['documento'])) {
+            Response::error('El documento es invalido (debe ser numerico, entre 4 y 20 digitos)');
+            return;
+        }
+
         $errors = $this->validarActualizar($data);
         if (!empty($errors)) {
             Response::error('Datos invalidos', 400, $errors);
@@ -101,6 +107,10 @@ class PersonaController
 
         try {
             $personaModel = new Persona();
+            if ($personaModel->existeDocumentoOtro($data['documento'], $id)) {
+                Response::error('El documento ya está registrado para otra persona');
+                return;
+            }
             $personaModel->update($id, $data);
             Response::success(null, 'Persona actualizada exitosamente');
         } catch (Exception $e) {

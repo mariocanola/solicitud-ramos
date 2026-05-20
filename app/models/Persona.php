@@ -97,6 +97,13 @@ class Persona
         return (int)$stmt->fetchColumn() > 0;
     }
 
+    public function existeDocumentoOtro($documento, $excludeId)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM personas WHERE documento = ? AND id != ?");
+        $stmt->execute([$documento, (int)$excludeId]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
     public function create($data)
     {
         if ($this->existeDocumento($data['documento'])) {
@@ -126,12 +133,13 @@ class Persona
     public function update($id, $data)
     {
         $stmt = $this->db->prepare(
-            "UPDATE personas SET tipo_documento = ?, primer_nombre = ?, segundo_nombre = ?,
+            "UPDATE personas SET tipo_documento = ?, documento = ?, primer_nombre = ?, segundo_nombre = ?,
              primer_apellido = ?, segundo_apellido = ?, telefono = ?, id_sede = ?, empresa = ?, activo = ?
              WHERE id = ?"
         );
         return $stmt->execute([
             $data['tipo_documento'],
+            $data['documento'],
             $data['primer_nombre'],
             $data['segundo_nombre'] ?? null,
             $data['primer_apellido'],
