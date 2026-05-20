@@ -10,8 +10,11 @@ class AuthController
             exit;
         }
 
-        $error = Session::getFlash('login_error');
+        $error   = Session::getFlash('login_error');
         $oldUser = Session::getFlash('login_user');
+        if (empty($error) && !empty($_GET['expired'])) {
+            $error = 'Tu sesión expiró por inactividad. Por favor iniciá sesión nuevamente.';
+        }
         require BASE_PATH . '/app/views/auth/login.php';
     }
 

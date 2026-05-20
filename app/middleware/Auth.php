@@ -3,6 +3,8 @@ require_once BASE_PATH . '/app/models/Usuario.php';
 
 class Auth
 {
+    const SESSION_TIMEOUT = 1800; // 30 minutos de inactividad
+
     public static function check()
     {
         return !empty($_SESSION['usuario']);
@@ -31,15 +33,29 @@ class Auth
     public static function guard()
     {
         if (!self::check()) {
-            if (self::isAjax()) {
-                http_response_code(401);
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'No autenticado']);
-                exit;
-            }
-            header('Location: ' . BASE_URL . '/login');
+            self::redirectUnauth(false);
+        }
+
+        if (time() - ($_SESSION['last_activity'] ?? 0) > self::SESSION_TIMEOUT) {
+            self::logout();
+            self::redirectUnauth(true);
+        }
+
+        $_SESSION['last_activity'] = time();
+    }
+
+    private static function redirectUnauth(bool $expired = false)
+    {
+        if (self::isAjax()) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            $msg = $expired ? 'Sesión expirada. Por favor iniciá sesión nuevamente.' : 'No autenticado';
+            echo json_encode(['success' => false, 'message' => $msg, 'expired' => $expired]);
             exit;
         }
+        $url = BASE_URL . '/login' . ($expired ? '?expired=1' : '');
+        header('Location: ' . $url);
+        exit;
     }
 
     public static function requireRol($roles)
@@ -81,7 +97,8 @@ class Auth
             'nombre'   => $user['nombre'],
             'rol'      => $user['rol'],
         ];
-        $_SESSION['auth_time'] = time();
+        $_SESSION['auth_time']    = time();
+        $_SESSION['last_activity'] = time();
         try {
             $userModel->registrarLogin($user['id']);
         } catch (Throwable $e) {
