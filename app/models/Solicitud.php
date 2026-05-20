@@ -191,30 +191,13 @@ class Solicitud
 
     public function tieneSolicitudEnPeriodo($persona_id, $fecha, $tipo = 'monthly')
     {
-        if ($tipo === 'weekly') {
-            $periodoRef = DateHelper::getPeriodStart($fecha, 'weekly');
-            // Si fecha_solicitud no tiene hora (00:00:00) se trata como dia completo (no aplica corte 6 AM).
-            // Si tiene hora real, se aplica -6h para que <6 AM cuente como semana anterior.
-            $stmt = $this->db->prepare(
-                "SELECT COUNT(*) FROM solicitudes
-                 WHERE persona_id = ?
-                 AND DATE(
-                    CASE WHEN TIME(fecha_solicitud) = '00:00:00'
-                         THEN fecha_solicitud - INTERVAL WEEKDAY(fecha_solicitud) DAY
-                         ELSE DATE_SUB(fecha_solicitud, INTERVAL 6 HOUR) - INTERVAL WEEKDAY(DATE_SUB(fecha_solicitud, INTERVAL 6 HOUR)) DAY
-                    END
-                 ) = ?
-                 AND id_estado IN (SELECT id FROM estados_solicitud WHERE nombre IN ('Aprobada', 'Pendiente', 'Entregada'))"
-            );
-            $stmt->execute([(int)$persona_id, $periodoRef]);
-        } else {
-            $stmt = $this->db->prepare(
-                "SELECT COUNT(*) FROM solicitudes
-                 WHERE persona_id = ? AND DATE_FORMAT(fecha_solicitud, '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
-                 AND id_estado IN (SELECT id FROM estados_solicitud WHERE nombre IN ('Aprobada', 'Pendiente', 'Entregada'))"
-            );
-            $stmt->execute([(int)$persona_id, $fecha]);
-        }
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM solicitudes
+             WHERE persona_id = ?
+             AND fecha_solicitud >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             AND id_estado IN (SELECT id FROM estados_solicitud WHERE nombre IN ('Aprobada', 'Pendiente', 'Entregada'))"
+        );
+        $stmt->execute([(int)$persona_id]);
         return (int)$stmt->fetchColumn() > 0;
     }
 
@@ -227,40 +210,20 @@ class Solicitud
         return $this->tieneSolicitudEnPeriodo($persona_id, $fecha, 'monthly');
     }
 
-    /** Devuelve la solicitud activa del período para mostrar detalles en la alerta del kiosco. */
+    /** Devuelve la solicitud activa de los últimos 30 días para mostrar detalles en la alerta del kiosco. */
     public function getSolicitudActivaEnPeriodo($persona_id, $fecha, $tipo = 'monthly')
     {
-        if ($tipo === 'weekly') {
-            $periodoRef = DateHelper::getPeriodStart($fecha, 'weekly');
-            $stmt = $this->db->prepare(
-                "SELECT s.id, s.fecha_solicitud, m.nombre AS motivo_nombre, e.nombre AS estado_nombre
-                 FROM solicitudes s
-                 INNER JOIN estados_solicitud e ON e.id = s.id_estado
-                 INNER JOIN motivos_ramo m       ON m.id = s.id_motivo
-                 WHERE s.persona_id = ?
-                   AND DATE(
-                      CASE WHEN TIME(s.fecha_solicitud) = '00:00:00'
-                           THEN s.fecha_solicitud - INTERVAL WEEKDAY(s.fecha_solicitud) DAY
-                           ELSE DATE_SUB(s.fecha_solicitud, INTERVAL 6 HOUR) - INTERVAL WEEKDAY(DATE_SUB(s.fecha_solicitud, INTERVAL 6 HOUR)) DAY
-                      END
-                   ) = ?
-                   AND e.nombre IN ('Aprobada','Pendiente','Entregada')
-                 ORDER BY s.fecha_solicitud DESC LIMIT 1"
-            );
-            $stmt->execute([(int)$persona_id, $periodoRef]);
-        } else {
-            $stmt = $this->db->prepare(
-                "SELECT s.id, s.fecha_solicitud, m.nombre AS motivo_nombre, e.nombre AS estado_nombre
-                 FROM solicitudes s
-                 INNER JOIN estados_solicitud e ON e.id = s.id_estado
-                 INNER JOIN motivos_ramo m       ON m.id = s.id_motivo
-                 WHERE s.persona_id = ?
-                   AND DATE_FORMAT(s.fecha_solicitud, '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
-                   AND e.nombre IN ('Aprobada','Pendiente','Entregada')
-                 ORDER BY s.fecha_solicitud DESC LIMIT 1"
-            );
-            $stmt->execute([(int)$persona_id, $fecha]);
-        }
+        $stmt = $this->db->prepare(
+            "SELECT s.id, s.fecha_solicitud, m.nombre AS motivo_nombre, e.nombre AS estado_nombre
+             FROM solicitudes s
+             INNER JOIN estados_solicitud e ON e.id = s.id_estado
+             INNER JOIN motivos_ramo m       ON m.id = s.id_motivo
+             WHERE s.persona_id = ?
+               AND s.fecha_solicitud >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+               AND e.nombre IN ('Aprobada','Pendiente','Entregada')
+             ORDER BY s.fecha_solicitud DESC LIMIT 1"
+        );
+        $stmt->execute([(int)$persona_id]);
         return $stmt->fetch() ?: null;
     }
 

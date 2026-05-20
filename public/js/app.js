@@ -137,8 +137,25 @@ function swalConfirm(title, text, callback) {
         showCancelButton: true,
         confirmButtonColor: '#e74c3c',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Si, continuar',
+        confirmButtonText: 'Sí, continuar',
         cancelButtonText: 'Cancelar'
+    }).then(function(result) {
+        if (result.isConfirmed) callback();
+    });
+}
+
+function swalEliminar(titulo, callback) {
+    Swal.fire({
+        title: titulo,
+        html: '<p style="font-size:14px;color:#64748b;margin:0">Esta acción es permanente y no se puede deshacer.</p>',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        focusCancel: true
     }).then(function(result) {
         if (result.isConfirmed) callback();
     });

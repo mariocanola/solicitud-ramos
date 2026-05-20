@@ -578,9 +578,8 @@ function enviarSolicitud() {
 
 // === ELIMINAR SOLICITUD ===
 function eliminarSolicitud(id) {
-    swalConfirm(
+    swalEliminar(
         '¿Eliminar solicitud?',
-        'Esta seguro de eliminar la solicitud #' + id + '? Esta accion no se puede deshacer.',
         function() {
             var formData = new FormData();
             formData.append('id', id);
@@ -588,7 +587,7 @@ function eliminarSolicitud(id) {
 
             ajaxPost(BASE_URL + '/solicitudes/eliminar', formData, function(data) {
                 if (data.success) {
-                    Toast.fire({ icon: 'success', title: 'Solicitud eliminada' }).then(function() {
+                    Swal.fire({ icon: 'success', title: 'Solicitud eliminada', showConfirmButton: false, timer: 1800, timerProgressBar: true }).then(function() {
                         location.reload();
                     });
                 } else {

@@ -44,13 +44,14 @@ class SolicitudController
 
         $solicitudModel = new Solicitud();
         $tipo = Configuracion::getPeriodoTipo();
-        $periodoLabel = $tipo === 'weekly' ? 'semana' : 'mes';
 
-        // 1) Bloqueo: ya tiene solicitud activa en el periodo
+        $persona['nombre_completo'] = Persona::getNombreCompleto($persona);
+
+        // 1) Bloqueo: ya tiene solicitud activa en los últimos 30 días
         $solicitudExistente = $solicitudModel->getSolicitudActivaEnPeriodo($persona['id'], DateHelper::now(), $tipo);
         $persona['ya_solicito_periodo'] = !empty($solicitudExistente);
         $persona['ya_solicito_mes']     = $persona['ya_solicito_periodo']; // compat frontend
-        $persona['periodo_label']       = $periodoLabel;
+        $persona['periodo_label']       = '30 días';
         if ($persona['ya_solicito_periodo']) {
             $persona['solicitud_existente'] = $solicitudExistente;
             Response::success($persona, 'Persona encontrada');
@@ -63,9 +64,7 @@ class SolicitudController
         $fechaActual = DateHelper::now();
         $persona['sin_cupo'] = !$cupoService->verificarDisponibilidad((int)$persona['id_sede'], $fechaActual);
         if ($persona['sin_cupo']) {
-            $persona['mensaje_sin_cupo'] = $tipo === 'weekly'
-                ? 'Los cupos para esta sede se han agotado en la semana actual.'
-                : 'Los cupos para esta sede se han agotado este mes.';
+            $persona['mensaje_sin_cupo'] = 'Los cupos para esta sede se han agotado este mes.';
         }
 
         Response::success($persona, 'Persona encontrada');

@@ -1888,7 +1888,7 @@ function buscarManual() {
 
             // Bloqueo 1: ya tiene solicitud activa en el periodo
             if (p.ya_solicito_periodo || p.ya_solicito_mes) {
-                actualizarScannerIndicator('error', 'Ya solicitó ramo esta ' + periodoLabel);
+                actualizarScannerIndicator('error', periodoLabel === '30 días' ? 'Ya solicitó en los últimos 30 días' : 'Ya solicitó ramo esta ' + periodoLabel);
                 alertarSolicitudExistente(p);
                 return;
             }
@@ -2220,44 +2220,40 @@ function alertarSolicitudExistente(persona) {
     var motivoTxt = existente.motivo_nombre || '';
     var estadoTxt = existente.estado_nombre || '';
 
-    var iconHTML =
-        '<div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#4A1942,#5C2A47);'
-        + 'display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 16px rgba(74,25,66,0.3)">'
-        + '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-        + '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
-        + '</div>';
-
-    var detallesHTML = '';
-    if (fechaTxt || motivoTxt) {
-        detallesHTML = '<div style="background:#faf8fb;border-radius:8px;padding:14px 16px;margin-top:18px;text-align:left;border-left:3px solid #4A1942">'
-            + '<div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:#7A4866;text-transform:uppercase;margin-bottom:6px">Solicitud previa</div>';
-        if (fechaTxt) {
-            detallesHTML += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">'
-                + '<span style="color:#64748b">Fecha</span><strong style="color:#1e293b">' + fechaTxt + '</strong></div>';
-        }
-        if (motivoTxt) {
-            detallesHTML += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">'
-                + '<span style="color:#64748b">Motivo</span><strong style="color:#1e293b">' + motivoTxt + '</strong></div>';
-        }
-        if (estadoTxt) {
-            detallesHTML += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">'
-                + '<span style="color:#64748b">Estado</span><strong style="color:#1e293b">' + estadoTxt + '</strong></div>';
-        }
-        detallesHTML += '</div>';
+    var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    var volverTxt = '';
+    var diasRestantesTxt = '';
+    if (existente.fecha_solicitud) {
+        var dBase = new Date(existente.fecha_solicitud + 'T00:00:00');
+        var dVolver = new Date(dBase);
+        dVolver.setDate(dVolver.getDate() + 30);
+        volverTxt = dVolver.getDate() + ' de ' + meses[dVolver.getMonth()] + ' de ' + dVolver.getFullYear();
+        var diasRestantes = Math.ceil((dVolver - new Date()) / (1000 * 60 * 60 * 24));
+        diasRestantesTxt = diasRestantes > 1 ? 'en ' + diasRestantes + ' días' : (diasRestantes === 1 ? 'mañana' : 'hoy');
     }
 
-    var periodoLabel = persona.periodo_label || 'mes';
-    var periodoActualTxt = periodoLabel === 'semana' ? 'la semana actual' : 'el mes actual';
-    var periodoSinglularTxt = periodoLabel === 'semana' ? 'semana' : 'mes';
-
     var html =
-        iconHTML +
-        '<h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:18px 0 4px 0">Ya solicitó su ramo</h2>' +
-        '<p style="font-size:14px;color:#64748b;margin:0">Hola <strong style="color:#4A1942">' + (nombre || 'estimado usuario') + '</strong></p>' +
-        '<p style="font-size:14px;color:#475569;margin:14px 0 0 0;line-height:1.5">' +
-        'Ya tienes una solicitud registrada en ' + periodoActualTxt + '. ' +
-        'Solo se permite <strong>una solicitud por persona cada ' + periodoSinglularTxt + '</strong>.</p>' +
-        detallesHTML;
+        '<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4A1942,#7A3A72);'
+        + 'display:flex;align-items:center;justify-content:center;margin:0 auto 16px">'
+        + '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+        + '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
+        + '</div>'
+        + '<p style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 2px 0">' + (nombre || 'Usuario') + '</p>'
+        + '<p style="font-size:13px;color:#94a3b8;margin:0 0 20px 0">Ya tienes un ramo registrado</p>'
+        + '<div style="display:flex;gap:10px;margin-bottom:4px">'
+        +   '<div style="flex:1;background:#f8f5f9;border-radius:10px;padding:14px;text-align:left">'
+        +     '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Solicitud anterior</div>'
+        +     '<div style="font-size:15px;font-weight:700;color:#1e293b">' + (fechaTxt || '—') + '</div>'
+        +     (motivoTxt ? '<div style="font-size:12px;color:#64748b;margin-top:3px">' + motivoTxt + '</div>' : '')
+        +   '</div>'
+        +   (volverTxt
+        ?   '<div style="flex:1;background:#4A1942;border-radius:10px;padding:14px;text-align:left">'
+        +     '<div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Podés solicitar</div>'
+        +     '<div style="font-size:15px;font-weight:700;color:#fff">' + volverTxt + '</div>'
+        +     '<div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px">' + diasRestantesTxt + '</div>'
+        +   '</div>'
+        :   '')
+        + '</div>';
 
     if (typeof Swal !== 'undefined') {
         Swal.fire({
@@ -2267,12 +2263,12 @@ function alertarSolicitudExistente(persona) {
             confirmButtonColor: '#4A1942',
             allowOutsideClick: false,
             allowEscapeKey: false,
-            width: 460,
+            width: 440,
             padding: '28px 24px 22px',
             customClass: { popup: 'swal-tandil', confirmButton: 'swal-tandil-btn' }
         }).then(function () { limpiarFormulario(); });
     } else {
-        alert('Ya tiene una solicitud registrada en ' + (periodoLabel === 'semana' ? 'la semana actual.' : 'el mes actual.'));
+        alert('Ya tiene una solicitud registrada. Puede volver a solicitar el ' + (volverTxt || 'en 30 días') + '.');
         limpiarFormulario();
     }
 }
@@ -2317,7 +2313,7 @@ function alertarSinCupo(persona) {
 window.onPersonaEncontrada = function(persona) {
     if (persona && (persona.ya_solicito_periodo || persona.ya_solicito_mes)) {
         var pl = persona.periodo_label || 'mes';
-        actualizarScannerIndicator('error', 'Ya solicitó ramo esta ' + pl);
+        actualizarScannerIndicator('error', pl === '30 días' ? 'Ya solicitó en los últimos 30 días' : 'Ya solicitó ramo esta ' + pl);
         alertarSolicitudExistente(persona);
         return;
     }
