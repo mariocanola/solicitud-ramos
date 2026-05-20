@@ -141,10 +141,17 @@
                                     onclick="editarPersona(<?= htmlspecialchars(json_encode($p), ENT_QUOTES) ?>)">
                                 Editar
                             </button>
+                            <?php if ($p['activo']): ?>
                             <button class="btn btn-danger btn-sm"
-                                    onclick="eliminarPersona(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes(Persona::getNombreCompleto($p)), ENT_QUOTES) ?>')">
-                                Eliminar
+                                    onclick="togglePersona(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes(Persona::getNombreCompleto($p)), ENT_QUOTES) ?>', 0)">
+                                Inhabilitar
                             </button>
+                            <?php else: ?>
+                            <button class="btn btn-success btn-sm"
+                                    onclick="togglePersona(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes(Persona::getNombreCompleto($p)), ENT_QUOTES) ?>', 1)">
+                                Habilitar
+                            </button>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php
@@ -388,24 +395,27 @@ function cerrarModalPersona() {
     document.getElementById('modal_persona').classList.remove('show');
 }
 
-function eliminarPersona(id, nombre) {
-    swalConfirm(
-        '¿Eliminar persona?',
-        'Esta seguro de eliminar a "' + nombre + '"? Esta accion no se puede deshacer.',
-        function() {
+function togglePersona(id, nombre, activar) {
+    var titulo      = activar ? '¿Habilitar a ' + nombre + '?' : '¿Inhabilitar a ' + nombre + '?';
+    var btnTexto    = activar ? 'Habilitar'    : 'Inhabilitar';
+    var btnColor    = activar ? '#16a34a'       : '#e74c3c';
+    var endpoint    = activar ? '/personas/habilitar' : '/personas/eliminar';
+    var successMsg  = activar ? 'Persona habilitada'  : 'Persona inhabilitada';
+
+    swalEliminar(titulo, function() {
             var formData = new FormData();
             formData.append('id', id);
             formData.append('_csrf_token', CSRF_TOKEN);
-            ajaxPost(BASE_URL + '/personas/eliminar', formData, function(data) {
+            ajaxPost(BASE_URL + endpoint, formData, function(data) {
                 if (data.success) {
-                    Toast.fire({ icon: 'success', title: 'Persona eliminada' }).then(function() {
+                    Swal.fire({ icon: 'success', title: successMsg, showConfirmButton: false, timer: 1800, timerProgressBar: true }).then(function() {
                         location.reload();
                     });
                 } else {
-                    swalError(data.message || 'Error al eliminar');
+                    swalError(data.message || 'Error al ' + btnTexto.toLowerCase());
                 }
             });
-        }
+        }, btnTexto, btnColor
     );
 }
 

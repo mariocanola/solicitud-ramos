@@ -152,9 +152,15 @@ class Persona
         ]);
     }
 
-    public function delete($id)
+    public function desactivar($id)
     {
-        $stmt = $this->db->prepare("DELETE FROM personas WHERE id = ?");
+        $stmt = $this->db->prepare("UPDATE personas SET activo = 0 WHERE id = ?");
+        return $stmt->execute([(int)$id]);
+    }
+
+    public function activar($id)
+    {
+        $stmt = $this->db->prepare("UPDATE personas SET activo = 1 WHERE id = ?");
         return $stmt->execute([(int)$id]);
     }
 

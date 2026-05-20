@@ -58,17 +58,31 @@ class PersonaController
             return;
         }
 
-        $personaModel = new Persona();
-        if ($personaModel->tieneRegistrosAsociados($id)) {
-            Response::error('No se puede eliminar esta persona porque tiene solicitudes asociadas. Desactivela en su lugar.');
+        try {
+            $personaModel = new Persona();
+            $personaModel->desactivar($id);
+            Response::success(null, 'Persona inhabilitada exitosamente');
+        } catch (Exception $e) {
+            Response::error('Error al inhabilitar la persona');
+        }
+    }
+
+    public function habilitar()
+    {
+        Csrf::validate();
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            Response::error('ID invalido');
             return;
         }
 
         try {
-            $personaModel->delete($id);
-            Response::success(null, 'Persona eliminada exitosamente');
+            $personaModel = new Persona();
+            $personaModel->activar($id);
+            Response::success(null, 'Persona habilitada exitosamente');
         } catch (Exception $e) {
-            Response::error('Error al eliminar la persona');
+            Response::error('Error al habilitar la persona');
         }
     }
 
@@ -80,10 +94,10 @@ class PersonaController
         $data = [
             'tipo_documento'  => trim($_POST['tipo_documento'] ?? ''),
             'documento'       => trim($_POST['documento'] ?? ''),
-            'primer_nombre'   => trim($_POST['primer_nombre'] ?? ''),
-            'segundo_nombre'  => trim($_POST['segundo_nombre'] ?? '') ?: null,
-            'primer_apellido' => trim($_POST['primer_apellido'] ?? ''),
-            'segundo_apellido'=> trim($_POST['segundo_apellido'] ?? '') ?: null,
+            'primer_nombre'   => mb_strtoupper(trim($_POST['primer_nombre'] ?? ''), 'UTF-8'),
+            'segundo_nombre'  => ($_POST['segundo_nombre'] ?? '') !== '' ? mb_strtoupper(trim($_POST['segundo_nombre']), 'UTF-8') : null,
+            'primer_apellido' => mb_strtoupper(trim($_POST['primer_apellido'] ?? ''), 'UTF-8'),
+            'segundo_apellido'=> ($_POST['segundo_apellido'] ?? '') !== '' ? mb_strtoupper(trim($_POST['segundo_apellido']), 'UTF-8') : null,
             'telefono'        => trim($_POST['telefono'] ?? '') ?: null,
             'id_sede'         => (int)($_POST['id_sede'] ?? 0),
             'activo'          => (int)($_POST['activo'] ?? 1),
@@ -141,10 +155,10 @@ class PersonaController
         $data = [
             'tipo_documento'  => trim($_POST['tipo_documento'] ?? ''),
             'documento'       => trim($_POST['documento'] ?? ''),
-            'primer_nombre'   => trim($_POST['primer_nombre'] ?? ''),
-            'segundo_nombre'  => trim($_POST['segundo_nombre'] ?? '') ?: null,
-            'primer_apellido' => trim($_POST['primer_apellido'] ?? ''),
-            'segundo_apellido'=> trim($_POST['segundo_apellido'] ?? '') ?: null,
+            'primer_nombre'   => mb_strtoupper(trim($_POST['primer_nombre'] ?? ''), 'UTF-8'),
+            'segundo_nombre'  => ($_POST['segundo_nombre'] ?? '') !== '' ? mb_strtoupper(trim($_POST['segundo_nombre']), 'UTF-8') : null,
+            'primer_apellido' => mb_strtoupper(trim($_POST['primer_apellido'] ?? ''), 'UTF-8'),
+            'segundo_apellido'=> ($_POST['segundo_apellido'] ?? '') !== '' ? mb_strtoupper(trim($_POST['segundo_apellido']), 'UTF-8') : null,
             'telefono'        => trim($_POST['telefono'] ?? '') ?: null,
             'id_sede'         => (int)($_POST['id_sede'] ?? 0),
         ];
