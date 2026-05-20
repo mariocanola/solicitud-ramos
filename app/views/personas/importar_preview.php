@@ -2,7 +2,7 @@
 /** @var array $clasificacion */
 /** @var string $archivo */
 $r = $clasificacion['resumen'];
-$puedeImportar = ($r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar']) > 0;
+$puedeImportar = ($r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar'] + $r['a_desactivar']) > 0;
 $formatoDetectado = $clasificacion['formato'] ?? 'desconocido';
 $labelFormato = $formatoDetectado === 'CREOS'
     ? 'Maestro CREOS (personal temporal)'
@@ -18,6 +18,7 @@ $labelFormato = $formatoDetectado === 'CREOS'
 .kpi.k-react   { border-top-color:#7c3aed; }
 .kpi.k-skip    { border-top-color:#94a3b8; }
 .kpi.k-err     { border-top-color:#dc2626; }
+.kpi.k-baja    { border-top-color:#ea580c; }
 .kpi-num { font-size:24px; font-weight:700; color:#1e293b; }
 .kpi-lbl { font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:#64748b; font-weight:600; }
 .tab-bar { display:flex; gap:4px; border-bottom:1px solid #e2e8f0; margin-bottom:14px; flex-wrap:wrap; }
@@ -58,7 +59,17 @@ $labelFormato = $formatoDetectado === 'CREOS'
             <div class="kpi k-react"><div class="kpi-num"><?= $r['a_reactivar'] ?></div><div class="kpi-lbl">Reactivar</div></div>
             <div class="kpi k-skip"><div class="kpi-num"><?= $r['sin_cambios'] ?></div><div class="kpi-lbl">Sin cambios</div></div>
             <div class="kpi k-err"><div class="kpi-num"><?= $r['errores'] ?></div><div class="kpi-lbl">Errores</div></div>
+            <div class="kpi k-baja"><div class="kpi-num"><?= $r['a_desactivar'] ?></div><div class="kpi-lbl">Dar de baja</div></div>
         </div>
+
+        <?php if ($r['a_desactivar'] > 0): ?>
+        <div style="margin-bottom:16px;padding:12px 14px;background:#fff7ed;border-left:3px solid #ea580c;border-radius:6px;font-size:13px;color:#7c2d12">
+            <strong>⚠ <?= $r['a_desactivar'] ?> persona<?= $r['a_desactivar'] > 1 ? 's' : '' ?> ser<?= $r['a_desactivar'] > 1 ? 'án' : 'á' ?> dada<?= $r['a_desactivar'] > 1 ? 's' : '' ?> de baja</strong>
+            — están activas en el sistema pero no aparecen en este maestro, y no tienen solicitudes asociadas.
+            Solo se desactivan personas de empresa <strong><?= htmlspecialchars($clasificacion['formato'] === 'CREOS' ? 'CREOS' : 'TANDIL') ?></strong>.
+            Las personas de sede Servitures nunca se ven afectadas.
+        </div>
+        <?php endif; ?>
 
         <div class="tab-bar">
             <button type="button" class="tab-btn active" data-tab="nuevas">Nuevas (<?= $r['nuevas'] ?>)</button>
@@ -66,6 +77,9 @@ $labelFormato = $formatoDetectado === 'CREOS'
             <button type="button" class="tab-btn" data-tab="reactivar">Reactivar (<?= $r['a_reactivar'] ?>)</button>
             <button type="button" class="tab-btn" data-tab="skip">Sin cambios (<?= $r['sin_cambios'] ?>)</button>
             <button type="button" class="tab-btn" data-tab="errores">Errores (<?= $r['errores'] ?>)</button>
+            <?php if ($r['a_desactivar'] > 0): ?>
+            <button type="button" class="tab-btn" data-tab="baja" style="color:#ea580c">Dar de baja (<?= $r['a_desactivar'] ?>)</button>
+            <?php endif; ?>
         </div>
 
         <?php
@@ -135,12 +149,30 @@ $labelFormato = $formatoDetectado === 'CREOS'
         <div class="tab-pane" data-pane="skip"><?php renderTabla($clasificacion['sin_cambios'], 'row-skip', 'skip'); ?></div>
         <div class="tab-pane" data-pane="errores"><?php renderTabla($clasificacion['errores'], 'row-err', 'errores'); ?></div>
 
+        <?php if (!empty($clasificacion['a_desactivar'])): ?>
+        <div class="tab-pane" data-pane="baja">
+            <div style="overflow-x:auto"><table class="preview-table"><thead><tr>
+                <th>Documento</th><th>Nombre</th><th>Apellido</th><th>Sede</th><th>Empresa</th>
+            </tr></thead><tbody>
+            <?php foreach ($clasificacion['a_desactivar'] as $p): ?>
+            <tr style="border-left:3px solid #ea580c">
+                <td><?= htmlspecialchars($p['documento']) ?></td>
+                <td><?= htmlspecialchars(trim($p['primer_nombre'] . ' ' . $p['segundo_nombre'])) ?></td>
+                <td><?= htmlspecialchars(trim($p['primer_apellido'] . ' ' . $p['segundo_apellido'])) ?></td>
+                <td><?= htmlspecialchars($p['sede_nombre'] ?? '') ?></td>
+                <td><span style="color:#64748b;font-size:11px"><?= htmlspecialchars($p['empresa']) ?></span></td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody></table></div>
+        </div>
+        <?php endif; ?>
+
         <form method="POST" action="<?= BASE_URL ?>/personas/importar/confirmar" style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #e2e8f0;padding-top:18px">
             <?= $csrfField ?>
             <a href="<?= BASE_URL ?>/personas/importar/cancelar" class="btn btn-outline">Cancelar</a>
             <button type="submit" class="btn btn-primary"<?= $puedeImportar ? '' : ' disabled' ?>>
                 <?php if ($puedeImportar): ?>
-                    Confirmar importacion (<?= $r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar'] ?> registros)
+                    Confirmar importacion (<?= $r['nuevas'] + $r['a_actualizar'] + $r['a_reactivar'] ?> registros<?= $r['a_desactivar'] > 0 ? ' · ' . $r['a_desactivar'] . ' bajas' : '' ?>)
                 <?php else: ?>
                     No hay nada para importar
                 <?php endif; ?>

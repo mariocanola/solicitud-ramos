@@ -252,8 +252,8 @@ class PersonaController
         $this->limpiarPreview();
 
         $msg = sprintf(
-            'Importacion completada. Insertadas: %d, actualizadas: %d, reactivadas: %d.',
-            $resultado['insertadas'], $resultado['actualizadas'], $resultado['reactivadas']
+            'Importacion completada. Nuevas: %d, actualizadas: %d, reactivadas: %d, dadas de baja: %d.',
+            $resultado['insertadas'], $resultado['actualizadas'], $resultado['reactivadas'], $resultado['desactivadas']
         );
         Session::flash('mensaje', $msg);
         Session::flash('tipo', 'success');

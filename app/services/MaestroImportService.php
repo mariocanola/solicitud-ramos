@@ -50,7 +50,8 @@ class MaestroImportService
     // ============================================================
 
     private $db;
-    private $sedesPorCodigo = [];
+    private $sedesPorCodigo  = [];
+    private $idSedeServitures = null;
 
     public function __construct()
     {
@@ -60,10 +61,13 @@ class MaestroImportService
 
     private function cargarSedes()
     {
-        $stmt = $this->db->query("SELECT id, nombre, codigo FROM sedes WHERE activo = 1");
+        $stmt = $this->db->query("SELECT id, nombre, codigo FROM sedes");
         foreach ($stmt->fetchAll() as $s) {
-            if (!empty($s['codigo'])) {
+            if (!empty($s['codigo']) && !empty($s['activo'])) {
                 $this->sedesPorCodigo[strtoupper(trim($s['codigo']))] = $s;
+            }
+            if (stripos($s['nombre'], 'servitures') !== false) {
+                $this->idSedeServitures = (int)$s['id'];
             }
         }
     }
@@ -416,6 +420,9 @@ class MaestroImportService
             }
         }
 
+        $empresa      = ($formato === self::FORMATO_CREOS) ? 'CREOS' : 'TANDIL';
+        $aDesactivar  = $this->buscarADesactivar($empresa, $documentos);
+
         return [
             'formato'      => $formato,
             'nuevas'       => $nuevas,
@@ -423,6 +430,7 @@ class MaestroImportService
             'a_reactivar'  => $aReactivar,
             'sin_cambios'  => $sinCambios,
             'errores'      => $errores,
+            'a_desactivar' => $aDesactivar,
             'resumen'      => [
                 'total'        => count($filas),
                 'nuevas'       => count($nuevas),
@@ -430,8 +438,43 @@ class MaestroImportService
                 'a_reactivar'  => count($aReactivar),
                 'sin_cambios'  => count($sinCambios),
                 'errores'      => count($errores),
+                'a_desactivar' => count($aDesactivar),
             ],
         ];
+    }
+
+    /**
+     * Devuelve personas activas de $empresa que NO aparecen en el maestro,
+     * excluyendo la sede Servitures y personas con solicitudes asociadas.
+     */
+    private function buscarADesactivar(string $empresa, array $documentosEnMaestro): array
+    {
+        if (empty($documentosEnMaestro)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($documentosEnMaestro), '?'));
+
+        $excluirServitures = $this->idSedeServitures !== null
+            ? "AND p.id_sede != {$this->idSedeServitures}"
+            : '';
+
+        $sql = "SELECT p.id, p.documento, p.primer_nombre, p.segundo_nombre,
+                       p.primer_apellido, p.segundo_apellido, p.empresa,
+                       s.nombre AS sede_nombre
+                FROM personas p
+                LEFT JOIN sedes s ON s.id = p.id_sede
+                WHERE p.empresa = ?
+                  AND p.activo = 1
+                  AND p.documento NOT IN ($placeholders)
+                  $excluirServitures
+                  AND p.id NOT IN (SELECT DISTINCT persona_id FROM solicitudes)
+                ORDER BY p.primer_apellido, p.primer_nombre";
+
+        $params = array_merge([$empresa], $documentosEnMaestro);
+        $stmt   = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     private function buscarExistentes(array $documentos)
@@ -512,7 +555,7 @@ class MaestroImportService
 
     public function ejecutar(array $clasificacion)
     {
-        $insertadas = 0; $actualizadas = 0; $reactivadas = 0;
+        $insertadas = 0; $actualizadas = 0; $reactivadas = 0; $desactivadas = 0;
 
         $this->db->beginTransaction();
         try {
@@ -556,6 +599,14 @@ class MaestroImportService
                 $reactivadas++;
             }
 
+            if (!empty($clasificacion['a_desactivar'])) {
+                $stmtBaja = $this->db->prepare("UPDATE personas SET activo = 0 WHERE id = ?");
+                foreach ($clasificacion['a_desactivar'] as $p) {
+                    $stmtBaja->execute([(int)$p['id']]);
+                    $desactivadas++;
+                }
+            }
+
             $this->db->commit();
         } catch (Exception $e) {
             $this->db->rollBack();
@@ -566,6 +617,7 @@ class MaestroImportService
             'insertadas'   => $insertadas,
             'actualizadas' => $actualizadas,
             'reactivadas'  => $reactivadas,
+            'desactivadas' => $desactivadas,
         ];
     }
 
