@@ -46,7 +46,8 @@
                             <?= $csrfField ?>
                             <input type="hidden" name="id_sede" value="<?= $sede['id'] ?>">
                             <input type="number" name="cupo_maximo" class="form-control"
-                                   style="width:80px" min="1" value="<?= $max ?: 50 ?>">
+                                   style="width:80px" min="<?= max(1, $usado) ?>" value="<?= $max ?: 50 ?>"
+                                   title="Mínimo permitido: <?= $usado ?> (solicitudes activas)">
                             <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
                         </form>
                     </td>

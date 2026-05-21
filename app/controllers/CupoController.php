@@ -34,6 +34,15 @@ class CupoController
 
         // Ensure record exists
         $cupoModel->existeOCrear($id_sede, $periodo, $cupoService->obtenerCupoDefault());
+
+        $usado = $cupoModel->contarSolicitudesActivas($id_sede, $periodo, $tipo);
+        if ($cupo_maximo < $usado) {
+            Session::flash('mensaje', "No se puede bajar el cupo a {$cupo_maximo}: la sede ya tiene {$usado} solicitud(es) activa(s) en este período.");
+            Session::flash('tipo', 'danger');
+            Response::redirect('configuracion?tab=cupos');
+            return;
+        }
+
         $cupoModel->actualizarCupoMaximo($id_sede, $periodo, $cupo_maximo);
 
         Session::flash('mensaje', 'Cupo actualizado exitosamente');
