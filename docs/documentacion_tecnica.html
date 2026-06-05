@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Solicitud de Ramos — Documentación Técnica</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+  :root {
+    --font-main: 'Arial Narrow', 'Arimo', Arial, sans-serif;
+    --color-text: #000;
+    --color-header-bg: #f2f2f2;
+    --color-border: #000;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-main);
+    font-size: 11pt;
+    color: var(--color-text);
+    background: #fff;
+    line-height: 1.5;
+  }
+
+  /* ── PAGE SIMULATION ── */
+  .page {
+    width: 21cm;
+    min-height: 29.7cm;
+    margin: 0 auto 2cm auto;
+    padding: 2.54cm;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    position: relative;
+    page-break-after: always;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; margin: 0; page-break-after: always; }
+  }
+
+  /* ── RUNNING HEADER ── */
+  .running-header {
+    font-size: 9pt;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4pt;
+    margin-bottom: 14pt;
+  }
+
+  /* ── PAGE NUMBER ── */
+  .page-number {
+    font-size: 9pt;
+    text-align: right;
+    position: absolute;
+    bottom: 1.8cm;
+    right: 2.54cm;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 25cm;
+    text-align: center;
+    gap: 0;
+  }
+  .cover-logo-space { height: 2cm; }
+  .cover-title {
+    font-size: 18pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 3cm;
+    margin-bottom: 0.4cm;
+    max-width: 14cm;
+  }
+  .cover-subtitle {
+    font-size: 14pt;
+    margin-bottom: 3cm;
+  }
+  .cover-meta {
+    font-size: 12pt;
+    line-height: 2.2;
+    margin-top: auto;
+  }
+  .cover-org {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-bottom: 0.3cm;
+  }
+
+  /* ── HEADINGS ── */
+  h1 {
+    font-size: 16pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 24pt;
+    margin-bottom: 12pt;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: bold;
+    margin-top: 18pt;
+    margin-bottom: 6pt;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    font-style: italic;
+    margin-top: 14pt;
+    margin-bottom: 5pt;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 11pt;
+    font-weight: normal;
+    font-style: italic;
+    margin-top: 10pt;
+    margin-bottom: 4pt;
+    page-break-after: avoid;
+  }
+
+  /* ── BODY TEXT ── */
+  p {
+    text-align: justify;
+    margin-bottom: 6pt;
+    font-size: 11pt;
+  }
+  p + p { text-indent: 1.27cm; }
+  h1 + p, h2 + p, h3 + p, h4 + p, .no-indent { text-indent: 0; }
+
+  /* ── APA TABLES ── */
+  .table-wrapper { margin: 10pt 0 14pt 0; }
+  .table-label {
+    font-weight: bold;
+    font-size: 11pt;
+    margin-bottom: 1pt;
+  }
+  .table-title {
+    font-style: italic;
+    font-size: 11pt;
+    margin-bottom: 4pt;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+  }
+  thead tr th {
+    border-top: 1.5px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 4pt 6pt;
+    text-align: left;
+    font-weight: bold;
+    background: #f5f5f5;
+  }
+  tbody tr td {
+    padding: 3.5pt 6pt;
+    vertical-align: top;
+    border: none;
+  }
+  tbody tr:last-child td {
+    border-bottom: 1.5px solid #000;
+  }
+  .table-note {
+    font-size: 9pt;
+    font-style: italic;
+    margin-top: 3pt;
+  }
+
+  /* ── FIGURE PLACEHOLDER ── */
+  .figure-placeholder {
+    border: 1px dashed #888;
+    background: #fafafa;
+    padding: 18pt 14pt;
+    text-align: center;
+    margin: 10pt 0 4pt 0;
+    font-style: italic;
+    font-size: 10pt;
+    color: #555;
+  }
+  .figure-label { font-weight: bold; font-style: normal; font-size: 11pt; margin-top: 4pt; }
+  .figure-title { font-style: italic; font-size: 11pt; }
+
+  /* ── CODE / MONOSPACE ── */
+  pre, code {
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+    background: #f0f0f0;
+    padding: 2pt 4pt;
+    border-radius: 2px;
+  }
+  pre {
+    padding: 10pt 12pt;
+    overflow-x: auto;
+    margin: 6pt 0 8pt 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ── TECHNICAL NOTES ── */
+  .tech-note {
+    border-left: 4px solid #aaa;
+    padding: 6pt 10pt;
+    margin: 8pt 0;
+    font-style: italic;
+    font-size: 10pt;
+    background: #fafafa;
+  }
+  .tech-note strong { font-style: normal; }
+
+  /* ── TABLE OF CONTENTS ── */
+  .toc-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 4pt;
+    font-size: 11pt;
+  }
+  .toc-entry.l1 { font-weight: bold; margin-top: 6pt; }
+  .toc-entry.l2 { padding-left: 0.5cm; }
+  .toc-entry.l3 { padding-left: 1.0cm; }
+  .toc-dots {
+    flex: 1;
+    border-bottom: 1px dotted #555;
+    margin: 0 6pt 3pt 6pt;
+  }
+
+  /* ── USE CASE BOX ── */
+  .usecase-box {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin: 8pt 0 12pt 0;
+    overflow: hidden;
+  }
+  .usecase-box .uc-title {
+    background: #f0f0f0;
+    font-weight: bold;
+    padding: 5pt 8pt;
+    font-size: 11pt;
+    border-bottom: 1px solid #ccc;
+  }
+  .usecase-box table { font-size: 10pt; }
+  .usecase-box thead tr th { background: #e8e8e8; }
+
+  /* ── SEPARATORS ── */
+  hr { border: none; border-top: 1px solid #ddd; margin: 16pt 0; }
+
+  /* ── LISTS ── */
+  ul, ol { margin: 4pt 0 8pt 1.4cm; }
+  li { margin-bottom: 3pt; text-align: justify; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  PORTADA                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="cover">
+    <div class="cover-logo-space"></div>
+    <div class="cover-title">Sistema de Solicitud de Ramos</div>
+    <div class="cover-subtitle">Documentación Técnica del Sistema</div>
+    <div class="cover-meta">
+      <div class="cover-org">Flores el Tandil</div>
+      <div>Mario Alexander Cañola Cano</div>
+      <div>Analista y Desarrollador de Software</div>
+      <br>
+      <div>Versión 1.0 — Estado: Etapa de Pruebas</div>
+      <div>Mayo 2026</div>
+      <div>Tandil</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  TABLA DE CONTENIDO                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <h1 style="text-align:center; margin-top:0;">Tabla de Contenido</h1>
+
+  <div class="toc-entry l1"><span>1. Introducción</span><div class="toc-dots"></div><span>1</span></div>
+  <div class="toc-entry l2"><span>1.1 Descripción General</span><div class="toc-dots"></div><span>1</span></div>
+  <div class="toc-entry l3"><span>1.1.1 Breve Resumen del Proyecto</span><div class="toc-dots"></div><span>1</span></div>
+  <div class="toc-entry l3"><span>1.1.2 Justificación y Necesidad del Software</span><div class="toc-dots"></div><span>2</span></div>
+  <div class="toc-entry l2"><span>1.2 Objetivos</span><div class="toc-dots"></div><span>3</span></div>
+  <div class="toc-entry l3"><span>1.2.1 Objetivo General</span><div class="toc-dots"></div><span>3</span></div>
+  <div class="toc-entry l3"><span>1.2.2 Objetivos Específicos</span><div class="toc-dots"></div><span>3</span></div>
+  <div class="toc-entry l2"><span>1.3 Alcance del Proyecto</span><div class="toc-dots"></div><span>4</span></div>
+  <div class="toc-entry l3"><span>1.3.1 Funcionalidades Principales del Software</span><div class="toc-dots"></div><span>4</span></div>
+  <div class="toc-entry l3"><span>1.3.2 Usuarios Finales y Stakeholders</span><div class="toc-dots"></div><span>6</span></div>
+  <div class="toc-entry l3"><span>1.3.3 Limitaciones o Restricciones</span><div class="toc-dots"></div><span>7</span></div>
+
+  <div class="toc-entry l1"><span>2. Marco Teórico y Estado del Arte</span><div class="toc-dots"></div><span>9</span></div>
+  <div class="toc-entry l2"><span>2.1 Antecedentes del Problema</span><div class="toc-dots"></div><span>9</span></div>
+  <div class="toc-entry l3"><span>2.1.1 Explicación del Problema y Contexto</span><div class="toc-dots"></div><span>9</span></div>
+  <div class="toc-entry l3"><span>2.1.2 Comparación con Soluciones Existentes</span><div class="toc-dots"></div><span>10</span></div>
+  <div class="toc-entry l2"><span>2.2 Referentes Teóricos</span><div class="toc-dots"></div><span>11</span></div>
+  <div class="toc-entry l3"><span>2.2.1 Principios, Metodologías y Enfoques Aplicables</span><div class="toc-dots"></div><span>11</span></div>
+  <div class="toc-entry l3"><span>2.2.2 Normas y Estándares de Calidad</span><div class="toc-dots"></div><span>12</span></div>
+  <div class="toc-entry l2"><span>2.3 Tecnologías Utilizadas</span><div class="toc-dots"></div><span>13</span></div>
+  <div class="toc-entry l3"><span>2.3.1 Lenguajes de Programación</span><div class="toc-dots"></div><span>13</span></div>
+  <div class="toc-entry l3"><span>2.3.2 Frameworks y Herramientas</span><div class="toc-dots"></div><span>13</span></div>
+  <div class="toc-entry l3"><span>2.3.3 Bases de Datos y Servicios</span><div class="toc-dots"></div><span>14</span></div>
+
+  <div class="toc-entry l1"><span>3. Análisis de Requisitos</span><div class="toc-dots"></div><span>15</span></div>
+  <div class="toc-entry l2"><span>3.1 Caracterización del Negocio</span><div class="toc-dots"></div><span>15</span></div>
+  <div class="toc-entry l3"><span>3.1.1 Procesos Actuales del Negocio</span><div class="toc-dots"></div><span>15</span></div>
+  <div class="toc-entry l3"><span>3.1.2 Diagrama de Procesos BPMN</span><div class="toc-dots"></div><span>16</span></div>
+  <div class="toc-entry l3"><span>3.1.3 Técnicas Utilizadas</span><div class="toc-dots"></div><span>17</span></div>
+  <div class="toc-entry l3"><span>3.1.4 Fuentes de Información</span><div class="toc-dots"></div><span>17</span></div>
+  <div class="toc-entry l2"><span>3.2 Especificación de Requisitos</span><div class="toc-dots"></div><span>18</span></div>
+  <div class="toc-entry l3"><span>3.2.1 Requisitos Funcionales</span><div class="toc-dots"></div><span>18</span></div>
+  <div class="toc-entry l3"><span>3.2.2 Requisitos No Funcionales</span><div class="toc-dots"></div><span>20</span></div>
+  <div class="toc-entry l2"><span>3.3 Modelado de Requisitos</span><div class="toc-dots"></div><span>21</span></div>
+  <div class="toc-entry l3"><span>3.3.1 Diagramas de Casos de Uso</span><div class="toc-dots"></div><span>21</span></div>
+  <div class="toc-entry l3"><span>3.3.2 Modelo Entidad-Relación</span><div class="toc-dots"></div><span>23</span></div>
+  <div class="toc-entry l3"><span>3.3.3 Prototipos y Wireframes de la Interfaz</span><div class="toc-dots"></div><span>24</span></div>
+
+  <div class="toc-entry l1"><span>4. Diseño del Software</span><div class="toc-dots"></div><span>26</span></div>
+  <div class="toc-entry l2"><span>4.1 Arquitectura del Software</span><div class="toc-dots"></div><span>26</span></div>
+  <div class="toc-entry l3"><span>4.1.1 Modelo Arquitectónico</span><div class="toc-dots"></div><span>26</span></div>
+  <div class="toc-entry l3"><span>4.1.2 Componentes Principales del Sistema</span><div class="toc-dots"></div><span>28</span></div>
+  <div class="toc-entry l2"><span>4.2 Diseño de la Base de Datos</span><div class="toc-dots"></div><span>29</span></div>
+  <div class="toc-entry l3"><span>4.2.1 Modelo Lógico de la Base de Datos</span><div class="toc-dots"></div><span>29</span></div>
+  <div class="toc-entry l3"><span>4.2.2 Diccionario de Datos</span><div class="toc-dots"></div><span>30</span></div>
+  <div class="toc-entry l2"><span>4.3 Interfaz de Usuario</span><div class="toc-dots"></div><span>35</span></div>
+  <div class="toc-entry l3"><span>4.3.1 Diseño UX/UI</span><div class="toc-dots"></div><span>35</span></div>
+  <div class="toc-entry l3"><span>4.3.2 Wireframes o Prototipos</span><div class="toc-dots"></div><span>36</span></div>
+
+  <div class="toc-entry l1"><span>5. Plan de Desarrollo</span><div class="toc-dots"></div><span>37</span></div>
+  <div class="toc-entry l2"><span>5.1 Metodología de Desarrollo</span><div class="toc-dots"></div><span>37</span></div>
+  <div class="toc-entry l2"><span>5.2 Plan de Iteraciones y Sprints</span><div class="toc-dots"></div><span>38</span></div>
+  <div class="toc-entry l2"><span>5.3 Herramientas de Desarrollo</span><div class="toc-dots"></div><span>39</span></div>
+
+  <div class="toc-entry l1"><span>6. Pruebas y Validación</span><div class="toc-dots"></div><span>40</span></div>
+  <div class="toc-entry l2"><span>6.1 Plan de Pruebas</span><div class="toc-dots"></div><span>40</span></div>
+  <div class="toc-entry l2"><span>6.2 Resultados de Pruebas</span><div class="toc-dots"></div><span>41</span></div>
+  <div class="toc-entry l2"><span>6.3 Validación con el Cliente</span><div class="toc-dots"></div><span>42</span></div>
+
+  <div class="toc-entry l1"><span>7. Implementación y Mantenimiento</span><div class="toc-dots"></div><span>43</span></div>
+  <div class="toc-entry l2"><span>7.1 Estrategia de Implementación</span><div class="toc-dots"></div><span>43</span></div>
+  <div class="toc-entry l2"><span>7.2 Plan de Capacitación</span><div class="toc-dots"></div><span>44</span></div>
+  <div class="toc-entry l2"><span>7.3 Mantenimiento del Software</span><div class="toc-dots"></div><span>45</span></div>
+
+  <div class="toc-entry l1"><span>8. Conclusiones y Recomendaciones</span><div class="toc-dots"></div><span>46</span></div>
+  <div class="toc-entry l2"><span>8.1 Evaluación del Proyecto</span><div class="toc-dots"></div><span>46</span></div>
+  <div class="toc-entry l2"><span>8.2 Lecciones Aprendidas</span><div class="toc-dots"></div><span>47</span></div>
+  <div class="toc-entry l2"><span>8.3 Bibliografía y Referencias</span><div class="toc-dots"></div><span>48</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 1 — INTRODUCCIÓN                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>1. Introducción</h1>
+  <p>El presente capítulo establece el marco general del Sistema de Solicitud de Ramos desarrollado para Flores el Tandil. Se describe el contexto organizacional que motivó la iniciativa, se definen los objetivos que orientaron el proceso de desarrollo y se delimitan con precisión las funcionalidades incluidas en el alcance del sistema, así como las restricciones técnicas y funcionales que enmarcan su operación.</p>
+
+  <h2>1.1 Descripción General</h2>
+  <p>Esta sección presenta una visión de conjunto del sistema, abordando tanto su propósito central como las razones que justificaron su desarrollo. Se expone el problema organizacional que el sistema resuelve y el contexto operativo dentro del cual se despliega.</p>
+
+  <h3>1.1.1 Breve Resumen del Proyecto</h3>
+  <p>El Sistema de Solicitud de Ramos es una aplicación web interna desarrollada para Flores el Tandil, empresa ubicada en la ciudad de Tandil. El sistema digitaliza y automatiza el proceso mediante el cual los empleados de la organización solicitan ramos florales como beneficio corporativo, gestionando el ciclo completo desde el registro de la solicitud hasta el control de entrega, eliminando la dependencia del papel en cada etapa del proceso.</p>
+  <p>El sistema fue desarrollado por Mario Alexander Cañola Cano, Analista y Desarrollador de Software, bajo un modelo de aplicación web MVC (Modelo-Vista-Controlador) en PHP nativo, con base de datos MySQL, y fue diseñado para operar en red local dentro de las instalaciones de la empresa. Su implementación no requiere conexión a internet ni infraestructura de servidores externos.</p>
+  <p>La plataforma centraliza la información de beneficiarios (empleados), controla los cupos disponibles por sede y período, registra el estado de cada solicitud y genera reportes en formato PDF para el área operativa encargada de la elaboración y entrega de los ramos. Adicionalmente, dispone de un panel de administración con estadísticas en tiempo real que proporciona visibilidad consolidada del proceso al área responsable.</p>
+
+  <h3>1.1.2 Justificación y Necesidad del Software</h3>
+  <p>Previo al desarrollo del sistema, el proceso de solicitud de ramos en Flores el Tandil operaba de forma completamente manual. El flujo de trabajo implicaba el desplazamiento físico de los empleados a las oficinas asignadas, el diligenciamiento de formularios en papel, el traslado físico de dichos formularios al área de elaboración y la posterior entrega del ramo con una remisión impresa como comprobante. Este modelo generaba múltiples deficiencias operativas que se detallan en la tabla siguiente.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 1</div>
+    <div class="table-title">Problemas identificados en el proceso manual de solicitud de ramos</div>
+    <table>
+      <thead><tr><th>Problema identificado</th><th>Impacto operativo</th></tr></thead>
+      <tbody>
+        <tr><td>Registro manual en papel</td><td>Pérdida de información, ilegibilidad y errores de transcripción</td></tr>
+        <tr><td>Sin control de cupos en tiempo real</td><td>Posibilidad de exceder el límite de ramos permitido por sede</td></tr>
+        <tr><td>Sin restricción por período</td><td>Un mismo beneficiario podía solicitar más de un ramo en el mismo período</td></tr>
+        <tr><td>Sin trazabilidad del estado</td><td>Imposibilidad de determinar en qué etapa se encontraba cada solicitud</td></tr>
+        <tr><td>Consumo elevado de papel</td><td>Contradicción directa con las políticas de sostenibilidad de la organización</td></tr>
+        <tr><td>Sin reportes consolidados</td><td>El área administrativa carecía de visibilidad centralizada sobre el proceso</td></tr>
+      </tbody>
+    </table>
+    <div class="table-note"><em>Nota.</em> Problemas documentados mediante observación directa del proceso anterior al sistema.</div>
+  </div>
+
+  <p>El sistema resuelve de manera directa cada uno de los problemas enumerados, alineándose además con la política organizacional de reducción del consumo de papel como objetivo explícito de Flores el Tandil. La digitalización del proceso constituye, en consecuencia, tanto una mejora operativa como una decisión coherente con los valores institucionales de la empresa.</p>
+
+  <h2>1.2 Objetivos</h2>
+  <p>Los objetivos del sistema se definen en dos niveles: el objetivo general, que describe el propósito central de la iniciativa en términos globales, y los objetivos específicos, que descomponen ese propósito en resultados concretos y verificables que debían alcanzarse al finalizar el desarrollo.</p>
+
+  <h3>1.2.1 Objetivo General</h3>
+  <p>Desarrollar un sistema de información web de acceso local que digitalice y automatice el proceso de solicitud, seguimiento y entrega de ramos florales en Flores el Tandil, eliminando el uso de papel en todas las etapas del proceso y garantizando el control de cupos, la trazabilidad de cada solicitud y la generación de reportes consolidados para el área administrativa.</p>
+
+  <h3>1.2.2 Objetivos Específicos</h3>
+  <p>Los objetivos específicos, identificados con el código OE seguido de su número de orden, describen los resultados funcionales concretos que el sistema debía alcanzar para cumplir con el objetivo general.</p>
+  <p><strong>OE-01.</strong> Implementar un módulo de registro y gestión de beneficiarios que permita centralizar la información de los empleados de las empresas Tandil y Creos, con soporte para importación masiva desde archivos Excel.</p>
+  <p><strong>OE-02.</strong> Desarrollar un panel de creación de solicitudes optimizado para uso táctil en punto de atención, con búsqueda de beneficiarios por número de documento y soporte para lectura mediante escáner de cédula de ciudadanía (código de barras PDF417).</p>
+  <p><strong>OE-03.</strong> Implementar un motor de validación de reglas de negocio que verifique en tiempo real la disponibilidad de cupo por sede y la restricción de una solicitud por beneficiario por período, antes de registrar cada solicitud.</p>
+  <p><strong>OE-04.</strong> Proveer al administrador una interfaz de seguimiento de solicitudes que permita gestionar los estados del ciclo de vida: Pendiente, Aprobada, Entregada, Rechazada y Cancelada.</p>
+  <p><strong>OE-05.</strong> Implementar un módulo de reportes que genere documentos PDF consolidados filtrados por fecha y sede, con diseño corporativo, para uso del área de elaboración y entrega.</p>
+  <p><strong>OE-06.</strong> Construir un panel administrativo con estadísticas en tiempo real sobre solicitudes por sede, por motivo, por estado y por período, con actualización automática sin necesidad de recargar la página.</p>
+  <p><strong>OE-07.</strong> Garantizar la seguridad del acceso mediante autenticación basada en roles (administrador y operador), protección contra ataques CSRF, almacenamiento seguro de contraseñas con el algoritmo BCRYPT y gestión de sesiones con tiempo de expiración configurable.</p>
+  <p><strong>OE-08.</strong> Diseñar el sistema para operar sobre infraestructura de red local (intranet), instalado en un equipo servidor y accesible desde cualquier equipo de la red interna sin necesidad de conexión a internet.</p>
+
+  <div class="page-number">1</div>
+</div>
+
+<!-- ALCANCE -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h2>1.3 Alcance del Proyecto</h2>
+  <p>El alcance delimita el conjunto de funcionalidades que el sistema cubre en su versión actual (1.0), los actores que participan directa o indirectamente en su operación y las restricciones que condicionan su uso. Las funcionalidades fuera de este alcance, así como las limitaciones identificadas, se documentan explícitamente para facilitar la planificación de versiones futuras.</p>
+
+  <h3>1.3.1 Funcionalidades Principales del Software</h3>
+  <p>El sistema se organiza en siete módulos funcionales, cada uno de los cuales agrupa las capacidades relacionadas con una dimensión específica del proceso. A continuación se describe el alcance de cada módulo.</p>
+
+  <h4>Módulo 1 — Autenticación y Control de Acceso</h4>
+  <ul>
+    <li>Autenticación mediante usuario y contraseña con gestión de sesiones.</li>
+    <li>Expiración automática de sesión tras 30 minutos de inactividad.</li>
+    <li>Dos roles de usuario: Administrador y Operador, con permisos diferenciados.</li>
+    <li>Protección CSRF en todos los formularios del sistema.</li>
+  </ul>
+
+  <h4>Módulo 2 — Gestión de Beneficiarios</h4>
+  <ul>
+    <li>Registro individual de empleados con datos personales, sede asignada y empresa (Tandil / Creos).</li>
+    <li>Edición de datos de beneficiarios registrados.</li>
+    <li>Baja lógica (desactivación) y reactivación de beneficiarios sin eliminar historial.</li>
+    <li>Búsqueda por número de documento y nombre.</li>
+    <li>Importación masiva desde archivo Excel con etapa de previsualización antes de confirmar.</li>
+    <li>Descarga de plantilla Excel para facilitar la carga de datos.</li>
+  </ul>
+
+  <h4>Módulo 3 — Solicitudes</h4>
+  <ul>
+    <li>Panel táctil para operadores en punto de atención.</li>
+    <li>Búsqueda de beneficiario por número de documento, manual o mediante escáner de cédula PDF417.</li>
+    <li>Validación automática de cupo disponible antes de crear la solicitud.</li>
+    <li>Validación automática de restricción de período (una solicitud por beneficiario por período).</li>
+    <li>Registro de solicitud con motivo, nombre del destinatario y observaciones opcionales.</li>
+    <li>Listado de solicitudes con filtros por fecha, sede, estado y texto libre (solo administrador).</li>
+    <li>Vista de detalle individual por solicitud.</li>
+    <li>Gestión de estados: Pendiente → Aprobada / Rechazada / Entregada / Cancelada.</li>
+    <li>Eliminación de solicitudes por parte del administrador.</li>
+  </ul>
+
+  <h4>Módulo 4 — Control de Cupos</h4>
+  <ul>
+    <li>Configuración de cupo máximo por sede y período.</li>
+    <li>Cálculo de cupo utilizado en tiempo real mediante conteo de solicitudes activas.</li>
+    <li>Bloqueo automático de nuevas solicitudes cuando se agota el cupo de una sede.</li>
+    <li>Resumen visual del estado de cupos en el panel de configuración.</li>
+  </ul>
+
+  <h4>Módulo 5 — Reportes</h4>
+  <ul>
+    <li>Generación de PDF consolidado filtrado por rango de fechas y sede.</li>
+    <li>Agrupación de solicitudes por sede en el PDF generado.</li>
+    <li>Opción de incluir hojas individuales por solicitud.</li>
+    <li>Diseño corporativo con paleta de colores institucional.</li>
+  </ul>
+
+  <h4>Módulo 6 — Panel Administrativo</h4>
+  <ul>
+    <li>Estadísticas totales de solicitudes: general, por sede, por motivo y por estado.</li>
+    <li>Estadísticas del período actual y de la semana en curso.</li>
+    <li>Gráficos de distribución (torta y barras) por sede.</li>
+    <li>Actualización automática mediante polling sin recarga de página.</li>
+  </ul>
+
+  <h4>Módulo 7 — Configuración del Sistema</h4>
+  <ul>
+    <li>Configuración del tipo de período (mensual o semanal).</li>
+    <li>Configuración del cupo por defecto para nuevas sedes.</li>
+    <li>Gestión de catálogos: sedes, motivos de ramo y estados de solicitud.</li>
+    <li>Configuración del nombre de la organización y empresa destinataria.</li>
+  </ul>
+
+  <h3>1.3.2 Usuarios Finales y Stakeholders</h3>
+  <p>El sistema reconoce cuatro actores con distintos niveles de interacción. El actor principal es el propio empleado beneficiario, quien interactúa directamente con el panel táctil del sistema de manera autónoma, sin necesidad de personal intermediario para registrar su solicitud.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 2</div>
+    <div class="table-title">Actores identificados y su rol en el sistema</div>
+    <table>
+      <thead><tr><th>Actor</th><th>Rol en el sistema</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Empleado / Operador</td><td>Usuario solicitante (autoatención)</td><td>El propio empleado de Flores el Tandil o empresa Creos que se presenta en el punto de solicitud y digita su número de cédula en el panel táctil para gestionar su ramo de manera autónoma. Es el actor principal del proceso de solicitud.</td></tr>
+        <tr><td>Administrador</td><td>Usuario administrativo</td><td>Persona responsable de la gestión del sistema: aprueba solicitudes, configura cupos por sede, genera reportes PDF, administra el catálogo de beneficiarios y la configuración general del sistema.</td></tr>
+        <tr><td>Área de elaboración</td><td>Receptor de información</td><td>No interactúa directamente con el sistema. Recibe los reportes PDF generados por el administrador para elaborar y preparar los ramos correspondientes.</td></tr>
+        <tr><td>Mario Alexander Cañola Cano</td><td>Desarrollador / Soporte técnico</td><td>Responsable del desarrollo, mantenimiento y soporte técnico del sistema.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>1.3.3 Limitaciones o Restricciones</h3>
+  <p>Las limitaciones documentadas a continuación corresponden a funcionalidades identificadas como deseables pero excluidas del alcance de la versión 1.0, ya sea por decisión de diseño, por complejidad técnica o por no constituir un requisito prioritario en el contexto operativo actual de la organización.</p>
+
+  <h4>Limitaciones funcionales</h4>
+
+  <p><strong>LF-01 — Sin notificaciones automáticas.</strong> El sistema no envía correos electrónicos ni alertas automáticas al área de elaboración cuando se genera una solicitud o cuando se produce un cambio de estado. El flujo de comunicación continúa dependiendo del reporte PDF generado manualmente por el administrador.</p>
+  <p><strong>LF-02 — Sin historial de cambios de estado.</strong> El sistema registra el estado actual de una solicitud, pero no almacena el historial de transiciones que incluya quién realizó el cambio, cuándo y desde qué estado anterior.</p>
+  <p><strong>LF-03 — Sin granularidad por sede en el rol operador.</strong> Un operador tiene acceso genérico al panel de solicitudes sin restricción a una sede específica. No es posible configurar un operador para que únicamente gestione solicitudes de su sede asignada.</p>
+  <p><strong>LF-04 — Reportes bajo demanda únicamente.</strong> No es posible programar la generación automática de reportes periódicos. El administrador debe generarlos manualmente cada vez que los requiera.</p>
+  <p><strong>LF-05 — Proceso de entrega no completamente digitalizado.</strong> El sistema gestiona el ciclo de estados hasta "Entregada", pero no genera una remisión digital equivalente al comprobante en papel que se entrega actualmente al beneficiario el día viernes.</p>
+
+  <h4>Restricciones técnicas</h4>
+
+  <p><strong>RT-01 — Operación exclusivamente en red local.</strong> El sistema no está diseñado para acceso externo por internet. Requiere que los equipos clientes estén conectados a la misma red interna donde se encuentra el servidor.</p>
+  <p><strong>RT-02 — Dependencia de un único servidor local.</strong> No existe redundancia de infraestructura. Si el equipo servidor falla, el sistema no estará disponible para ningún usuario de la red.</p>
+  <p><strong>RT-03 — Sin respaldo automatizado de base de datos.</strong> No existe un proceso automatizado de copia de seguridad. La integridad de los datos depende de la realización manual de copias de la base de datos MySQL.</p>
+  <p><strong>RT-04 — Compatibilidad de navegador no verificada en versiones antiguas.</strong> El sistema utiliza características modernas de HTML5, CSS3 y JavaScript (ES6+). No se garantiza compatibilidad con navegadores desactualizados.</p>
+
+  <div class="page-number">2</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 2 — MARCO TEÓRICO                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>2. Marco Teórico y Estado del Arte</h1>
+  <p>El presente capítulo sitúa el sistema en su contexto teórico y tecnológico. Se analizan los antecedentes del problema que dio origen al desarrollo, se comparan las alternativas de solución disponibles, se referencian los principios y estándares que fundamentan las decisiones de diseño, y se describen las tecnologías seleccionadas para la implementación.</p>
+
+  <h2>2.1 Antecedentes del Problema</h2>
+  <p>La comprensión del problema que motivó el desarrollo del sistema requiere una descripción precisa del proceso organizacional previo y una evaluación de las alternativas de solución que fueron consideradas antes de optar por el desarrollo a medida.</p>
+
+  <h3>2.1.1 Explicación del Problema y Contexto</h3>
+  <p>Flores el Tandil es una empresa del sector floricultor que, como parte de su política de beneficios corporativos, entrega ramos florales a sus empleados en ocasiones específicas, entre ellas cumpleaños, matrimonios y fallecimiento de familiar. Este beneficio aplica tanto para los empleados de la propia empresa como para los de la empresa relacionada Creos.</p>
+  <p>Antes del desarrollo del sistema, el proceso operaba de la siguiente manera documentada mediante observación directa. Los días lunes, los empleados se desplazaban a la oficina asignada según su sede, donde el personal de la oficina les entregaba un formulario físico en papel para registrar sus datos personales, el motivo de la solicitud y el nombre del destinatario del ramo. Entre el lunes y el jueves, los formularios diligenciados se almacenaban físicamente en la oficina y eran trasladados al área responsable de la elaboración de los ramos. Los días viernes, los empleados regresaban a recoger el ramo elaborado, y se les entregaba una remisión impresa como comprobante de entrega.</p>
+  <p>Este modelo presentaba deficiencias estructurales en términos de control, trazabilidad y sostenibilidad. No existía ningún mecanismo técnico para prevenir que un mismo empleado realizara más de una solicitud en un mismo período, ni para controlar que el número total de solicitudes por sede no superara la capacidad operativa del área de elaboración. La información quedaba fragmentada en documentos físicos sin posibilidad de consulta centralizada.</p>
+
+  <h3>2.1.2 Comparación con Soluciones Existentes</h3>
+  <p>Antes de tomar la decisión de desarrollar una solución a medida, se evaluaron las alternativas disponibles en el mercado y las herramientas de uso común en el entorno organizacional. La tabla siguiente resume dicha comparación.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 3</div>
+    <div class="table-title">Comparación entre alternativas de solución evaluadas</div>
+    <table>
+      <thead><tr><th>Alternativa</th><th>Ventajas</th><th>Desventajas frente al sistema desarrollado</th></tr></thead>
+      <tbody>
+        <tr><td>Hojas de cálculo (Excel)</td><td>Familiar para el personal; sin costo de licencia adicional</td><td>Sin validaciones automáticas; sin control de cupos en tiempo real; sin restricción de período por persona; sin reportes automáticos</td></tr>
+        <tr><td>Formularios Google / Microsoft Forms</td><td>Accesibles desde cualquier dispositivo; sin infraestructura propia</td><td>Requieren conexión a internet; sin control de cupos; sin integración con catálogo de personas; sin gestión de estados del ciclo de vida</td></tr>
+        <tr><td>Software genérico de solicitudes</td><td>Funcionalidad amplia y documentada</td><td>Costo de licencia; necesidad de adaptación al proceso específico; complejidad innecesaria para el alcance requerido</td></tr>
+        <tr><td>Sistema desarrollado a medida</td><td>Adaptado exactamente al proceso; sin dependencia de internet; control total del dato; sin costo de licencia recurrente</td><td>Requiere mantenimiento interno por parte del desarrollador</td></tr>
+      </tbody>
+    </table>
+    <div class="table-note"><em>Nota.</em> La evaluación se realizó con base en los requisitos funcionales y restricciones técnicas identificados durante el levantamiento de información.</div>
+  </div>
+
+  <p>La solución desarrollada a medida resultó ser la más adecuada dado el contexto de operación local, el proceso específico con reglas de negocio propias —cupo por sede, restricción de período, catálogos configurables— y la política organizacional de eliminar el uso de papel. Ninguna de las alternativas disponibles satisfacía simultáneamente todos los requisitos identificados sin requerir conexión a internet o implicar costos de licencia significativos.</p>
+
+  <h2>2.2 Referentes Teóricos</h2>
+  <p>El diseño del sistema se fundamentó en principios reconocidos de ingeniería de software que guiaron las decisiones de arquitectura, seguridad y mantenibilidad. A continuación se describen los enfoques aplicados y los estándares de calidad que sirvieron de referencia.</p>
+
+  <h3>2.2.1 Principios, Metodologías y Enfoques Aplicables</h3>
+
+  <p><strong>Patrón MVC (Modelo-Vista-Controlador).</strong> El sistema implementa el patrón MVC como estructura central de la aplicación. Este patrón separa la lógica de negocio (Modelo), la presentación al usuario (Vista) y el flujo de control (Controlador), favoreciendo la mantenibilidad, la separación de responsabilidades y la escalabilidad del código fuente (Fowler, 2002).</p>
+
+  <p><strong>Arquitectura Front Controller.</strong> El punto de entrada único (<code>public/index.php</code>) actúa como Front Controller, centralizando el enrutamiento, la aplicación de middleware y el manejo de excepciones globales. Este patrón es consistente con los frameworks PHP modernos como Laravel y Symfony, y garantiza un control uniforme sobre todas las peticiones entrantes.</p>
+
+  <p><strong>Principio de Responsabilidad Única (SRP).</strong> El sistema divide la lógica de negocio compleja en una capa de servicios (<code>app/services/</code>) independiente de los controladores. Cada servicio tiene una responsabilidad acotada: <code>SolicitudService</code> gestiona el ciclo de vida de las solicitudes, <code>CupoService</code> gestiona la disponibilidad de cupos, <code>PersonaService</code> gestiona los beneficiarios, y <code>PdfService</code> gestiona la generación de documentos (Martin, 2003).</p>
+
+  <p><strong>Modularidad.</strong> Cada módulo funcional del sistema —autenticación, solicitudes, personas, cupos, reportes, configuración— dispone de su propio controlador, conjunto de vistas y modelos correspondientes, lo que permite modificar o extender un módulo sin afectar a los demás.</p>
+
+  <p><strong>Defensa en profundidad.</strong> El sistema implementa múltiples capas de seguridad: autenticación en la capa de sesión, autorización en la capa de middleware por rol y por ruta, validación de entrada en la capa de servicio, sanitización en la capa de salida (vistas) y protección CSRF en la capa de formularios. Este enfoque, conocido como defensa en profundidad, garantiza que la vulneración de una capa no comprometa la totalidad del sistema (OWASP, 2021).</p>
+
+  <p><strong>Patrón Singleton para acceso a base de datos.</strong> El modelo <code>Database.php</code> implementa el patrón Singleton para garantizar una única instancia de conexión PDO durante el ciclo de vida de cada petición, evitando conexiones múltiples innecesarias y el consumo excesivo de recursos del servidor.</p>
+
+  <h3>2.2.2 Normas y Estándares de Calidad</h3>
+  <p>El desarrollo y la documentación del sistema tomaron como referencia los siguientes estándares reconocidos en la industria del software.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 4</div>
+    <div class="table-title">Normas y estándares aplicados en el desarrollo del sistema</div>
+    <table>
+      <thead><tr><th>Norma / Estándar</th><th>Aplicación en el sistema</th></tr></thead>
+      <tbody>
+        <tr><td>IEEE 830</td><td>Base para la especificación de requisitos de software documentada en la sección 3.2 del presente documento</td></tr>
+        <tr><td>IEEE 1471 / ISO/IEC 42010</td><td>Referencia para la descripción de la arquitectura del software, presentada en la sección 4.1</td></tr>
+        <tr><td>OWASP Top 10</td><td>Guía para la implementación de mitigaciones de seguridad: SQL Injection (PDO con prepared statements), Broken Authentication (BCRYPT y sesiones seguras), CSRF (tokens por sesión) y Security Misconfiguration (headers HTTP de seguridad)</td></tr>
+        <tr><td>ISO/IEC 25010</td><td>Modelo de calidad de software utilizado como referencia para los requisitos no funcionales de usabilidad, seguridad, mantenibilidad y portabilidad</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>2.3 Tecnologías Utilizadas</h2>
+  <p>La selección tecnológica del sistema respondió a tres criterios principales: compatibilidad con el entorno de operación local, ausencia de dependencias de licencias comerciales y alineación con las competencias técnicas del equipo de desarrollo. A continuación se describen los lenguajes, frameworks, herramientas y componentes de infraestructura empleados.</p>
+
+  <h3>2.3.1 Lenguajes de Programación</h3>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 5</div>
+    <div class="table-title">Lenguajes de programación utilizados en el sistema</div>
+    <table>
+      <thead><tr><th>Lenguaje</th><th>Versión recomendada</th><th>Uso en el sistema</th></tr></thead>
+      <tbody>
+        <tr><td>PHP</td><td>8.0 o superior</td><td>Lógica del servidor: controladores, modelos, servicios, helpers y middleware</td></tr>
+        <tr><td>SQL</td><td>MySQL 5.7 / 8.0</td><td>Definición y manipulación de datos en la base de datos relacional</td></tr>
+        <tr><td>HTML5</td><td>—</td><td>Estructura semántica de las vistas</td></tr>
+        <tr><td>CSS3</td><td>—</td><td>Estilos y presentación de la interfaz de usuario</td></tr>
+        <tr><td>JavaScript (ES6+)</td><td>—</td><td>Interacciones del lado del cliente, peticiones AJAX y actualización del dashboard</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2.3.2 Frameworks y Herramientas</h3>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 6</div>
+    <div class="table-title">Frameworks, bibliotecas y herramientas de desarrollo utilizadas</div>
+    <table>
+      <thead><tr><th>Herramienta</th><th>Versión</th><th>Uso en el sistema</th></tr></thead>
+      <tbody>
+        <tr><td>FPDF</td><td>1.85</td><td>Generación de documentos PDF para los reportes del sistema</td></tr>
+        <tr><td>PhpSpreadsheet</td><td>^1.28</td><td>Lectura de archivos Excel para la importación masiva de beneficiarios</td></tr>
+        <tr><td>Composer</td><td>2.x</td><td>Gestión de dependencias PHP del proyecto</td></tr>
+        <tr><td>Chart.js</td><td>CDN</td><td>Visualización de gráficos estadísticos en el panel administrativo</td></tr>
+        <tr><td>Laragon</td><td>Local</td><td>Entorno de desarrollo local (Apache + MySQL + PHP)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2.3.3 Bases de Datos y Servicios</h3>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 7</div>
+    <div class="table-title">Componentes de infraestructura de datos y servicios del sistema</div>
+    <table>
+      <thead><tr><th>Componente</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Motor de base de datos</td><td>MySQL con conjunto de caracteres utf8mb4</td></tr>
+        <tr><td>Acceso a datos</td><td>PDO (PHP Data Objects) con prepared statements en todas las consultas</td></tr>
+        <tr><td>Almacenamiento de archivos</td><td>Sistema de archivos local en el directorio <code>/storage/pdfs/</code></td></tr>
+        <tr><td>Servicios en la nube</td><td>No aplica — sistema 100% local sin dependencias externas</td></tr>
+        <tr><td>Servidor web</td><td>Apache HTTP Server (provisto vía Laragon en el entorno de producción local)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-number">3</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 3 — ANÁLISIS DE REQUISITOS                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>3. Análisis de Requisitos</h1>
+  <p>El análisis de requisitos constituye la fase en la que se identifican, documentan y validan las necesidades que el sistema debe satisfacer. Este capítulo describe el proceso de negocio en su estado anterior y posterior a la implementación del sistema, las técnicas y fuentes utilizadas para el levantamiento de información, la especificación formal de los requisitos funcionales y no funcionales, y los modelos que representan visualmente la estructura y el comportamiento esperado del sistema.</p>
+
+  <h2>3.1 Caracterización del Negocio</h2>
+  <p>La caracterización del negocio describe los procesos organizacionales que el sistema digitaliza, los actores involucrados y las herramientas utilizadas para comprender y documentar dichos procesos antes de iniciar el diseño de la solución.</p>
+
+  <h3>3.1.1 Procesos Actuales del Negocio</h3>
+  <p>A continuación se describen los procesos en su estado anterior a la implementación del sistema (proceso AS-IS) y en su estado posterior (proceso TO-BE), con el fin de ilustrar la transformación que el sistema introduce en la operación diaria de la organización.</p>
+
+  <h4>Proceso AS-IS — Solicitud manual de ramos</h4>
+  <p><strong>Proceso 1 — Recepción de solicitudes (lunes).</strong> El empleado beneficiario se desplaza a la oficina asignada a su sede. El personal de la oficina le entrega un formulario físico en papel. El empleado diligencia sus datos personales, el motivo de la solicitud y el nombre del destinatario. El formulario es recogido por el personal de la oficina y almacenado físicamente agrupado por sede.</p>
+  <p><strong>Proceso 2 — Traslado al área de elaboración (lunes a jueves).</strong> Los formularios almacenados son trasladados físicamente al área de elaboración de ramos. El área revisa los formularios y prepara los ramos correspondientes. No existe confirmación formal del traslado ni registro de recepción.</p>
+  <p><strong>Proceso 3 — Entrega de ramos (viernes).</strong> El empleado regresa a la oficina de su sede. El personal verifica el nombre en los registros en papel, entrega el ramo y emite una remisión física como comprobante. La remisión se archiva físicamente.</p>
+
+  <h4>Proceso TO-BE — Solicitud digitalizada mediante el sistema</h4>
+  <p>El sistema digitaliza los tres procesos descritos en su totalidad. El operador registra la solicitud en el panel táctil el día lunes, identificando al beneficiario mediante su documento o escáner de cédula. El sistema valida automáticamente el cupo y la restricción de período. El administrador gestiona los cambios de estado a lo largo del proceso, y el área de elaboración recibe el reporte PDF consolidado sin necesidad de formularios en papel. La entrega queda registrada en el sistema con el estado "Entregada", constituyendo un registro digital del comprobante.</p>
+
+  <h3>3.1.2 Diagrama de Procesos BPMN</h3>
+  <p>El diagrama BPMN del proceso TO-BE representa el flujo de trabajo digitalizado en un modelo de autoatención. La piscina principal contiene tres carriles: el Empleado / Operador (actor principal que inicia el proceso de manera autónoma), el Administrador (gestor de estados y reportes) y el Área de Elaboración (receptor final del reporte PDF). Los elementos principales incluyen dos compuertas exclusivas —disponibilidad de cupo y restricción de período— y eventos de fin alternativo para cada condición de bloqueo.</p>
+
+  <div class="tech-note"><strong>Nota técnica:</strong> El diagrama BPMN debe ser elaborado en Bizagi, Lucidchart o Draw.io. Los carriles son: (1) Empleado / Operador, (2) Administrador, (3) Área de Elaboración. No existe carril de "personal de oficina intermediario" ya que el proceso es de autoatención directa por parte del empleado.</div>
+
+  <div class="figure-placeholder">
+    Diagrama a insertar en versión final del documento<br>
+    Herramienta recomendada: Bizagi / Lucidchart / Draw.io
+  </div>
+  <div style="margin-bottom:8pt;">
+    <span class="figure-label">Figura 1.</span>
+    <span class="figure-title"> Diagrama BPMN — Proceso TO-BE de solicitud de ramo mediante el sistema digitalizado.</span>
+  </div>
+
+  <h3>3.1.3 Técnicas Utilizadas</h3>
+  <p>El levantamiento de requisitos empleó cuatro técnicas complementarias que permitieron capturar tanto los procesos formales como las reglas de negocio implícitas que guiaban la operación antes del sistema.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 8</div>
+    <div class="table-title">Técnicas de levantamiento de requisitos aplicadas</div>
+    <table>
+      <thead><tr><th>Técnica</th><th>Aplicación en el proyecto</th></tr></thead>
+      <tbody>
+        <tr><td>Observación directa del proceso</td><td>El desarrollador observó el proceso manual de solicitud de ramos para identificar etapas, actores, documentos físicos involucrados y puntos de falla del proceso anterior</td></tr>
+        <tr><td>Revisión de documentos físicos</td><td>Análisis del formulario en papel utilizado para el registro de solicitudes, identificando los campos de datos necesarios para el modelo de datos del sistema</td></tr>
+        <tr><td>Entrevista no estructurada</td><td>Conversaciones con el personal del área de oficina para comprender las reglas de negocio implícitas: cupos por sede, restricciones de período y motivos de solicitud</td></tr>
+        <tr><td>Prototipado iterativo</td><td>El panel táctil y los formularios del sistema fueron ajustados con base en retroalimentación del equipo durante el período de pruebas de un mes con datos reales</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3.1.4 Fuentes de Información</h3>
+  <p>Las fuentes primarias consultadas durante el levantamiento de requisitos fueron las siguientes: el personal operativo de las oficinas de Flores el Tandil, los formularios físicos del proceso anterior como referencia para la identificación de campos de datos, los registros de solicitudes del período de pruebas correspondiente a un mes de datos reales, y Mario Alexander Cañola Cano en su rol de desarrollador y analista del sistema.</p>
+
+  <h2>3.2 Especificación de Requisitos</h2>
+  <p>La especificación de requisitos documenta de manera formal y trazable las funcionalidades que el sistema debe proveer (requisitos funcionales) y las condiciones de calidad bajo las cuales debe operar (requisitos no funcionales). Cada requisito se identifica con un código único para facilitar su referencia a lo largo del documento.</p>
+
+  <h3>3.2.1 Requisitos Funcionales</h3>
+  <p>Los requisitos funcionales describen las capacidades concretas que el sistema debe implementar para satisfacer las necesidades del negocio. Se organizan por módulo funcional y se clasifican según su prioridad: Alta (imprescindible para la operación), Media (importante pero no bloqueante) o Baja (deseable en versiones futuras).</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 9</div>
+    <div class="table-title">Especificación de requisitos funcionales del sistema</div>
+    <table>
+      <thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Módulo</th><th>Prioridad</th></tr></thead>
+      <tbody>
+        <tr><td>RF-01</td><td>Autenticación de usuarios</td><td>El sistema debe permitir el acceso mediante usuario y contraseña, diferenciando entre los roles administrador y operador</td><td>Autenticación</td><td>Alta</td></tr>
+        <tr><td>RF-02</td><td>Cierre de sesión por inactividad</td><td>La sesión debe expirar automáticamente tras 30 minutos de inactividad, requiriendo nuevo inicio de sesión</td><td>Autenticación</td><td>Alta</td></tr>
+        <tr><td>RF-03</td><td>Registro de beneficiarios</td><td>El sistema debe permitir registrar personas con datos: tipo y número de documento, nombre completo, teléfono, sede y empresa (Tandil/Creos)</td><td>Personas</td><td>Alta</td></tr>
+        <tr><td>RF-04</td><td>Edición de beneficiarios</td><td>El sistema debe permitir actualizar los datos de una persona registrada</td><td>Personas</td><td>Alta</td></tr>
+        <tr><td>RF-05</td><td>Baja lógica de beneficiarios</td><td>El sistema debe permitir desactivar un beneficiario sin eliminar su historial de solicitudes</td><td>Personas</td><td>Alta</td></tr>
+        <tr><td>RF-06</td><td>Reactivación de beneficiarios</td><td>El sistema debe permitir reactivar un beneficiario previamente desactivado</td><td>Personas</td><td>Media</td></tr>
+        <tr><td>RF-07</td><td>Importación masiva desde Excel</td><td>El sistema debe permitir cargar un archivo Excel con múltiples beneficiarios, mostrando una previsualización antes de confirmar la importación</td><td>Personas</td><td>Alta</td></tr>
+        <tr><td>RF-08</td><td>Descarga de plantilla de importación</td><td>El sistema debe proveer una plantilla Excel descargable con el formato requerido para la importación masiva</td><td>Personas</td><td>Media</td></tr>
+        <tr><td>RF-09</td><td>Búsqueda de persona por documento</td><td>El operador debe poder buscar un beneficiario ingresando su número de documento, con respuesta instantánea mediante AJAX</td><td>Solicitudes</td><td>Alta</td></tr>
+        <tr><td>RF-10</td><td>Lectura de cédula por escáner</td><td>El panel de solicitudes debe soportar la lectura del código de barras PDF417 de la cédula de ciudadanía colombiana para identificar al beneficiario</td><td>Solicitudes</td><td>Alta</td></tr>
+        <tr><td>RF-11</td><td>Creación de solicitud</td><td>El operador debe poder registrar una solicitud indicando motivo, nombre del destinatario y observaciones opcionales</td><td>Solicitudes</td><td>Alta</td></tr>
+        <tr><td>RF-12</td><td>Validación de cupo por sede</td><td>El sistema debe verificar automáticamente la disponibilidad de cupo en la sede antes de registrar una solicitud, bloqueando el registro si el cupo está agotado</td><td>Solicitudes / Cupos</td><td>Alta</td></tr>
+        <tr><td>RF-13</td><td>Restricción de período por beneficiario</td><td>El sistema debe verificar que el beneficiario no tenga otra solicitud activa en el período vigente, impidiendo solicitudes duplicadas</td><td>Solicitudes</td><td>Alta</td></tr>
+        <tr><td>RF-14</td><td>Listado de solicitudes (admin)</td><td>El administrador debe ver el listado completo de solicitudes con filtros por fecha, sede, estado y texto libre</td><td>Solicitudes</td><td>Alta</td></tr>
+        <tr><td>RF-15</td><td>Cambio de estado de solicitud</td><td>El administrador debe poder cambiar el estado de una solicitud entre: Pendiente, Aprobada, Entregada, Rechazada y Cancelada</td><td>Solicitudes</td><td>Alta</td></tr>
+        <tr><td>RF-16</td><td>Eliminación de solicitudes</td><td>El administrador debe poder eliminar una solicitud del sistema</td><td>Solicitudes</td><td>Media</td></tr>
+        <tr><td>RF-17</td><td>Configuración de cupos por sede</td><td>El administrador debe poder ajustar el cupo máximo de solicitudes por sede en el período actual</td><td>Cupos</td><td>Alta</td></tr>
+        <tr><td>RF-18</td><td>Generación de reporte PDF</td><td>El sistema debe generar un PDF consolidado de solicitudes filtrable por fecha y sede, con diseño corporativo</td><td>Reportes</td><td>Alta</td></tr>
+        <tr><td>RF-19</td><td>Dashboard con estadísticas</td><td>El sistema debe mostrar estadísticas en tiempo real de solicitudes por sede, motivo, estado y período</td><td>Dashboard</td><td>Alta</td></tr>
+        <tr><td>RF-20</td><td>Actualización automática del dashboard</td><td>El dashboard debe refrescarse automáticamente cuando se detecten cambios en los datos, sin recargar la página</td><td>Dashboard</td><td>Media</td></tr>
+        <tr><td>RF-21</td><td>Gestión de catálogos</td><td>El administrador debe poder gestionar sedes, motivos de ramo y estados de solicitud desde la interfaz del sistema</td><td>Configuración</td><td>Alta</td></tr>
+        <tr><td>RF-22</td><td>Configuración del tipo de período</td><td>El administrador debe poder cambiar el tipo de período de conteo entre mensual y semanal</td><td>Configuración</td><td>Media</td></tr>
+        <tr><td>RF-23</td><td>Registro de nueva persona desde solicitud</td><td>Si un beneficiario no está registrado, el operador debe poder registrarlo desde el mismo panel de solicitudes sin cambiar de pantalla</td><td>Solicitudes</td><td>Alta</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3.2.2 Requisitos No Funcionales</h3>
+  <p>Los requisitos no funcionales establecen las condiciones de calidad que el sistema debe cumplir independientemente de las funcionalidades específicas. Se organizan en categorías según el atributo de calidad al que hacen referencia, tomando como marco el modelo ISO/IEC 25010.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 10</div>
+    <div class="table-title">Especificación de requisitos no funcionales del sistema</div>
+    <table>
+      <thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Categoría</th></tr></thead>
+      <tbody>
+        <tr><td>RNF-01</td><td>Seguridad de contraseñas</td><td>Las contraseñas deben almacenarse con el algoritmo BCRYPT. Nunca en texto plano</td><td>Seguridad</td></tr>
+        <tr><td>RNF-02</td><td>Protección CSRF</td><td>Todos los formularios POST deben incluir y validar un token CSRF de sesión</td><td>Seguridad</td></tr>
+        <tr><td>RNF-03</td><td>Protección contra inyección SQL</td><td>Todas las consultas a la base de datos deben usar PDO con prepared statements</td><td>Seguridad</td></tr>
+        <tr><td>RNF-04</td><td>Headers de seguridad HTTP</td><td>El sistema debe enviar los headers: X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Content-Security-Policy</td><td>Seguridad</td></tr>
+        <tr><td>RNF-05</td><td>Tiempo de respuesta en búsqueda</td><td>La búsqueda de persona por documento debe retornar resultado en menos de 1 segundo en condiciones normales de red local</td><td>Rendimiento</td></tr>
+        <tr><td>RNF-06</td><td>Operación sin conexión a internet</td><td>El sistema debe funcionar sin conexión a internet. Todas las dependencias deben estar disponibles localmente o cargadas desde CDN en red interna</td><td>Disponibilidad</td></tr>
+        <tr><td>RNF-07</td><td>Compatibilidad de navegador</td><td>El sistema debe ser compatible con Google Chrome y Mozilla Firefox en versiones modernas (últimos 2 años de lanzamiento)</td><td>Portabilidad</td></tr>
+        <tr><td>RNF-08</td><td>Interfaz táctil</td><td>El panel del operador debe ser usable en pantallas táctiles de al menos 10 pulgadas</td><td>Usabilidad</td></tr>
+        <tr><td>RNF-09</td><td>Paginación de listados</td><td>Los listados de solicitudes y personas deben paginar los resultados con opciones de 15, 30, 50 y 100 registros por página</td><td>Rendimiento</td></tr>
+        <tr><td>RNF-10</td><td>Mantenibilidad del código</td><td>El código debe seguir el patrón MVC con separación clara en capas: modelos, servicios, controladores, helpers y vistas</td><td>Mantenibilidad</td></tr>
+        <tr><td>RNF-11</td><td>Codificación de caracteres</td><td>El sistema debe usar UTF-8 (utf8mb4 en MySQL) para soporte correcto de caracteres especiales del español</td><td>Portabilidad</td></tr>
+        <tr><td>RNF-12</td><td>Logging de errores</td><td>Los errores del servidor deben registrarse en un archivo de log (<code>storage/logs/errores.log</code>) sin exponer detalles técnicos al usuario final</td><td>Seguridad</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-number">4</div>
+</div>
+
+<!-- MODELADO DE REQUISITOS -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h2>3.3 Modelado de Requisitos</h2>
+  <p>El modelado de requisitos traduce la especificación textual a representaciones visuales que facilitan la comunicación entre los actores del proyecto y sirven de base para el diseño del sistema. Esta sección documenta los casos de uso, el modelo entidad-relación y los prototipos de interfaz de usuario.</p>
+
+  <h3>3.3.1 Diagramas de Casos de Uso</h3>
+  <p>Los casos de uso describen las interacciones entre los actores del sistema y las funcionalidades que este provee. El sistema reconoce dos actores principales: el Empleado / Operador, quien interactúa de manera autónoma con el panel táctil de solicitudes sin necesidad de intermediarios, y el Administrador, quien dispone de acceso completo a todos los módulos del sistema.</p>
+
+  <div class="figure-placeholder">Diagrama de casos de uso — Pendiente de elaboración en herramienta UML (Draw.io / StarUML / Lucidchart)</div>
+  <div style="margin-bottom:10pt;">
+    <span class="figure-label">Figura 2.</span>
+    <span class="figure-title"> Diagrama de casos de uso del sistema con actores Empleado/Operador y Administrador.</span>
+  </div>
+
+  <p>A continuación se documentan en detalle los cuatro casos de uso principales del sistema.</p>
+
+  <div class="usecase-box">
+    <div class="uc-title">CU-01 — Crear Solicitud (Empleado / Operador)</div>
+    <table>
+      <thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Actor principal</td><td>Empleado / Operador (el propio beneficiario)</td></tr>
+        <tr><td>Precondición</td><td>El punto de solicitud está habilitado y el panel táctil del sistema se encuentra en la pantalla de inicio de solicitud</td></tr>
+        <tr><td>Flujo principal</td><td>1. El empleado se presenta en el punto de solicitud. 2. Digita su número de cédula en el panel táctil (o la escanea con el lector de código de barras PDF417). 3. El sistema busca y muestra los datos del empleado. 4. El sistema verifica automáticamente la disponibilidad de cupo y la restricción de período. 5. El empleado selecciona el motivo del ramo e ingresa el nombre del destinatario. 6. El empleado confirma; el sistema registra la solicitud con estado "Pendiente".</td></tr>
+        <tr><td>Flujo alternativo A</td><td>Si el empleado no está registrado: se muestra formulario de registro rápido antes de continuar</td></tr>
+        <tr><td>Flujo alternativo B</td><td>Si no hay cupo disponible para la sede: el sistema muestra mensaje informativo y bloquea el registro</td></tr>
+        <tr><td>Flujo alternativo C</td><td>Si el empleado ya realizó una solicitud en el período vigente: el sistema muestra la solicitud activa existente e impide registrar una nueva</td></tr>
+        <tr><td>Postcondición</td><td>La solicitud queda registrada con estado "Pendiente" sin intervención de personal intermediario</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="usecase-box">
+    <div class="uc-title">CU-02 — Gestionar Estado de Solicitud (Administrador)</div>
+    <table>
+      <thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Actor principal</td><td>Administrador</td></tr>
+        <tr><td>Precondición</td><td>El administrador ha iniciado sesión. Existe al menos una solicitud registrada.</td></tr>
+        <tr><td>Flujo principal</td><td>1. El administrador accede al listado de solicitudes (<code>/solicitudes</code>). 2. Aplica filtros si lo requiere (por fecha, sede, estado). 3. Selecciona una solicitud para ver su detalle. 4. Cambia el estado seleccionando la opción correspondiente. 5. El sistema actualiza el estado y confirma el cambio.</td></tr>
+        <tr><td>Postcondición</td><td>La solicitud refleja el nuevo estado en el sistema</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="usecase-box">
+    <div class="uc-title">CU-03 — Generar Reporte PDF (Administrador)</div>
+    <table>
+      <thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Actor principal</td><td>Administrador</td></tr>
+        <tr><td>Precondición</td><td>El administrador ha iniciado sesión. Existen solicitudes en el rango de fechas seleccionado.</td></tr>
+        <tr><td>Flujo principal</td><td>1. El administrador accede a la sección de Reportes (<code>/reportes</code>). 2. Selecciona el rango de fechas y la sede (opcional). 3. Indica si desea incluir hojas individuales por solicitud. 4. El sistema genera el PDF y lo descarga directamente en el equipo del administrador.</td></tr>
+        <tr><td>Postcondición</td><td>El PDF es descargado en el equipo del administrador con las solicitudes del rango indicado</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="usecase-box">
+    <div class="uc-title">CU-04 — Importar Beneficiarios desde Excel (Administrador)</div>
+    <table>
+      <thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Actor principal</td><td>Administrador</td></tr>
+        <tr><td>Precondición</td><td>El administrador ha iniciado sesión. Dispone de un archivo Excel con el formato de la plantilla provista por el sistema.</td></tr>
+        <tr><td>Flujo principal</td><td>1. El administrador accede a la sección de importación (<code>/personas/importar</code>). 2. Sube el archivo Excel. 3. El sistema procesa el archivo y muestra una previsualización de los datos. 4. El administrador revisa y confirma la importación. 5. El sistema inserta los registros en la base de datos.</td></tr>
+        <tr><td>Flujo alternativo</td><td>Si el archivo contiene errores de formato: el sistema los indica y no procesa la importación hasta que sean corregidos</td></tr>
+        <tr><td>Postcondición</td><td>Los beneficiarios del archivo quedan registrados en el sistema</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3.3.2 Modelo Entidad-Relación</h3>
+  <p>El modelo entidad-relación define la estructura de datos del sistema, describiendo las entidades principales, sus atributos y las relaciones de cardinalidad entre ellas. La base de datos <code>flores_db</code> cuenta con ocho tablas que representan las entidades del dominio del negocio.</p>
+
+  <div class="figure-placeholder">Diagrama Entidad-Relación — Pendiente de elaboración en herramienta gráfica (Draw.io / dbdiagram.io)</div>
+  <div style="margin-bottom:10pt;">
+    <span class="figure-label">Figura 3.</span>
+    <span class="figure-title"> Modelo entidad-relación de la base de datos <code>flores_db</code>.</span>
+  </div>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 11</div>
+    <div class="table-title">Relaciones entre entidades del modelo de datos</div>
+    <table>
+      <thead><tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Descripción de la relación</th></tr></thead>
+      <tbody>
+        <tr><td>sedes</td><td>1:N</td><td>personas</td><td>Una sede tiene asignados muchos empleados</td></tr>
+        <tr><td>sedes</td><td>1:N</td><td>solicitudes</td><td>Una sede puede tener muchas solicitudes registradas</td></tr>
+        <tr><td>sedes</td><td>1:N</td><td>cupos_sede</td><td>Una sede tiene un registro de cupo por período</td></tr>
+        <tr><td>personas</td><td>1:N</td><td>solicitudes</td><td>Una persona puede tener múltiples solicitudes en diferentes períodos</td></tr>
+        <tr><td>motivos_ramo</td><td>1:N</td><td>solicitudes</td><td>Un motivo puede estar asociado a muchas solicitudes</td></tr>
+        <tr><td>estados_solicitud</td><td>1:N</td><td>solicitudes</td><td>Un estado puede corresponder a muchas solicitudes simultáneamente</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3.3.3 Prototipos y Wireframes de la Interfaz</h3>
+  <p>Los prototipos de interfaz describen la estructura y el comportamiento visual de las pantallas principales del sistema. Las descripciones que se presentan a continuación corresponden a las pantallas implementadas en la versión actual del sistema y sirven de base para la elaboración de wireframes en herramienta especializada.</p>
+
+  <p><strong>Pantalla 1 — Inicio de sesión.</strong> Formulario centrado con campos para usuario y contraseña, botón de ingreso y mensaje de error debajo del formulario en caso de credenciales incorrectas. Sin elementos adicionales para minimizar la distracción visual en el punto de acceso.</p>
+  <p><strong>Pantalla 2 — Dashboard administrativo.</strong> Fila superior con cuatro tarjetas métricas (total de solicitudes, solicitudes del período actual, pendientes y entregadas). Fila media con dos gráficos: distribución por sede (torta) y solicitudes semanales por sede (barras). Tabla inferior con las últimas cinco solicitudes registradas e indicador de cupos por sede.</p>
+  <p><strong>Pantalla 3 — Panel táctil de autoatención (Empleado / Operador).</strong> Campo de búsqueda grande y destacado para que el propio empleado ingrese su número de cédula, con soporte para lectura mediante escáner PDF417. Resultado de búsqueda con nombre, sede y empresa del empleado. Formulario de solicitud con selector de motivo, campo de nombre del destinatario y observaciones opcionales. Mensajes de estado en colores llamativos: cupo agotado en rojo, solicitud ya registrada en el período en amarillo. No requiere inicio de sesión por parte del empleado.</p>
+  <p><strong>Pantalla 4 — Listado de solicitudes (administrador).</strong> Filtros en la parte superior: rango de fechas, sede, estado y texto libre. Tabla paginada con columnas de fecha, beneficiario, sede, motivo, destinatario, estado con indicador de color y acciones por fila (ver detalle, cambiar estado, eliminar).</p>
+  <p><strong>Pantalla 5 — Configuración del sistema.</strong> Organizada en pestañas: General, Cupos y Catálogos. La pestaña Cupos muestra una tabla por sede con cupo máximo, cupo utilizado en tiempo real y barra de progreso visual. La pestaña Catálogos presenta paneles colapsables para la gestión de sedes, motivos y estados.</p>
+
+  <div class="figure-placeholder">Wireframes de interfaz de usuario — Pendientes de elaboración en herramienta gráfica (Figma / Balsamiq / Draw.io)</div>
+  <div style="margin-bottom:10pt;">
+    <span class="figure-label">Figura 4.</span>
+    <span class="figure-title"> Wireframes de las cinco pantallas principales del sistema.</span>
+  </div>
+
+  <div class="page-number">5</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 4 — DISEÑO DEL SOFTWARE                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>4. Diseño del Software</h1>
+  <p>El diseño del software documenta las decisiones de arquitectura, la estructura de la base de datos y los principios que guiaron el diseño de la interfaz de usuario. Este capítulo traduce los requisitos identificados en el capítulo anterior en un modelo técnico concreto que sirvió de guía durante la implementación del sistema.</p>
+
+  <h2>4.1 Arquitectura del Software</h2>
+  <p>La arquitectura del sistema define la organización de sus componentes, las responsabilidades de cada capa y los mecanismos de comunicación entre ellas. El diseño arquitectónico priorizó la separación de responsabilidades, la mantenibilidad del código y la seguridad en cada punto de entrada.</p>
+
+  <h3>4.1.1 Modelo Arquitectónico</h3>
+  <p>El sistema implementa el patrón MVC (Modelo-Vista-Controlador) con un Front Controller como punto de entrada único. La arquitectura se organiza en seis capas claramente diferenciadas, cada una con responsabilidades acotadas, que se describen a continuación de arriba hacia abajo según el flujo de una petición HTTP.</p>
+
+  <div class="figure-placeholder">Diagrama de arquitectura en capas del sistema — Pendiente de elaboración en herramienta gráfica (Draw.io / Lucidchart)</div>
+  <div style="margin-bottom:10pt;">
+    <span class="figure-label">Figura 5.</span>
+    <span class="figure-title"> Diagrama de arquitectura en capas del Sistema de Solicitud de Ramos.</span>
+  </div>
+
+  <p><strong>Capa de presentación.</strong> Corresponde al navegador web del cliente (Chrome o Firefox) instalado en los equipos de la red local. Envía peticiones HTTP al servidor y renderiza las respuestas HTML o procesa las respuestas JSON en el caso de peticiones AJAX.</p>
+  <p><strong>Capa de entrada — Front Controller.</strong> El archivo <code>public/index.php</code> actúa como punto de entrada único del sistema. Carga las variables de entorno desde el archivo <code>.env</code>, inicializa la configuración de la aplicación, resuelve la ruta solicitada, aplica el middleware de autenticación y CSRF, e instancia el controlador correspondiente para ejecutar el método requerido.</p>
+  <p><strong>Capa de middleware.</strong> Compuesta por <code>Auth.php</code> y <code>Csrf.php</code>. El middleware de autenticación verifica la existencia de una sesión activa, controla el rol del usuario (administrador u operador) y gestiona el timeout de inactividad. El middleware CSRF valida los tokens en las peticiones POST y regenera el token por sesión.</p>
+  <p><strong>Capa de controladores.</strong> El sistema dispone de diez controladores, cada uno responsable de coordinar el flujo de una petición para un módulo específico: <code>AuthController</code>, <code>DashboardController</code>, <code>SolicitudController</code>, <code>PersonaController</code>, <code>CupoController</code>, <code>ReporteController</code>, <code>ConfigController</code>, <code>SedeController</code>, <code>MotivoRamoController</code> y <code>EstadoSolicitudController</code>. Los controladores llaman a los servicios o modelos según la complejidad de la operación y retornan vistas HTML o respuestas JSON.</p>
+  <p><strong>Capa de servicios.</strong> Seis servicios encapsulan la lógica de negocio compleja: <code>SolicitudService</code>, <code>CupoService</code>, <code>PersonaService</code>, <code>PdfService</code>, <code>ReporteService</code> y <code>MaestroImportService</code>. Esta capa es independiente de los controladores y puede ser reutilizada desde diferentes puntos del sistema.</p>
+  <p><strong>Capa de modelos.</strong> Nueve modelos proveen acceso directo a la base de datos mediante PDO con prepared statements: <code>Persona</code>, <code>Solicitud</code>, <code>Sede</code>, <code>MotivoRamo</code>, <code>EstadoSolicitud</code>, <code>CupoSede</code>, <code>Configuracion</code>, <code>Usuario</code> y <code>Database</code> (Singleton de conexión).</p>
+
+  <h3>4.1.2 Componentes Principales del Sistema</h3>
+  <p>La tabla siguiente resume los componentes técnicos más relevantes del sistema, indicando el archivo donde se implementan y la responsabilidad específica de cada uno.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 12</div>
+    <div class="table-title">Componentes principales del sistema y sus responsabilidades</div>
+    <table>
+      <thead><tr><th>Componente</th><th>Archivo(s)</th><th>Responsabilidad</th></tr></thead>
+      <tbody>
+        <tr><td>Front Controller</td><td><code>public/index.php</code></td><td>Punto de entrada único. Enrutamiento, middleware y manejo de excepciones globales</td></tr>
+        <tr><td>Router</td><td><code>public/index.php</code> (arrays de rutas)</td><td>Mapeo de URI a Controlador::método con control de acceso por rol</td></tr>
+        <tr><td>Middleware Auth</td><td><code>app/middleware/Auth.php</code></td><td>Verificación de sesión, control de roles y timeout de inactividad</td></tr>
+        <tr><td>Middleware CSRF</td><td><code>app/middleware/Csrf.php</code></td><td>Generación y validación de tokens CSRF por sesión</td></tr>
+        <tr><td>Database Singleton</td><td><code>app/models/Database.php</code></td><td>Única instancia de conexión PDO a MySQL durante el ciclo de vida de cada petición</td></tr>
+        <tr><td>Response Helper</td><td><code>app/helpers/Response.php</code></td><td>Estandarización de respuestas JSON y redirecciones HTTP</td></tr>
+        <tr><td>Session Helper</td><td><code>app/helpers/Session.php</code></td><td>Abstracción de sesiones PHP con soporte para mensajes flash</td></tr>
+        <tr><td>Validator</td><td><code>app/helpers/Validator.php</code></td><td>Validación y sanitización de datos de entrada en formularios</td></tr>
+        <tr><td>DateHelper</td><td><code>app/helpers/DateHelper.php</code></td><td>Cálculo de períodos (mensual/semanal) y formateo de fechas</td></tr>
+        <tr><td>BarcodeParser</td><td><code>app/helpers/BarcodeParser.php</code></td><td>Parsing de la entrada del escáner de cédula de ciudadanía (código de barras PDF417)</td></tr>
+        <tr><td>Env Helper</td><td><code>app/helpers/Env.php</code></td><td>Carga de variables de entorno desde el archivo <code>.env</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>4.2 Diseño de la Base de Datos</h2>
+  <p>La base de datos del sistema se denominó <code>flores_db</code> y fue diseñada con charset <code>utf8mb4</code> y collation <code>utf8mb4_unicode_ci</code> para garantizar el soporte correcto de caracteres especiales del español. Comprende un total de ocho tablas que representan las entidades del dominio del negocio.</p>
+
+  <h3>4.2.1 Modelo Lógico de la Base de Datos</h3>
+  <p>La estructura lógica de la base de datos refleja las relaciones entre las entidades documentadas en el modelo entidad-relación de la sección 3.3.2. Las dependencias entre tablas se organizan de la siguiente manera: la tabla <code>sedes</code> es referenciada por <code>personas</code>, <code>solicitudes</code> y <code>cupos_sede</code>; la tabla <code>personas</code> es referenciada por <code>solicitudes</code>; las tablas <code>motivos_ramo</code> y <code>estados_solicitud</code> son referenciadas por <code>solicitudes</code>. Las tablas <code>usuarios</code> y <code>configuracion</code> son entidades independientes sin claves foráneas externas.</p>
+
+  <div class="figure-placeholder">Modelo lógico de la base de datos — Pendiente de elaboración en herramienta gráfica (Draw.io / MySQL Workbench)</div>
+  <div style="margin-bottom:10pt;">
+    <span class="figure-label">Figura 6.</span>
+    <span class="figure-title"> Modelo lógico de la base de datos <code>flores_db</code> con relaciones entre tablas.</span>
+  </div>
+
+  <h3>4.2.2 Diccionario de Datos</h3>
+  <p>El diccionario de datos documenta la estructura detallada de cada tabla de la base de datos, incluyendo el nombre de cada campo, su tipo de dato, las restricciones aplicadas y una descripción de su propósito dentro del modelo de datos del sistema.</p>
+
+  <h4>Tabla: usuarios</h4>
+  <p>Almacena las credenciales y datos de los usuarios que acceden al sistema.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 13</div>
+    <div class="table-title">Estructura de la tabla <code>usuarios</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único del usuario</td></tr>
+        <tr><td>username</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td><td>Nombre de usuario para inicio de sesión</td></tr>
+        <tr><td>password_hash</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Hash BCRYPT de la contraseña del usuario</td></tr>
+        <tr><td>nombre</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Nombre completo del usuario del sistema</td></tr>
+        <tr><td>rol</td><td>ENUM('admin','operador')</td><td>NOT NULL</td><td>Rol del usuario: admin u operador</td></tr>
+        <tr><td>activo</td><td>TINYINT(1)</td><td>DEFAULT 1</td><td>Estado del usuario: 1 = activo, 0 = inactivo</td></tr>
+        <tr><td>ultimo_login</td><td>DATETIME</td><td>NULL</td><td>Marca de tiempo del último acceso exitoso al sistema</td></tr>
+        <tr><td>created_at</td><td>DATETIME</td><td>DEFAULT NOW()</td><td>Fecha y hora de creación del registro</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: sedes</h4>
+  <p>Almacena las sedes de la organización donde se realizan las solicitudes de ramos.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 14</div>
+    <div class="table-title">Estructura de la tabla <code>sedes</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único de la sede</td></tr>
+        <tr><td>nombre</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Nombre descriptivo de la sede</td></tr>
+        <tr><td>codigo</td><td>VARCHAR(20)</td><td>UNIQUE, NOT NULL</td><td>Código interno de identificación de la sede</td></tr>
+        <tr><td>direccion</td><td>VARCHAR(200)</td><td>NULL</td><td>Dirección física de la sede (opcional)</td></tr>
+        <tr><td>activo</td><td>TINYINT(1)</td><td>DEFAULT 1</td><td>Estado de la sede: 1 = activa, 0 = inactiva</td></tr>
+        <tr><td>created_at</td><td>DATETIME</td><td>DEFAULT NOW()</td><td>Fecha y hora de creación del registro</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: personas</h4>
+  <p>Almacena los datos de los beneficiarios (empleados) que pueden realizar solicitudes de ramos en el sistema.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 15</div>
+    <div class="table-title">Estructura de la tabla <code>personas</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único del beneficiario</td></tr>
+        <tr><td>tipo_documento</td><td>VARCHAR(10)</td><td>NOT NULL</td><td>Tipo de documento de identidad (CC, CE, etc.)</td></tr>
+        <tr><td>documento</td><td>VARCHAR(20)</td><td>UNIQUE, NOT NULL</td><td>Número de documento de identidad del beneficiario</td></tr>
+        <tr><td>primer_nombre</td><td>VARCHAR(60)</td><td>NOT NULL</td><td>Primer nombre del beneficiario</td></tr>
+        <tr><td>segundo_nombre</td><td>VARCHAR(60)</td><td>NULL</td><td>Segundo nombre del beneficiario (opcional)</td></tr>
+        <tr><td>primer_apellido</td><td>VARCHAR(60)</td><td>NOT NULL</td><td>Primer apellido del beneficiario</td></tr>
+        <tr><td>segundo_apellido</td><td>VARCHAR(60)</td><td>NULL</td><td>Segundo apellido del beneficiario (opcional)</td></tr>
+        <tr><td>telefono</td><td>VARCHAR(20)</td><td>NULL</td><td>Número de teléfono de contacto</td></tr>
+        <tr><td>id_sede</td><td>INT UNSIGNED</td><td>FK → sedes.id</td><td>Sede a la que pertenece el beneficiario</td></tr>
+        <tr><td>empresa</td><td>ENUM('TANDIL','CREOS')</td><td>NOT NULL</td><td>Empresa a la que pertenece el beneficiario</td></tr>
+        <tr><td>activo</td><td>TINYINT(1)</td><td>DEFAULT 1</td><td>Estado del beneficiario: 1 = activo, 0 = dado de baja</td></tr>
+        <tr><td>created_at</td><td>DATETIME</td><td>DEFAULT NOW()</td><td>Fecha y hora de creación del registro</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: motivos_ramo</h4>
+  <p>Catálogo de los motivos válidos para la solicitud de un ramo floral.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 16</div>
+    <div class="table-title">Estructura de la tabla <code>motivos_ramo</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único del motivo</td></tr>
+        <tr><td>nombre</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Nombre descriptivo del motivo de solicitud</td></tr>
+        <tr><td>requiere_detalle</td><td>TINYINT(1)</td><td>DEFAULT 0</td><td>Indica si el motivo requiere un campo de detalle adicional</td></tr>
+        <tr><td>orden</td><td>INT</td><td>DEFAULT 0</td><td>Orden de visualización en el selector del formulario</td></tr>
+        <tr><td>activo</td><td>TINYINT(1)</td><td>DEFAULT 1</td><td>Estado del motivo: 1 = activo, 0 = inactivo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: estados_solicitud</h4>
+  <p>Catálogo de los estados posibles para el ciclo de vida de una solicitud de ramo.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 17</div>
+    <div class="table-title">Estructura de la tabla <code>estados_solicitud</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único del estado</td></tr>
+        <tr><td>nombre</td><td>VARCHAR(50)</td><td>NOT NULL</td><td>Nombre del estado (Pendiente, Aprobada, Entregada, etc.)</td></tr>
+        <tr><td>color</td><td>VARCHAR(7)</td><td>NOT NULL</td><td>Código hexadecimal del color para la representación visual del estado</td></tr>
+        <tr><td>orden</td><td>INT</td><td>DEFAULT 0</td><td>Orden lógico del estado dentro del ciclo de vida</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: solicitudes</h4>
+  <p>Tabla central del sistema. Almacena cada solicitud de ramo registrada, con sus datos de identificación, el estado actual y la referencia al beneficiario, sede, motivo y estado correspondientes.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 18</div>
+    <div class="table-title">Estructura de la tabla <code>solicitudes</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único de la solicitud</td></tr>
+        <tr><td>persona_id</td><td>INT UNSIGNED</td><td>FK → personas.id, NOT NULL</td><td>Beneficiario que realizó la solicitud</td></tr>
+        <tr><td>fecha_solicitud</td><td>DATE</td><td>NOT NULL</td><td>Fecha en que se registró la solicitud</td></tr>
+        <tr><td>id_sede</td><td>INT UNSIGNED</td><td>FK → sedes.id, NOT NULL</td><td>Sede desde la cual se originó la solicitud</td></tr>
+        <tr><td>nombre_destinatario</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Nombre de la persona a quien va destinado el ramo</td></tr>
+        <tr><td>id_motivo</td><td>INT UNSIGNED</td><td>FK → motivos_ramo.id, NOT NULL</td><td>Motivo de la solicitud del ramo</td></tr>
+        <tr><td>motivo_otro</td><td>VARCHAR(200)</td><td>NULL</td><td>Detalle adicional cuando el motivo requiere especificación</td></tr>
+        <tr><td>observaciones</td><td>TEXT</td><td>NULL</td><td>Observaciones opcionales del operador al registrar la solicitud</td></tr>
+        <tr><td>id_estado</td><td>INT UNSIGNED</td><td>FK → estados_solicitud.id, NOT NULL</td><td>Estado actual de la solicitud en su ciclo de vida</td></tr>
+        <tr><td>created_at</td><td>DATETIME</td><td>DEFAULT NOW()</td><td>Marca de tiempo de creación del registro</td></tr>
+        <tr><td>updated_at</td><td>DATETIME</td><td>NULL</td><td>Marca de tiempo de la última actualización del registro</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: cupos_sede</h4>
+  <p>Registra el cupo máximo asignado a cada sede por período, permitiendo el control de disponibilidad en tiempo real.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 19</div>
+    <div class="table-title">Estructura de la tabla <code>cupos_sede</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único del registro de cupo</td></tr>
+        <tr><td>id_sede</td><td>INT UNSIGNED</td><td>FK → sedes.id, NOT NULL</td><td>Sede a la que corresponde el cupo</td></tr>
+        <tr><td>periodo</td><td>DATE</td><td>NOT NULL</td><td>Fecha de inicio del período al que aplica el cupo</td></tr>
+        <tr><td>cupo_maximo</td><td>INT UNSIGNED</td><td>NOT NULL</td><td>Número máximo de solicitudes permitidas en la sede para el período</td></tr>
+        <tr><td>notificado</td><td>TINYINT(1)</td><td>DEFAULT 0</td><td>Indica si se ha notificado al administrador sobre el agotamiento del cupo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Tabla: configuracion</h4>
+  <p>Tabla de parámetros del sistema en formato clave-valor. Almacena la configuración global del sistema, incluyendo el tipo de período, el cupo por defecto y los datos institucionales.</p>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 20</div>
+    <div class="table-title">Estructura de la tabla <code>configuracion</code></div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>INT UNSIGNED</td><td>PK, AUTO_INCREMENT</td><td>Identificador único del parámetro</td></tr>
+        <tr><td>clave</td><td>VARCHAR(100)</td><td>UNIQUE, NOT NULL</td><td>Nombre del parámetro de configuración</td></tr>
+        <tr><td>valor</td><td>TEXT</td><td>NOT NULL</td><td>Valor actual del parámetro</td></tr>
+        <tr><td>descripcion</td><td>VARCHAR(255)</td><td>NULL</td><td>Descripción del propósito del parámetro (solo para administración)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>4.3 Interfaz de Usuario</h2>
+  <p>El diseño de la interfaz de usuario del sistema priorizó la usabilidad en el punto de atención, donde el operador debe registrar solicitudes con rapidez y con un mínimo de fricción. Se adoptaron principios de diseño centrado en el usuario y se tuvieron en cuenta las condiciones específicas de uso, en particular la operación en pantallas táctiles.</p>
+
+  <h3>4.3.1 Diseño UX/UI</h3>
+  <p>Los principios de diseño que guiaron la construcción de la interfaz fueron los siguientes. La <strong>eficiencia operativa</strong> determinó que el panel del operador minimizara los pasos necesarios para registrar una solicitud: búsqueda del beneficiario, selección del motivo y confirmación, en no más de tres acciones. La <strong>retroalimentación inmediata</strong> garantizó que las validaciones del sistema (cupo agotado, solicitud duplicada, persona no encontrada) se mostraran en el momento en que ocurren, con mensajes claros y diferenciados por color. La <strong>adaptación táctil</strong> aseguró que todos los elementos interactivos del panel del operador tuvieran un tamaño mínimo de 44 px, consistente con las guías de accesibilidad para pantallas táctiles. La <strong>jerarquía visual</strong> organizó los datos más relevantes (nombre del beneficiario, estado del cupo) en posiciones prominentes de cada pantalla.</p>
+
+  <h3>4.3.2 Wireframes o Prototipos</h3>
+  <p>Los wireframes de las pantallas del sistema fueron elaborados de manera iterativa durante el período de pruebas. Las versiones finales aprobadas por el equipo se documentan en las descripciones de la sección 3.3.3 y deben ser formalizadas en herramienta gráfica para la versión definitiva de esta documentación.</p>
+
+  <div class="figure-placeholder">Wireframes finales de alta fidelidad — Pendientes de elaboración en Figma / Balsamiq</div>
+  <div style="margin-bottom:10pt;">
+    <span class="figure-label">Figura 7.</span>
+    <span class="figure-title"> Prototipos de alta fidelidad de las pantallas del sistema aprobadas tras el período de pruebas.</span>
+  </div>
+
+  <div class="page-number">6</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 5 — PLAN DE DESARROLLO                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>5. Plan de Desarrollo</h1>
+  <p>El plan de desarrollo describe la metodología adoptada para organizar y ejecutar el proceso de construcción del sistema, las fases e iteraciones que estructuraron el trabajo, y las herramientas utilizadas durante el desarrollo. Este capítulo proporciona el contexto sobre cómo se gestionó el proyecto desde la concepción hasta la puesta en operación.</p>
+
+  <h2>5.1 Metodología de Desarrollo</h2>
+  <p>La elección de la metodología respondió a las características del proyecto: un equipo unipersonal, un cliente con disponibilidad limitada para reuniones formales y un alcance relativamente acotado con requisitos que fueron precisándose durante el desarrollo.</p>
+
+  <h3>5.1.1 Metodología Utilizada</h3>
+  <p>Se adoptó un enfoque de desarrollo iterativo e incremental, inspirado en los principios del desarrollo ágil, adaptado a las condiciones de un proyecto unipersonal. En lugar de planificar todas las funcionalidades con detalle antes de iniciar el desarrollo, el sistema se construyó por módulos funcionales completos, cada uno de los cuales fue validado con el usuario antes de continuar con el siguiente. Este enfoque permitió incorporar retroalimentación temprana y ajustar las decisiones de diseño sin incurrir en retrabajo significativo.</p>
+  <p>No se utilizó ningún framework de gestión de proyectos formal (Scrum, Kanban). El seguimiento del trabajo se realizó mediante listas de tareas y comunicación directa con el área solicitante.</p>
+
+  <h3>5.1.2 Fases de Desarrollo</h3>
+  <p>El desarrollo del sistema se organizó en cinco fases secuenciales, aunque con cierto solapamiento entre ellas para optimizar los tiempos de entrega.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 21</div>
+    <div class="table-title">Fases del proceso de desarrollo del sistema</div>
+    <table>
+      <thead><tr><th>Fase</th><th>Nombre</th><th>Actividades principales</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Análisis y levantamiento</td><td>Observación del proceso manual, entrevistas con el personal, revisión de documentos físicos, definición de requisitos iniciales</td></tr>
+        <tr><td>2</td><td>Diseño</td><td>Diseño del modelo de datos, definición de la arquitectura MVC, bosquejo de las pantallas principales, definición de reglas de negocio</td></tr>
+        <tr><td>3</td><td>Implementación</td><td>Desarrollo de los siete módulos del sistema en orden de prioridad: autenticación, personas, solicitudes, cupos, reportes, dashboard, configuración</td></tr>
+        <tr><td>4</td><td>Pruebas</td><td>Pruebas unitarias de las reglas de negocio críticas, pruebas de integración del flujo completo, pruebas de usabilidad con el equipo operativo durante un mes con datos reales</td></tr>
+        <tr><td>5</td><td>Implementación y ajustes</td><td>Despliegue en el servidor local de la empresa, capacitación del equipo, corrección de errores detectados en producción</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>5.2 Plan de Iteraciones y Sprints</h2>
+  <p>Dado el carácter unipersonal del equipo de desarrollo, las iteraciones no se formalizaron como sprints con duraciones fijas. El avance se midió por módulos funcionales completados y validados. A continuación se describe el cronograma aproximado de desarrollo.</p>
+
+  <h3>5.2.1 Cronograma de Actividades</h3>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 22</div>
+    <div class="table-title">Cronograma aproximado de desarrollo por módulo</div>
+    <table>
+      <thead><tr><th>Módulo / Actividad</th><th>Estado</th><th>Observaciones</th></tr></thead>
+      <tbody>
+        <tr><td>Infraestructura base (MVC, enrutamiento, middleware)</td><td>Completado</td><td>Base técnica sobre la que se construyeron todos los módulos</td></tr>
+        <tr><td>Autenticación y control de acceso</td><td>Completado</td><td>Primer módulo desarrollado por ser requisito de todos los demás</td></tr>
+        <tr><td>Gestión de personas (CRUD + importación Excel)</td><td>Completado</td><td>Incluye importación masiva con previsualización</td></tr>
+        <tr><td>Módulo de solicitudes (panel táctil + validaciones)</td><td>Completado</td><td>Módulo más complejo; incluyó integración con escáner de cédula</td></tr>
+        <tr><td>Control de cupos por sede</td><td>Completado</td><td>Implementado en paralelo con el módulo de solicitudes</td></tr>
+        <tr><td>Generación de reportes PDF</td><td>Completado</td><td>Utilizando la librería FPDF con diseño corporativo</td></tr>
+        <tr><td>Dashboard con estadísticas y polling</td><td>Completado</td><td>Actualización automática mediante peticiones AJAX periódicas</td></tr>
+        <tr><td>Módulo de configuración y catálogos</td><td>Completado</td><td>Gestión de sedes, motivos, estados y parámetros globales</td></tr>
+        <tr><td>Período de pruebas con datos reales</td><td>Completado</td><td>Un mes de operación paralela con el proceso anterior</td></tr>
+        <tr><td>Corrección de errores y ajustes post-pruebas</td><td>En curso</td><td>Ajustes menores identificados durante el período de pruebas</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>5.2.2 Responsabilidades del Equipo de Desarrollo</h3>
+  <p>El proyecto fue desarrollado por un único integrante, quien asumió la totalidad de los roles del proceso de desarrollo.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 23</div>
+    <div class="table-title">Responsabilidades del equipo de desarrollo</div>
+    <table>
+      <thead><tr><th>Persona</th><th>Rol</th><th>Responsabilidades</th></tr></thead>
+      <tbody>
+        <tr><td>Mario Alexander Cañola Cano</td><td>Analista, Desarrollador y Arquitecto de Software</td><td>Levantamiento de requisitos, diseño de arquitectura y base de datos, implementación de todos los módulos, pruebas, documentación técnica y soporte post-implementación</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>5.3 Herramientas de Desarrollo</h2>
+  <p>El conjunto de herramientas utilizado durante el desarrollo fue seleccionado con base en la disponibilidad, la compatibilidad con el entorno tecnológico de la empresa y la familiaridad del desarrollador con cada una de ellas.</p>
+
+  <h3>5.3.1 IDEs y Frameworks</h3>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 24</div>
+    <div class="table-title">Entornos de desarrollo y herramientas de programación utilizadas</div>
+    <table>
+      <thead><tr><th>Herramienta</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td>Visual Studio Code</td><td>Editor de código principal utilizado durante todo el desarrollo</td></tr>
+        <tr><td>Laragon</td><td>Entorno de desarrollo local con Apache, MySQL y PHP integrados</td></tr>
+        <tr><td>Composer</td><td>Gestión de dependencias PHP (FPDF, PhpSpreadsheet)</td></tr>
+        <tr><td>TablePlus / phpMyAdmin</td><td>Administración visual de la base de datos MySQL durante el desarrollo</td></tr>
+        <tr><td>Postman</td><td>Pruebas de los endpoints AJAX del sistema durante el desarrollo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>5.3.2 Sistemas de Control de Versiones</h3>
+  <p>El código fuente del sistema se gestionó mediante Git como sistema de control de versiones, con un repositorio local en el equipo de desarrollo. No se utilizó una plataforma de repositorios remotos (GitHub, GitLab) dado el carácter interno del proyecto, aunque se recomienda su adopción para versiones futuras como medida de respaldo y trazabilidad del historial de cambios.</p>
+
+  <div class="page-number">7</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 6 — PRUEBAS Y VALIDACIÓN                     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>6. Pruebas y Validación</h1>
+  <p>Las pruebas y la validación garantizan que el sistema implementado cumple con los requisitos especificados y que su comportamiento es el esperado en condiciones reales de uso. Este capítulo documenta el plan de pruebas ejecutado, los resultados obtenidos y el proceso de validación con los usuarios finales.</p>
+
+  <h2>6.1 Plan de Pruebas</h2>
+  <p>El plan de pruebas definió los tipos de verificación a realizar, los criterios de aceptación y los casos de prueba prioritarios para cada módulo del sistema. La estrategia priorizó las pruebas funcionales de las reglas de negocio críticas y las pruebas de usabilidad con el equipo operativo real.</p>
+
+  <h3>6.1.1 Tipos de Pruebas</h3>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 25</div>
+    <div class="table-title">Tipos de pruebas realizadas sobre el sistema</div>
+    <table>
+      <thead><tr><th>Tipo de prueba</th><th>Descripción</th><th>Módulos cubiertos</th></tr></thead>
+      <tbody>
+        <tr><td>Pruebas funcionales</td><td>Verificación de que cada funcionalidad produce el resultado esperado según los requisitos definidos</td><td>Todos los módulos</td></tr>
+        <tr><td>Pruebas de reglas de negocio</td><td>Verificación específica de las validaciones críticas: control de cupos, restricción de período, bloqueo por cupo agotado</td><td>Solicitudes, Cupos</td></tr>
+        <tr><td>Pruebas de seguridad</td><td>Verificación de la protección CSRF, del almacenamiento seguro de contraseñas y de la restricción de acceso por rol</td><td>Autenticación, todos</td></tr>
+        <tr><td>Pruebas de usabilidad táctil</td><td>Verificación del comportamiento del panel del operador en pantalla táctil de 10 pulgadas</td><td>Solicitudes (operador)</td></tr>
+        <tr><td>Pruebas de integración con escáner</td><td>Verificación de la lectura correcta del código de barras PDF417 de la cédula de ciudadanía</td><td>Solicitudes</td></tr>
+        <tr><td>Pruebas de generación de PDF</td><td>Verificación del contenido, formato y completitud de los reportes generados</td><td>Reportes</td></tr>
+        <tr><td>Pruebas de importación Excel</td><td>Verificación del procesamiento correcto de archivos con distintos volúmenes y casos límite</td><td>Personas</td></tr>
+        <tr><td>Pruebas de aceptación (UAT)</td><td>Operación del sistema durante un mes con datos reales por parte del equipo de la empresa</td><td>Sistema completo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>6.1.2 Casos de Prueba</h3>
+  <p>A continuación se documentan los casos de prueba más relevantes para las reglas de negocio críticas del sistema.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 26</div>
+    <div class="table-title">Casos de prueba de las reglas de negocio críticas</div>
+    <table>
+      <thead><tr><th>ID</th><th>Caso de prueba</th><th>Condición de entrada</th><th>Resultado esperado</th></tr></thead>
+      <tbody>
+        <tr><td>CP-01</td><td>Solicitud con cupo disponible</td><td>Sede con cupo no agotado, beneficiario sin solicitud activa en el período</td><td>La solicitud se registra correctamente con estado "Pendiente"</td></tr>
+        <tr><td>CP-02</td><td>Solicitud con cupo agotado</td><td>Sede con cupo utilizado igual al cupo máximo</td><td>El sistema muestra mensaje de cupo agotado y bloquea el registro</td></tr>
+        <tr><td>CP-03</td><td>Solicitud duplicada en el período</td><td>Beneficiario con una solicitud activa en el período vigente</td><td>El sistema muestra la solicitud existente e impide registrar una nueva</td></tr>
+        <tr><td>CP-04</td><td>Búsqueda por documento existente</td><td>Número de documento registrado en el sistema</td><td>El sistema muestra los datos del beneficiario en menos de 1 segundo</td></tr>
+        <tr><td>CP-05</td><td>Búsqueda por documento inexistente</td><td>Número de documento no registrado en el sistema</td><td>El sistema muestra mensaje de persona no encontrada y ofrece opción de registro</td></tr>
+        <tr><td>CP-06</td><td>Lectura de cédula con escáner</td><td>Cédula de ciudadanía colombiana pasada por el escáner de código de barras PDF417</td><td>El sistema extrae automáticamente el número de documento y realiza la búsqueda</td></tr>
+        <tr><td>CP-07</td><td>Cambio de estado de solicitud</td><td>Solicitud en estado "Pendiente", administrador cambia a "Aprobada"</td><td>El estado de la solicitud se actualiza y la tabla refleja el nuevo estado con su color</td></tr>
+        <tr><td>CP-08</td><td>Generación de PDF sin solicitudes</td><td>Rango de fechas sin solicitudes registradas</td><td>El sistema informa que no hay datos para el rango seleccionado</td></tr>
+        <tr><td>CP-09</td><td>Importación Excel con duplicados</td><td>Archivo Excel que contiene documentos ya registrados en el sistema</td><td>El sistema identifica los duplicados en la previsualización y los excluye de la importación</td></tr>
+        <tr><td>CP-10</td><td>Expiración de sesión</td><td>Usuario inactivo por más de 30 minutos</td><td>El sistema redirige al login con mensaje de sesión expirada</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>6.2 Resultados de Pruebas</h2>
+  <p>Las pruebas se ejecutaron en dos etapas: una etapa de pruebas internas realizadas por el desarrollador sobre un conjunto de datos sintéticos, y una etapa de pruebas de aceptación con el equipo de la empresa durante un período de operación real de un mes.</p>
+
+  <h3>6.2.1 Registro de Errores Encontrados</h3>
+  <p>Durante el período de pruebas se identificaron y corrigieron los siguientes errores, clasificados por su nivel de severidad.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 27</div>
+    <div class="table-title">Errores identificados y corregidos durante el período de pruebas</div>
+    <table>
+      <thead><tr><th>ID</th><th>Descripción del error</th><th>Severidad</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>ERR-01</td><td>El escáner de cédula enviaba caracteres adicionales al final de la cadena en algunos modelos de escáner, provocando que la búsqueda no encontrara al beneficiario</td><td>Alta</td><td>Corregido</td></tr>
+        <tr><td>ERR-02</td><td>El cálculo del cupo utilizado incluía solicitudes en estado "Cancelada" y "Rechazada", sobrecontando el uso real del cupo</td><td>Alta</td><td>Corregido</td></tr>
+        <tr><td>ERR-03</td><td>La paginación del listado de solicitudes con filtros activos perdía los filtros al cambiar de página</td><td>Media</td><td>Corregido</td></tr>
+        <tr><td>ERR-04</td><td>La generación del PDF fallaba cuando el nombre del destinatario contenía caracteres especiales (tildes, ñ) no soportados por la configuración inicial de FPDF</td><td>Media</td><td>Corregido</td></tr>
+        <tr><td>ERR-05</td><td>La importación masiva desde Excel no validaba el campo de sede cuando este no correspondía a ninguna sede registrada, insertando registros con referencia inválida</td><td>Alta</td><td>Corregido</td></tr>
+        <tr><td>ERR-06</td><td>El cupo máximo configurable en la vista no validaba que el nuevo valor no fuera inferior al número de solicitudes activas ya registradas para esa sede en el período</td><td>Media</td><td>Corregido</td></tr>
+      </tbody>
+    </table>
+    <div class="table-note"><em>Nota.</em> Severidad Alta corresponde a errores que bloqueaban una funcionalidad principal. Severidad Media corresponde a errores que afectaban parcialmente la experiencia de usuario sin impedir la operación.</div>
+  </div>
+
+  <h3>6.2.2 Mejoras Implementadas</h3>
+  <p>Adicionalmente a la corrección de los errores documentados, durante el período de pruebas se identificaron y aplicaron las siguientes mejoras al diseño original del sistema.</p>
+  <p>Se incorporó la opción de registrar un nuevo beneficiario directamente desde el panel táctil del operador, sin necesidad de navegar a la sección de personas, eliminando una fricción operativa detectada durante las pruebas de usabilidad. Se añadió una barra de progreso visual al panel de cupos por sede, que permite al administrador identificar rápidamente el estado de cada sede sin necesidad de interpretar números. Se implementó la actualización automática del dashboard mediante polling, en respuesta a la necesidad expresada por el administrador de monitorear el estado de las solicitudes sin tener que recargar la página manualmente.</p>
+
+  <h2>6.3 Validación con el Cliente</h2>
+  <p>La validación con el cliente se realizó mediante la operación paralela del sistema durante un período de un mes, en el cual el equipo de la empresa utilizó el sistema como herramienta principal del proceso de solicitudes mientras el proceso manual anterior se mantuvo como respaldo de contingencia.</p>
+
+  <h3>6.3.1 Proceso de Aceptación del Software</h3>
+  <p>Al término del período de pruebas de un mes, el equipo operativo de Flores el Tandil confirmó que el sistema cumplía con las expectativas funcionales establecidas al inicio del proyecto. Se verificó que las validaciones de cupo y período funcionaban correctamente en condiciones reales, que el panel táctil del operador era operativo en el dispositivo disponible en el punto de atención y que los reportes PDF generados satisfacían los requerimientos del área de elaboración de ramos.</p>
+
+  <h3>6.3.2 Feedback Recibido</h3>
+  <p>La retroalimentación recibida del equipo operativo durante el período de pruebas se puede resumir en los siguientes puntos. El panel táctil fue valorado positivamente por su simplicidad y velocidad en comparación con el proceso anterior. Se solicitó la adición del registro de nueva persona desde el panel de solicitudes, mejora que fue implementada durante el mismo período de pruebas. Se identificó como deseable la generación automática de reportes periódicos, funcionalidad que fue documentada como limitación LF-04 para consideración en versiones futuras del sistema.</p>
+
+  <div class="page-number">8</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 7 — IMPLEMENTACIÓN Y MANTENIMIENTO           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>7. Implementación y Mantenimiento</h1>
+  <p>Este capítulo describe la estrategia de despliegue del sistema en el entorno de producción de Flores el Tandil, el plan de capacitación del equipo usuario y las políticas de mantenimiento y soporte técnico que garantizan la continuidad operativa del sistema una vez en producción.</p>
+
+  <h2>7.1 Estrategia de Implementación</h2>
+  <p>La implementación del sistema requirió la configuración del entorno de servidor en las instalaciones de la empresa y la migración de los datos históricos relevantes al nuevo sistema de base de datos.</p>
+
+  <h3>7.1.1 Servidores y Hosting</h3>
+  <p>El sistema opera sobre infraestructura local dentro de las instalaciones de Flores el Tandil. No se requiere contratación de servicios de hosting externo ni conexión a internet para su funcionamiento. La configuración del entorno de servidor comprende los siguientes componentes.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 28</div>
+    <div class="table-title">Configuración del entorno de servidor de producción</div>
+    <table>
+      <thead><tr><th>Componente</th><th>Configuración</th></tr></thead>
+      <tbody>
+        <tr><td>Sistema operativo del servidor</td><td>Windows (equipo existente designado como servidor de la red local)</td></tr>
+        <tr><td>Servidor web</td><td>Apache HTTP Server provisto mediante Laragon</td></tr>
+        <tr><td>Lenguaje de servidor</td><td>PHP 8.0 o superior</td></tr>
+        <tr><td>Motor de base de datos</td><td>MySQL 5.7 o superior</td></tr>
+        <tr><td>Acceso de clientes</td><td>Cualquier equipo conectado a la red local mediante navegador Chrome o Firefox actualizado</td></tr>
+        <tr><td>Dirección de acceso</td><td>IP local del servidor en la red interna (sin dominio público)</td></tr>
+        <tr><td>Almacenamiento de archivos</td><td>Sistema de archivos local del servidor en el directorio <code>/storage/pdfs/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tech-note"><strong>Importante:</strong> Dado que el sistema opera en un único servidor sin redundancia (restricción técnica RT-02), se recomienda establecer un procedimiento de copia de seguridad periódica del directorio del sistema y de la base de datos MySQL, con almacenamiento en un dispositivo externo o equipo diferente al servidor.</div>
+
+  <h3>7.1.2 Migración de Datos</h3>
+  <p>La migración de datos del proceso anterior al sistema implicó la carga inicial de los catálogos del sistema (sedes, motivos de ramo, estados de solicitud) y el registro de los beneficiarios activos de la organización. No existían datos históricos de solicitudes en formato digital, por lo que la migración se limitó a los datos maestros de personas.</p>
+  <p>La carga de beneficiarios se realizó mediante la funcionalidad de importación masiva desde Excel (RF-07), con un archivo preparado por el área administrativa con los datos del personal activo de las empresas Tandil y Creos. Se verificó la integridad de los datos importados mediante revisión manual de una muestra representativa de registros antes de poner el sistema en operación.</p>
+
+  <h2>7.2 Plan de Capacitación</h2>
+  <p>La capacitación del equipo usuario se realizó de manera presencial durante la fase de implementación, diferenciando el contenido según el rol de cada usuario dentro del sistema.</p>
+
+  <h3>7.2.1 Manuales Técnicos y de Usuario</h3>
+  <p>Se identifican dos tipos de documentación de usuario necesarios para la operación autónoma del sistema, pendientes de elaboración en su versión formal.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 29</div>
+    <div class="table-title">Documentos de usuario identificados para el sistema</div>
+    <table>
+      <thead><tr><th>Documento</th><th>Destinatario</th><th>Contenido principal</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>Manual del Operador</td><td>Personal de oficina (operador)</td><td>Registro de solicitudes, búsqueda de beneficiarios, uso del escáner, mensajes de error comunes</td><td>Pendiente de formalización</td></tr>
+        <tr><td>Manual del Administrador</td><td>Responsable del área (administrador)</td><td>Gestión de solicitudes, cambio de estados, configuración de cupos, generación de reportes, gestión de personas y catálogos</td><td>Pendiente de formalización</td></tr>
+        <tr><td>Manual Técnico</td><td>Soporte técnico</td><td>Arquitectura del sistema, estructura de la base de datos, procedimiento de respaldo, configuración del servidor, resolución de incidencias comunes</td><td>Presente documento</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>7.2.2 Sesiones de Formación</h3>
+  <p>La capacitación se realizó en dos sesiones presenciales en las instalaciones de la empresa. La primera sesión estuvo dirigida al personal operativo (operadores) y cubrió el uso del panel táctil, la búsqueda de beneficiarios, el registro de solicitudes y la interpretación de los mensajes del sistema. La segunda sesión estuvo dirigida al administrador del área y cubrió la gestión del ciclo de vida de solicitudes, la configuración de cupos, la generación de reportes PDF y la administración de catálogos y personas.</p>
+  <p>Ambas sesiones incluyeron práctica directa sobre el sistema con datos reales, y se resolvieron las dudas surgidas durante el primer mes de operación paralela mediante comunicación directa con el desarrollador.</p>
+
+  <h2>7.3 Mantenimiento del Software</h2>
+  <p>El mantenimiento del sistema está a cargo del desarrollador, Mario Alexander Cañola Cano, quien provee soporte técnico de manera directa. Se definen dos modalidades de mantenimiento: el mantenimiento correctivo, orientado a la resolución de errores detectados en producción, y el mantenimiento evolutivo, orientado a la incorporación de nuevas funcionalidades en versiones futuras.</p>
+
+  <h3>7.3.1 Soporte Técnico</h3>
+  <p>El soporte técnico se provee bajo demanda, sin un contrato formal de niveles de servicio (SLA) en la versión actual del sistema. Para incidencias que impidan la operación del sistema, se establece como medida de contingencia la reanudación temporal del proceso manual (formularios en papel) hasta que el sistema sea restaurado.</p>
+  <p>Las incidencias comunes y sus procedimientos de resolución serán documentados en el Manual Técnico mencionado en la sección 7.2.1, incluyendo el procedimiento de reinicio del servidor Apache, la verificación del estado del servicio MySQL y el procedimiento de restauración desde copia de seguridad.</p>
+
+  <h3>7.3.2 Estrategia de Actualización</h3>
+  <p>Las actualizaciones del sistema se planificarán en función de la retroalimentación acumulada durante la operación. Se identifican como candidatas para la siguiente versión del sistema las siguientes funcionalidades, derivadas de las limitaciones documentadas en la sección 1.3.3: historial de cambios de estado por solicitud (LF-02), generación automática de reportes periódicos (LF-04) y generación de remisión digital de entrega (LF-05).</p>
+  <p>Cualquier actualización deberá ser probada en un entorno de desarrollo separado antes de su despliegue en el servidor de producción, con copia de seguridad previa de la base de datos.</p>
+
+  <div class="page-number">9</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CAPÍTULO 8 — CONCLUSIONES Y RECOMENDACIONES           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="running-header">SISTEMA DE SOLICITUD DE RAMOS</div>
+
+  <h1>8. Conclusiones y Recomendaciones</h1>
+  <p>El capítulo final sintetiza los resultados alcanzados con el desarrollo e implementación del Sistema de Solicitud de Ramos, documenta los desafíos enfrentados durante el proceso, extrae las lecciones aprendidas y formula recomendaciones para el mantenimiento y la evolución futura del sistema.</p>
+
+  <h2>8.1 Evaluación del Proyecto</h2>
+  <p>La evaluación del proyecto contrasta los objetivos definidos al inicio del desarrollo con los resultados efectivamente obtenidos, identificando tanto los logros consolidados como los aspectos que permanecen como áreas de mejora.</p>
+
+  <h3>8.1.1 Logros Alcanzados</h3>
+  <p>El Sistema de Solicitud de Ramos cumplió con la totalidad de los objetivos específicos planteados en la sección 1.2.2 del presente documento. El proceso de solicitud de ramos en Flores el Tandil fue digitalizado en su totalidad, eliminando el uso de formularios en papel en todas las etapas del ciclo. Los ocho módulos funcionales fueron implementados y validados con el equipo de la empresa durante un período de pruebas de un mes con datos reales.</p>
+  <p>De manera específica, se destaca el cumplimiento de los siguientes logros: la implementación exitosa del motor de validación de reglas de negocio, que garantiza el control de cupos y la restricción de período en tiempo real; la integración del escáner de cédula de ciudadanía mediante lectura de código de barras PDF417, que redujo significativamente el tiempo de atención en el punto de solicitud; y el panel de estadísticas con actualización automática, que provee visibilidad en tiempo real del proceso al área administrativa sin necesidad de generar reportes manuales.</p>
+
+  <h3>8.1.2 Desafíos Encontrados</h3>
+  <p>El principal desafío técnico del proyecto fue la integración con el escáner de cédula de ciudadanía, que requirió el desarrollo de un parser personalizado (<code>BarcodeParser.php</code>) para interpretar correctamente el formato del código de barras PDF417 de la cédula colombiana, con normalización de los caracteres adicionales que diferentes modelos de escáner envían al final de la cadena leída.</p>
+  <p>Desde el punto de vista del proceso, el principal desafío fue la identificación de las reglas de negocio implícitas que no estaban documentadas en ningún lugar y que solo emergían mediante la observación directa y las entrevistas con el personal operativo. En particular, la lógica de cálculo del cupo utilizado —que debía excluir las solicitudes canceladas y rechazadas— no era evidente inicialmente y fue identificada durante las pruebas.</p>
+
+  <h2>8.2 Lecciones Aprendidas</h2>
+  <p>El proceso de desarrollo del sistema dejó un conjunto de aprendizajes que se documentan tanto para referencia del propio equipo como para orientar el desarrollo de proyectos similares en el futuro.</p>
+
+  <h3>8.2.1 Mejores Prácticas Aplicadas</h3>
+  <p>La separación de la lógica de negocio en una capa de servicios independiente de los controladores demostró ser una decisión acertada: cuando se identificaron errores en las reglas de negocio (como el cálculo del cupo), las correcciones se aplicaron en un único punto del código sin necesidad de modificar múltiples controladores. Esta experiencia confirma la utilidad del Principio de Responsabilidad Única en proyectos de esta escala.</p>
+  <p>El prototipado iterativo con el usuario real, aunque no formalizado como metodología, permitió detectar tempranamente la necesidad de registrar personas desde el panel de solicitudes, una funcionalidad que no había sido identificada en el levantamiento inicial de requisitos pero que resultó crítica para la fluidez del proceso en el punto de atención.</p>
+
+  <h3>8.2.2 Recomendaciones para Futuras Versiones</h3>
+  <p>Con base en la experiencia del desarrollo y en la retroalimentación recibida durante el período de pruebas, se formulan las siguientes recomendaciones para la evolución del sistema.</p>
+  <p><strong>Implementar respaldo automatizado de la base de datos.</strong> La ausencia de copias de seguridad automáticas (restricción técnica RT-03) constituye el riesgo operativo más significativo del sistema en su estado actual. Se recomienda configurar una tarea programada en el servidor que realice una copia diaria de la base de datos MySQL en un directorio externo al servidor principal.</p>
+  <p><strong>Incorporar historial de cambios de estado.</strong> La limitación LF-02, relativa a la ausencia de trazabilidad de las transiciones de estado, fue señalada como una necesidad por el área administrativa. Su implementación requiere la adición de una tabla <code>historial_estados</code> con las columnas de solicitud, estado anterior, estado nuevo, usuario que realizó el cambio y marca de tiempo.</p>
+  <p><strong>Evaluar la migración a un servidor dedicado.</strong> La dependencia de un único equipo como servidor (restricción técnica RT-02) representa un punto único de falla. Para una operación más robusta, se recomienda evaluar la migración del sistema a un servidor dedicado, incluso dentro de la infraestructura local de la empresa.</p>
+  <p><strong>Considerar la generación automática de reportes periódicos.</strong> La automatización de la generación y distribución del reporte PDF semanal o mensual, actualmente realizada manualmente por el administrador (limitación LF-04), eliminaría una tarea repetitiva y reduciría el riesgo de omisión del reporte en las fechas esperadas.</p>
+
+  <h2>8.3 Bibliografía y Referencias</h2>
+  <h3>8.3.1 Fuentes de Información Utilizadas</h3>
+
+  <p>Fowler, M. (2002). <em>Patterns of enterprise application architecture.</em> Addison-Wesley Professional.</p>
+  <p>Martin, R. C. (2003). <em>Agile software development: Principles, patterns, and practices.</em> Prentice Hall.</p>
+  <p>Open Web Application Security Project. (2021). <em>OWASP Top Ten.</em> https://owasp.org/www-project-top-ten/</p>
+  <p>International Organization for Standardization. (2011). <em>ISO/IEC 25010: Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models.</em> ISO.</p>
+  <p>Institute of Electrical and Electronics Engineers. (1998). <em>IEEE Std 830-1998: IEEE Recommended Practice for Software Requirements Specifications.</em> IEEE.</p>
+  <p>FPDF Library. (2011). <em>FPDF — Free PDF library for PHP.</em> http://www.fpdf.org/</p>
+  <p>PhpOffice. (2023). <em>PhpSpreadsheet documentation.</em> https://phpspreadsheet.readthedocs.io/</p>
+  <p>Chart.js Contributors. (2023). <em>Chart.js documentation.</em> https://www.chartjs.org/docs/latest/</p>
+  <p>The PHP Group. (2023). <em>PHP manual.</em> https://www.php.net/manual/es/</p>
+  <p>MySQL AB. (2023). <em>MySQL 8.0 reference manual.</em> https://dev.mysql.com/doc/refman/8.0/en/</p>
+
+  <div class="page-number">10</div>
+</div>
+
+</body>
+</html>
+
+
