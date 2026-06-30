@@ -198,7 +198,45 @@ class Solicitud
              AND id_estado IN (SELECT id FROM estados_solicitud WHERE nombre IN ('Aprobada', 'Pendiente', 'Entregada'))"
         );
         $stmt->execute([(int)$persona_id]);
-        return (int)$stmt->fetchColumn() > 0;
+        if ((int)$stmt->fetchColumn() === 0) {
+            return false;
+        }
+        // Tiene solicitud en los últimos 30 días pero puede estar en la ventana de gracia semanal
+        return !$this->enVentanaGracia((int)$persona_id);
+    }
+
+    /**
+     * Ventana de gracia semanal: si el vencimiento de los 30 días de la persona
+     * cae entre el lunes y el jueves de la semana actual, se permite adelantar
+     * la solicitud al inicio de esa semana para incluirla en la preparación del lunes.
+     */
+    private function enVentanaGracia(int $persona_id): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT MAX(fecha_solicitud) FROM solicitudes
+             WHERE persona_id = ?
+             AND id_estado IN (SELECT id FROM estados_solicitud WHERE nombre IN ('Aprobada', 'Pendiente', 'Entregada'))"
+        );
+        $stmt->execute([$persona_id]);
+        $ultimaFecha = $stmt->fetchColumn();
+
+        if (!$ultimaFecha) {
+            return false;
+        }
+
+        $ultima      = new DateTime(date('Y-m-d', strtotime($ultimaFecha)));
+        $hoy         = new DateTime(date('Y-m-d'));
+        $diasDesde   = (int)$ultima->diff($hoy)->days;
+
+        if ($diasDesde >= 30) {
+            return false; // Ya cumplió los 30 días, no necesita gracia
+        }
+
+        $vencimiento = (clone $ultima)->modify('+30 days');
+        $lunes       = new DateTime('monday this week');
+        $jueves      = new DateTime('thursday this week');
+
+        return $vencimiento >= $lunes && $vencimiento <= $jueves;
     }
 
     /**
@@ -213,6 +251,11 @@ class Solicitud
     /** Devuelve la solicitud activa de los últimos 30 días para mostrar detalles en la alerta del kiosco. */
     public function getSolicitudActivaEnPeriodo($persona_id, $fecha, $tipo = 'monthly')
     {
+        // Si está en ventana de gracia semanal, se permite nueva solicitud (no hay bloqueo)
+        if ($this->enVentanaGracia((int)$persona_id)) {
+            return null;
+        }
+
         $stmt = $this->db->prepare(
             "SELECT s.id, s.fecha_solicitud, m.nombre AS motivo_nombre, e.nombre AS estado_nombre
              FROM solicitudes s
