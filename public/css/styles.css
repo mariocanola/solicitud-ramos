@@ -234,6 +234,12 @@ body {
     font-size: 20px;
     color: var(--primary);
     font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 10px;
 }
 
 .top-bar-right {
@@ -698,12 +704,11 @@ table.table tbody tr:nth-child(even) {
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    background: none;
+    background: white;
     border: 1px solid var(--border);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: white;
 }
 
 .user-dropdown-btn:hover {
@@ -825,17 +830,124 @@ table.table tbody tr:nth-child(even) {
     margin: 4px 0;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
+/* ===== HAMBURGER BUTTON ===== */
+.menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    color: var(--primary);
+    margin-right: 10px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+.menu-toggle:hover { background: var(--light); }
+.menu-toggle svg { display: block; }
+
+/* Overlay que cierra el sidebar al tocar fuera */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 99;
+}
+.sidebar-overlay.show { display: block; }
+
+/* ===== TABLET (≤ 992px) ===== */
+@media (max-width: 992px) {
+    /* Sidebar: oculto por defecto, aparece con .open */
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 200;
+        transition: transform 0.28s ease;
+    }
     .sidebar.open { transform: translateX(0); }
+
+    /* Contenido ocupa el ancho completo */
     .main-content { margin-left: 0; }
-    .row { flex-direction: column; }
-    .col-3, .col-4, .col-6 { width: 100%; }
-    .form-inline { flex-direction: column; }
-    .top-bar { padding: 10px 15px; }
+
+    /* Mostrar botón hamburguesa */
+    .menu-toggle { display: flex; }
+
+    /* Grid: col-2, col-3 y col-4 pasan a 50% en tablet */
+    .col-2 { width: 50%; }
+    .col-3 { width: 50%; }
+    .col-4 { width: 50%; }
+}
+
+/* ===== MÓVIL (≤ 768px) ===== */
+@media (max-width: 768px) {
+    /* Grid */
+    .col-2, .col-3, .col-4 { width: 50%; }
+    .col-6 { width: 100%; }
+
+    /* Layout */
+    .top-bar  { padding: 10px 15px; }
     .content-area { padding: 15px; }
     .top-bar-right { gap: 10px; }
+
+    /* Formularios inline */
+    .form-inline { flex-direction: column; }
+
+    /* Dropdown usuario */
     .user-dropdown-btn .user-name { display: none; }
-    .dropdown-menu { right: -10px; min-width: 200px; }
+    .dropdown-arrow { display: none; }
+    .dropdown-menu { right: -4px; min-width: 220px; }
+
+    /* Tabs: scroll horizontal cuando no caben */
+    .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 1px;
+    }
+    .tab-btn { white-space: nowrap; }
+
+    /* Cards */
+    .card-header { flex-wrap: wrap; gap: 8px; }
+}
+
+/* ===== TELÉFONO PEQUEÑO (≤ 480px) ===== */
+@media (max-width: 480px) {
+    /* Grid: todo a columna única */
+    .row { flex-direction: column; }
+    .col-2, .col-3, .col-4, .col-6, .col-12 { width: 100%; }
+
+    /* Top bar */
+    .top-bar { padding: 8px 12px; gap: 6px; }
+    .top-bar h1 { font-size: 17px; }
+    .top-bar-right .text-muted { display: none; }
+
+    /* Contenido */
+    .content-area { padding: 10px; }
+
+    /* Modal: pantalla casi completa en teléfono */
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 12px 12px 0 0;
+        margin: 0;
+    }
+    .modal-lg { max-width: 100%; }
+    .modal-overlay { align-items: flex-end; }
+
+    /* Botones */
+    .btn-lg { padding: 10px 18px; font-size: 15px; }
+
+    /* Tablas: en pantallas muy pequeñas siempre hay scroll horizontal */
+    .table-responsive { -webkit-overflow-scrolling: touch; }
+    table.table th, table.table td { padding: 8px 10px; font-size: 13px; }
+
+    /* Stat cards: margen inferior más compacto */
+    .stat-card { padding: 16px; margin-bottom: 10px; }
+    .stat-card .stat-value { font-size: 24px; }
+
+    /* Paginación más compacta */
+    .pagination { flex-wrap: wrap; }
+    .pagination a, .pagination span { padding: 5px 9px; font-size: 12px; }
 }

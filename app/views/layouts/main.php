@@ -7,15 +7,17 @@
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>/img/logo-tandil.png">
     <?php $cssVer = @filemtime(BASE_PATH . '/public/css/styles.css') ?: time(); ?>
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/styles.css?v=<?= $cssVer ?>">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js" defer></script>
     <?php $appJsVer = @filemtime(BASE_PATH . '/public/js/app.js') ?: time(); ?>
     <?php $fvJsVer  = @filemtime(BASE_PATH . '/public/js/form-validator.js') ?: time(); ?>
-    <script src="<?= BASE_URL ?>/js/app.js?v=<?= $appJsVer ?>"></script>
+    <script src="<?= BASE_URL ?>/js/app.js?v=<?= $appJsVer ?>" defer></script>
     <script src="<?= BASE_URL ?>/js/form-validator.js?v=<?= $fvJsVer ?>"></script>
 </head>
 <body>
 <div class="app-wrapper">
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -55,6 +57,9 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="top-bar">
+            <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
             <h1><?= htmlspecialchars($pageTitle ?? 'Sistema') ?></h1>
             <div class="top-bar-right">
                 <span class="text-muted"><?= date('d/m/Y H:i') ?></span>
@@ -107,6 +112,44 @@
 <?php endif; ?>
 
 <script>
+// Sidebar toggle (mobile)
+document.addEventListener('DOMContentLoaded', function() {
+    var menuToggle = document.getElementById('menu-toggle');
+    var sidebar    = document.getElementById('sidebar');
+    var overlay    = document.getElementById('sidebar-overlay');
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Close sidebar on nav link click (mobile)
+    if (sidebar) {
+        sidebar.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 992) { closeSidebar(); }
+            });
+        });
+    }
+});
+
 // User Dropdown functionality
 document.addEventListener('DOMContentLoaded', function() {
     const dropdownBtn = document.getElementById('user-dropdown-btn');

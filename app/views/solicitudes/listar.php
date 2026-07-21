@@ -129,7 +129,7 @@
                     ?>
                         <tr>
                             <td><?= $contador ?></td>
-                            <td style="white-space:nowrap"><?= $s['fecha_solicitud'] ?></td>
+                            <td style="white-space:nowrap"><?= htmlspecialchars($s['fecha_solicitud']) ?></td>
                             <td><?= htmlspecialchars(Persona::getNombreCompleto($s)) ?></td>
                             <td><?= htmlspecialchars($s['documento']) ?></td>
                             <td><?= htmlspecialchars($s['sede_nombre']) ?></td>
@@ -633,15 +633,20 @@ var personaValidator = new FormValidator('form_persona', {
     var pollerId = null;
 
     function chequearCambios() {
-        fetch(BASE_URL + '/api/dashboard/heartbeat', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function (r) { return r.json(); })
+        var ctrl = new AbortController();
+        var timer = setTimeout(function() { ctrl.abort(); }, 5000);
+        fetch(BASE_URL + '/api/dashboard/heartbeat', {
+            signal: ctrl.signal,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (r) { clearTimeout(timer); return r.json(); })
             .then(function (j) {
                 if (!j || !j.success) return;
                 var hash = j.data.total + ':' + j.data.last;
                 if (ultimoHash === null) { ultimoHash = hash; return; }
                 if (hash !== ultimoHash) { location.reload(); }
             })
-            .catch(function () {});
+            .catch(function () { clearTimeout(timer); });
     }
 
     function start() { if (!pollerId) pollerId = setInterval(chequearCambios, HEARTBEAT_MS); }

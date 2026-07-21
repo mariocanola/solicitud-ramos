@@ -114,26 +114,24 @@ class CupoSede
             $fechaCondicion = "DATE_FORMAT(sol.fecha_solicitud, '%Y-%m-01') = cs.periodo";
         }
         
-        $sql = "SELECT cs.id, cs.id_sede, cs.periodo, cs.cupo_maximo, cs.notificado,
-                    s.nombre AS sede_nombre,
-                    COALESCE((
-                        SELECT COUNT(*) FROM solicitudes sol
-                        INNER JOIN estados_solicitud e ON e.id = sol.id_estado
-                        WHERE sol.id_sede = cs.id_sede
-                          AND {$fechaCondicion}
-                          AND e.nombre IN ('Pendiente','Aprobada','Entregada')
-                    ), 0) AS cupo_usado,
-                    ROUND(COALESCE((
-                        SELECT COUNT(*) FROM solicitudes sol
-                        INNER JOIN estados_solicitud e ON e.id = sol.id_estado
-                        WHERE sol.id_sede = cs.id_sede
-                          AND {$fechaCondicion}
-                          AND e.nombre IN ('Pendiente','Aprobada','Entregada')
-                    ), 0) / cs.cupo_maximo * 100, 1) AS porcentaje
-             FROM cupos_sede cs
-             INNER JOIN sedes s ON s.id = cs.id_sede
-             WHERE cs.periodo = ?
-             ORDER BY s.nombre";
+        $sql = "SELECT t.id, t.id_sede, t.periodo, t.cupo_maximo, t.notificado,
+                       t.sede_nombre, t.cupo_usado,
+                       ROUND(t.cupo_usado / NULLIF(t.cupo_maximo, 0) * 100, 1) AS porcentaje
+                FROM (
+                    SELECT cs.id, cs.id_sede, cs.periodo, cs.cupo_maximo, cs.notificado,
+                           s.nombre AS sede_nombre,
+                           COALESCE((
+                               SELECT COUNT(*) FROM solicitudes sol
+                               INNER JOIN estados_solicitud e ON e.id = sol.id_estado
+                               WHERE sol.id_sede = cs.id_sede
+                                 AND {$fechaCondicion}
+                                 AND e.nombre IN ('Pendiente','Aprobada','Entregada')
+                           ), 0) AS cupo_usado
+                    FROM cupos_sede cs
+                    INNER JOIN sedes s ON s.id = cs.id_sede
+                    WHERE cs.periodo = ?
+                ) t
+                ORDER BY t.sede_nombre";
              
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$periodo]);

@@ -24,7 +24,7 @@
     </div>
     <div class="col-3">
         <div class="stat-card warning">
-            <div class="stat-value"><?= $periodoActual ?></div>
+            <div class="stat-value"><?= htmlspecialchars($periodoActual) ?></div>
             <div class="stat-label">Periodo Actual</div>
         </div>
     </div>
@@ -35,7 +35,7 @@
     <!-- Grafica Circular: Solicitudes de la semana por sede -->
     <div class="col-6">
         <div class="card">
-            <div class="card-header">Solicitudes de la Semana por Sede</div>
+            <div class="card-header">Solicitudes de la <?= $tipo === 'weekly' ? 'Semana' : 'Mes' ?> por Sede</div>
             <div class="card-body">
                 <?php if (empty($pieData['data'])): ?>
                     <p class="text-muted text-center" style="padding:40px 0">No hay solicitudes registradas esta semana.</p>
@@ -276,15 +276,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchCompleto() {
-        fetch(BASE_URL + '/api/dashboard/resumen', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function (r) { return r.json(); })
+        var ctrl = new AbortController();
+        var timer = setTimeout(function() { ctrl.abort(); }, 8000);
+        fetch(BASE_URL + '/api/dashboard/resumen', {
+            signal: ctrl.signal,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (r) { clearTimeout(timer); return r.json(); })
             .then(function (j) { if (j && j.success) aplicarResumen(j.data); })
-            .catch(function () {});
+            .catch(function () { clearTimeout(timer); });
     }
 
     function poll() {
-        fetch(BASE_URL + '/api/dashboard/heartbeat', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function (r) { return r.json(); })
+        var ctrl = new AbortController();
+        var timer = setTimeout(function() { ctrl.abort(); }, 5000);
+        fetch(BASE_URL + '/api/dashboard/heartbeat', {
+            signal: ctrl.signal,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (r) { clearTimeout(timer); return r.json(); })
             .then(function (j) {
                 if (!j || !j.success) return;
                 // El periodo entra en el hash: cuando cruza el limite (lunes 6 AM o 1 del mes)
@@ -295,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     fetchCompleto();
                 }
             })
-            .catch(function () {});
+            .catch(function () { clearTimeout(timer); });
     }
 
     var pollerId = null;

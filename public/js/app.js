@@ -194,27 +194,41 @@ function updateCsrfToken(data) {
 /**
  * AJAX helper
  */
+var AJAX_TIMEOUT_MS = 10000;
+
 function ajaxGet(url, callback) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function() { ctrl.abort(); }, AJAX_TIMEOUT_MS);
     fetch(url, {
+        signal: ctrl.signal,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) { clearTimeout(timer); return r.json(); })
     .then(function(data) {
         updateCsrfToken(data);
         callback(data);
     })
     .catch(function(err) {
-        console.error('AJAX Error:', err);
+        clearTimeout(timer);
+        if (err.name === 'AbortError') {
+            console.warn('ajaxGet timeout:', url);
+        } else {
+            console.error('AJAX Error:', err);
+        }
     });
 }
 
 function ajaxPost(url, formData, callback) {
-    fetch(url, {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function() { ctrl.abort(); }, AJAX_TIMEOUT_MS);
+    return fetch(url, {
         method: 'POST',
         body: formData,
+        signal: ctrl.signal,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(function(r) {
+        clearTimeout(timer);
         if (!r.ok && r.status === 403) {
             throw new Error('Token de seguridad expirado. Recargue la página.');
         }
@@ -225,7 +239,13 @@ function ajaxPost(url, formData, callback) {
         callback(data);
     })
     .catch(function(err) {
-        console.error('AJAX Error:', err);
-        swalError(err.message || 'Error de conexion. Intente de nuevo.');
+        clearTimeout(timer);
+        if (err.name === 'AbortError') {
+            swalError('La solicitud tardó demasiado. Verifique su conexión e intente de nuevo.');
+        } else {
+            console.error('AJAX Error:', err);
+            swalError(err.message || 'Error de conexion. Intente de nuevo.');
+        }
+        throw err;
     });
 }

@@ -182,14 +182,10 @@ function guardarPersona() {
     btnGuardar.disabled = true;
     btnGuardar.textContent = 'Guardando...';
 
-    console.log('Enviando datos de persona:', Object.fromEntries(formData));
-    
     ajaxPost(BASE_URL + '/personas/crear', formData, function(data) {
-        console.log('Respuesta del servidor:', data);
-        
         btnGuardar.disabled = false;
         btnGuardar.textContent = originalText;
-        
+
         if (data.success) {
             cerrarModalPersona();
             
@@ -208,7 +204,6 @@ function guardarPersona() {
                 window.onPersonaEncontrada(data.data);
             }
         } else {
-            console.error('Error al crear persona:', data);
             if (data.errors && Object.keys(data.errors).length > 0) {
                 var errorMsg = 'Por favor corrija los siguientes errores:\\n\\n';
                 for (var field in data.errors) {
@@ -219,11 +214,9 @@ function guardarPersona() {
                 swalError(data.message || 'Error al crear persona');
             }
         }
-    }).catch(function(error) {
-        console.error('Error en la petición AJAX:', error);
+    }).catch(function() {
         btnGuardar.disabled = false;
         btnGuardar.textContent = originalText;
-        swalError('Error de conexión. Por favor intente nuevamente.');
     });
 }
 
@@ -243,10 +236,13 @@ function _setStatus(msg, type) {
 function buscarPersona(documento) {
     // Usar /solicitudes/buscar-persona en lugar de /personas/buscar porque ese endpoint
     // incluye el flag ya_solicito_mes que onPersonaEncontrada usa para bloquear duplicados.
+    var ctrl = new AbortController();
+    var timer = setTimeout(function() { ctrl.abort(); }, 8000);
     fetch(BASE_URL + '/solicitudes/buscar-persona?documento=' + encodeURIComponent(documento), {
+        signal: ctrl.signal,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) { clearTimeout(timer); return r.json(); })
     .then(function(data) {
         if (data.success && data.data) {
             var p = data.data;
@@ -254,7 +250,7 @@ function buscarPersona(documento) {
 
             // Bloquear duplicado en el periodo actual antes de mostrar cualquier dato.
             if (p.ya_solicito_periodo || p.ya_solicito_mes) {
-                var msg = 'Ya solicitó ramo esta ' + periodoLabel;
+                var msg = 'Ya solicitó ramo ' + periodoLabel;
                 _setStatus(msg, 'error');
                 if (window.onScannerStatusChange) window.onScannerStatusChange('error', msg);
                 if (typeof alertarSolicitudExistente === 'function') alertarSolicitudExistente(p);
@@ -296,15 +292,13 @@ function buscarPersona(documento) {
         }
     })
     .catch(function(err) {
-        console.error('Error buscando persona:', err);
-        _setStatus('Error de conexión. Intente nuevamente.', 'error');
-
-        // Actualizar indicador visual
+        clearTimeout(timer);
+        var msg = err.name === 'AbortError'
+            ? 'El servidor tardó mucho. Intente nuevamente.'
+            : 'Error de conexión. Intente nuevamente.';
+        _setStatus(msg, 'error');
         if (window.onScannerStatusChange) {
-            window.onScannerStatusChange('error', 'Error de conexión');
+            window.onScannerStatusChange('error', msg);
         }
-
-        // Abrir modal para crear nueva persona en caso de error
-        abrirModalPersona(documento);
     });
 }

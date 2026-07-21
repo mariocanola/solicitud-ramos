@@ -106,29 +106,6 @@
     </div>
 </div>
 
-<style>
-.detalle-campo {
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-.detalle-campo:last-child {
-    border-bottom: none;
-}
-.detalle-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: #95A5A6;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 3px;
-}
-.detalle-valor {
-    display: block;
-    font-size: 15px;
-    color: #2C3E50;
-}
-</style>
 
 <script>
 var BASE_URL = '<?= BASE_URL ?>';
