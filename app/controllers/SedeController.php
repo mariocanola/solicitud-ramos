@@ -12,18 +12,6 @@ class SedeController
         Response::success($model->getActivas());
     }
 
-    public function listarMotivos()
-    {
-        $model = new MotivoRamo();
-        Response::success($model->getActivos());
-    }
-
-    public function listarEstados()
-    {
-        $model = new EstadoSolicitud();
-        Response::success($model->getAll());
-    }
-
     public function crear()
     {
         Csrf::validate();

@@ -54,4 +54,13 @@ class Usuario
         ]);
         return $this->db->lastInsertId();
     }
+
+    public function actualizarPassword($id, $password)
+    {
+        $stmt = $this->db->prepare("UPDATE usuarios SET password_hash = ? WHERE id = ?");
+        return $stmt->execute([
+            password_hash($password, PASSWORD_BCRYPT),
+            (int)$id,
+        ]);
+    }
 }

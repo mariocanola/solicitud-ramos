@@ -1,0 +1,20 @@
+# Deny direct web access to secrets and app source when
+# DocumentRoot is the project folder (Laragon default: flores.test).
+# If DocumentRoot is already public/, this file is not used.
+
+Options -Indexes
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "(?i)^(\.env.*|composer\.(json|lock))$">
+        Require all denied
+    </FilesMatch>
+    <FilesMatch "(?i)\.(sql|bat|md|log|jsonl)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(app|sql|storage|installer|docs|vendor|backups|\.git|\.claude|\.cursor)(/|$) - [F,L]
+    RewriteRule ^(test_panel|ver_panel|test_eliminar_area)\.php$ - [F,L]
+</IfModule>

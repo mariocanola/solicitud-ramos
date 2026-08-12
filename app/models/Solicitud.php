@@ -178,18 +178,7 @@ class Solicitud
         return $stmt->fetchAll();
     }
 
-    public function contarPorSede($id_sede, $periodo)
-    {
-        $stmt = $this->db->prepare(
-            "SELECT COUNT(*) FROM solicitudes
-             WHERE id_sede = ? AND DATE_FORMAT(fecha_solicitud, '%Y-%m-01') = ?
-             AND id_estado NOT IN (SELECT id FROM estados_solicitud WHERE nombre = 'Cancelada')"
-        );
-        $stmt->execute([(int)$id_sede, $periodo]);
-        return (int)$stmt->fetchColumn();
-    }
-
-    public function tieneSolicitudEnPeriodo($persona_id, $fecha, $tipo = 'monthly')
+    public function tieneSolicitudEnPeriodo($persona_id)
     {
         $stmt = $this->db->prepare(
             "SELECT COUNT(*) FROM solicitudes
@@ -239,17 +228,8 @@ class Solicitud
         return $vencimiento >= $lunes && $vencimiento <= $jueves;
     }
 
-    /**
-     * Método de compatibilidad: mantiene tieneSolicitudEnMes para no romper código existente
-     * @deprecated Usar tieneSolicitudEnPeriodo() en su lugar
-     */
-    public function tieneSolicitudEnMes($persona_id, $fecha)
-    {
-        return $this->tieneSolicitudEnPeriodo($persona_id, $fecha, 'monthly');
-    }
-
     /** Devuelve la solicitud activa de los últimos 30 días para mostrar detalles en la alerta del kiosco. */
-    public function getSolicitudActivaEnPeriodo($persona_id, $fecha, $tipo = 'monthly')
+    public function getSolicitudActivaEnPeriodo($persona_id)
     {
         // Si está en ventana de gracia semanal, se permite nueva solicitud (no hay bloqueo)
         if ($this->enVentanaGracia((int)$persona_id)) {
@@ -268,15 +248,6 @@ class Solicitud
         );
         $stmt->execute([(int)$persona_id]);
         return $stmt->fetch() ?: null;
-    }
-
-    /**
-     * Método de compatibilidad: mantiene getSolicitudActivaEnMes para no romper código existente
-     * @deprecated Usar getSolicitudActivaEnPeriodo() en su lugar
-     */
-    public function getSolicitudActivaEnMes($persona_id, $fecha)
-    {
-        return $this->getSolicitudActivaEnPeriodo($persona_id, $fecha, 'monthly');
     }
 
     public function getEstadisticas()
@@ -364,51 +335,6 @@ class Solicitud
         }
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$periodo]);
-        return $stmt->fetchAll();
-    }
-
-    /**
-     * @deprecated Usar getSolicitudesPeriodoActualPorSede('weekly') con corte 6 AM.
-     */
-    public function getSolicitudesSemanaActualPorSede()
-    {
-        return $this->getSolicitudesPeriodoActualPorSede('weekly');
-    }
-
-    /**
-     * Total solicitudes por sede (all time, para charts historicos).
-     */
-    public function getTotalPorSede()
-    {
-        $stmt = $this->db->query(
-            "SELECT se.nombre as sede_nombre, COUNT(*) as total
-             FROM solicitudes s
-             INNER JOIN sedes se ON se.id = s.id_sede
-             GROUP BY s.id_sede, se.nombre
-             ORDER BY total DESC"
-        );
-        return $stmt->fetchAll();
-    }
-
-    /**
-     * Get weekly solicitudes by sede for the last N weeks (for chart)
-     */
-    public function getSolicitudesSemanalPorSede($numSemanas = 8)
-    {
-        $stmt = $this->db->prepare(
-            "SELECT
-                YEARWEEK(s.fecha_solicitud, 1) as semana_num,
-                MIN(DATE(s.fecha_solicitud - INTERVAL WEEKDAY(s.fecha_solicitud) DAY)) as semana_inicio,
-                se.id as sede_id,
-                se.nombre as sede_nombre,
-                COUNT(*) as total
-             FROM solicitudes s
-             INNER JOIN sedes se ON se.id = s.id_sede
-             WHERE s.fecha_solicitud >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)
-             GROUP BY semana_num, se.id, se.nombre
-             ORDER BY semana_num ASC, se.nombre ASC"
-        );
-        $stmt->execute([$numSemanas]);
         return $stmt->fetchAll();
     }
 

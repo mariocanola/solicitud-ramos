@@ -66,7 +66,7 @@ class PersonaService
     private function validar($data)
     {
         $errors = [];
-        $tiposValidos = ['CC', 'CE', 'TI', 'PA', 'NIT'];
+        $tiposValidos = ['CC', 'CE', 'TI', 'PA', 'NIT', 'PT'];
 
         if (!Validator::required($data['tipo_documento'] ?? '')) {
             $errors['tipo_documento'] = 'Seleccione tipo de documento';

@@ -75,15 +75,22 @@ class CupoSede
     public function existeOCrear($id_sede, $periodo, $cupo_default)
     {
         $cupo = $this->getBySedeYPeriodo($id_sede, $periodo);
-        if (!$cupo) {
+        if ($cupo) {
+            return $cupo;
+        }
+        try {
             $this->crear([
                 'id_sede'     => $id_sede,
                 'periodo'     => $periodo,
                 'cupo_maximo' => $cupo_default,
             ]);
-            $cupo = $this->getBySedeYPeriodo($id_sede, $periodo);
+        } catch (PDOException $e) {
+            // Otra peticion inserto la misma sede+periodo (UNIQUE).
+            if ($e->getCode() !== '23000') {
+                throw $e;
+            }
         }
-        return $cupo;
+        return $this->getBySedeYPeriodo($id_sede, $periodo);
     }
 
     public function actualizarCupoMaximo($id_sede, $periodo, $cupo_maximo)

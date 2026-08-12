@@ -269,6 +269,8 @@
 <style>
 /* ===== MODO KIOSCO: ocultar sidebar y expandir contenido ===== */
 body .sidebar { display: none !important; }
+body .sidebar-overlay { display: none !important; }
+body .menu-toggle { display: none !important; }
 body .app-wrapper { display: block; }
 body .main-content { margin-left: 0 !important; width: 100% !important; max-width: 100% !important; }
 
@@ -1760,6 +1762,16 @@ body .main-content { margin-left: 0 !important; width: 100% !important; max-widt
 var BASE_URL = '<?= BASE_URL ?>';
 var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
 
+function escapeHtml(str) {
+    if (str == null || str === '') return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Teclado numérico táctil — escribe sobre #scanner_input.
 // Se inicializa al cargar el DOM. Los botones tienen data-key (dígito) o data-action (clear/back).
 document.addEventListener('DOMContentLoaded', function () {
@@ -1888,7 +1900,7 @@ function buscarManual() {
 
             // Bloqueo 1: ya tiene solicitud activa en el periodo
             if (p.ya_solicito_periodo || p.ya_solicito_mes) {
-                actualizarScannerIndicator('error', periodoLabel === '30 días' ? 'Ya solicitó en los últimos 30 días' : 'Ya solicitó ramo esta ' + periodoLabel);
+                actualizarScannerIndicator('error', 'Ya solicitó ramo ' + periodoLabel);
                 alertarSolicitudExistente(p);
                 return;
             }
@@ -2238,19 +2250,19 @@ function alertarSolicitudExistente(persona) {
         + '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
         + '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
         + '</div>'
-        + '<p style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 2px 0">' + (nombre || 'Usuario') + '</p>'
+        + '<p style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 2px 0">' + escapeHtml(nombre || 'Usuario') + '</p>'
         + '<p style="font-size:13px;color:#94a3b8;margin:0 0 20px 0">Ya tienes un ramo registrado</p>'
         + '<div style="display:flex;gap:10px;margin-bottom:4px">'
         +   '<div style="flex:1;background:#f8f5f9;border-radius:10px;padding:14px;text-align:left">'
         +     '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Solicitud anterior</div>'
-        +     '<div style="font-size:15px;font-weight:700;color:#1e293b">' + (fechaTxt || '—') + '</div>'
-        +     (motivoTxt ? '<div style="font-size:12px;color:#64748b;margin-top:3px">' + motivoTxt + '</div>' : '')
+        +     '<div style="font-size:15px;font-weight:700;color:#1e293b">' + escapeHtml(fechaTxt || '—') + '</div>'
+        +     (motivoTxt ? '<div style="font-size:12px;color:#64748b;margin-top:3px">' + escapeHtml(motivoTxt) + '</div>' : '')
         +   '</div>'
         +   (volverTxt
         ?   '<div style="flex:1;background:#4A1942;border-radius:10px;padding:14px;text-align:left">'
         +     '<div style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Podés solicitar</div>'
-        +     '<div style="font-size:15px;font-weight:700;color:#fff">' + volverTxt + '</div>'
-        +     '<div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px">' + diasRestantesTxt + '</div>'
+        +     '<div style="font-size:15px;font-weight:700;color:#fff">' + escapeHtml(volverTxt) + '</div>'
+        +     '<div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px">' + escapeHtml(diasRestantesTxt) + '</div>'
         +   '</div>'
         :   '')
         + '</div>';
@@ -2289,8 +2301,8 @@ function alertarSinCupo(persona) {
     var html =
         iconHTML +
         '<h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:18px 0 4px 0">Sin cupos disponibles</h2>' +
-        '<p style="font-size:14px;color:#64748b;margin:0">Hola <strong style="color:#b91c1c">' + (nombre || 'estimado usuario') + '</strong></p>' +
-        '<p style="font-size:14px;color:#475569;margin:14px 0 0 0;line-height:1.5">' + mensaje + '</p>';
+        '<p style="font-size:14px;color:#64748b;margin:0">Hola <strong style="color:#b91c1c">' + escapeHtml(nombre || 'estimado usuario') + '</strong></p>' +
+        '<p style="font-size:14px;color:#475569;margin:14px 0 0 0;line-height:1.5">' + escapeHtml(mensaje) + '</p>';
 
     if (typeof Swal !== 'undefined') {
         Swal.fire({
@@ -2313,7 +2325,7 @@ function alertarSinCupo(persona) {
 window.onPersonaEncontrada = function(persona) {
     if (persona && (persona.ya_solicito_periodo || persona.ya_solicito_mes)) {
         var pl = persona.periodo_label || 'mes';
-        actualizarScannerIndicator('error', pl === '30 días' ? 'Ya solicitó en los últimos 30 días' : 'Ya solicitó ramo esta ' + pl);
+        actualizarScannerIndicator('error', 'Ya solicitó ramo ' + pl);
         alertarSolicitudExistente(persona);
         return;
     }

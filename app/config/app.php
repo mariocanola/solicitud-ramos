@@ -36,3 +36,6 @@ if (!is_dir(PDF_PATH)) {
 if (!is_dir(LOG_PATH)) {
     @mkdir(LOG_PATH, 0755, true);
 }
+if (!is_dir(STORAGE_PATH . '/ratelimit')) {
+    @mkdir(STORAGE_PATH . '/ratelimit', 0750, true);
+}

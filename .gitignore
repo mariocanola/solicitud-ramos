@@ -2,6 +2,7 @@
 /storage/logs/
 /storage/pdfs/
 /storage/maestro_imports/
+/storage/ratelimit/
 /vendor/
 /backups/
 /installer/_build_tmp/

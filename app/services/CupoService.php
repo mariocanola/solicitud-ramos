@@ -20,9 +20,25 @@ class CupoService
         $periodo = DateHelper::getPeriodStart($fecha, $tipo);
         $cupoDefault = $this->obtenerCupoDefault();
         $cupo = $this->cupoModel->existeOCrear($id_sede, $periodo, $cupoDefault);
-        // Contamos en tiempo real para evitar desincronizacion con el campo cupo_usado almacenado.
         $usadoReal = $this->cupoModel->contarSolicitudesActivas($id_sede, $periodo, $tipo);
         return $usadoReal < (int)$cupo['cupo_maximo'];
+    }
+
+    /**
+     * Debe llamarse dentro de una transaccion. Bloquea la fila de cupo
+     * para que dos solicitudes simultaneas no superen el maximo.
+     */
+    public function hayCupoConLock($id_sede, $fecha)
+    {
+        $tipo = Configuracion::getPeriodoTipo();
+        $periodo = DateHelper::getPeriodStart($fecha, $tipo);
+        $this->cupoModel->existeOCrear($id_sede, $periodo, $this->obtenerCupoDefault());
+        $cupo = $this->cupoModel->getForUpdate($id_sede, $periodo);
+        if (!$cupo) {
+            return false;
+        }
+        $usado = $this->cupoModel->contarSolicitudesActivas($id_sede, $periodo, $tipo);
+        return $usado < (int)$cupo['cupo_maximo'];
     }
 
     /**

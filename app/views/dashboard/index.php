@@ -95,8 +95,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
-    var pieData = <?= json_encode($pieData, JSON_UNESCAPED_UNICODE) ?>;
-    var barData = <?= json_encode($barData, JSON_UNESCAPED_UNICODE) ?>;
+    var pieData = <?= json_encode($pieData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS) ?>;
+    var barData = <?= json_encode($barData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS) ?>;
 
     // === GRAFICA CIRCULAR: Solicitudes de la semana ===
     if (pieData.data.length > 0) {

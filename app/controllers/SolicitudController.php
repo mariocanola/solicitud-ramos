@@ -1,5 +1,6 @@
 <?php
 require_once BASE_PATH . '/app/services/SolicitudService.php';
+require_once BASE_PATH . '/app/services/PersonaService.php';
 require_once BASE_PATH . '/app/models/Sede.php';
 require_once BASE_PATH . '/app/models/MotivoRamo.php';
 require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
@@ -48,10 +49,10 @@ class SolicitudController
         $persona['nombre_completo'] = Persona::getNombreCompleto($persona);
 
         // 1) Bloqueo: ya tiene solicitud activa en los últimos 30 días
-        $solicitudExistente = $solicitudModel->getSolicitudActivaEnPeriodo($persona['id'], DateHelper::now(), $tipo);
+        $solicitudExistente = $solicitudModel->getSolicitudActivaEnPeriodo($persona['id']);
         $persona['ya_solicito_periodo'] = !empty($solicitudExistente);
         $persona['ya_solicito_mes']     = $persona['ya_solicito_periodo']; // compat frontend
-        $persona['periodo_label']       = '30 días';
+        $persona['periodo_label']       = $tipo === 'weekly' ? 'esta semana' : 'este mes';
         if ($persona['ya_solicito_periodo']) {
             $persona['solicitud_existente'] = $solicitudExistente;
             Response::success($persona, 'Persona encontrada');
@@ -78,19 +79,18 @@ class SolicitudController
         Csrf::validate();
         
         $data = [
-            'tipo_documento'     => $_POST['tipo_documento'] ?? 'CC',
-            'documento'          => trim($_POST['documento'] ?? ''),
-            'primer_nombre'       => trim($_POST['primer_nombre'] ?? ''),
-            'segundo_nombre'      => trim($_POST['segundo_nombre'] ?? '') ?: null,
-            'primer_apellido'     => trim($_POST['primer_apellido'] ?? ''),
-            'segundo_apellido'    => trim($_POST['segundo_apellido'] ?? '') ?: null,
-            'telefono'            => trim($_POST['telefono'] ?? '') ?: null,
-            'id_sede'            => (int)($_POST['id_sede'] ?? 0),
-            'activo'             => 1 // Siempre activo para operador
+            'tipo_documento'  => $_POST['tipo_documento'] ?? 'CC',
+            'documento'       => trim($_POST['documento'] ?? ''),
+            'primer_nombre'   => mb_strtoupper(trim($_POST['primer_nombre'] ?? ''), 'UTF-8'),
+            'segundo_nombre'  => ($_POST['segundo_nombre'] ?? '') !== '' ? mb_strtoupper(trim($_POST['segundo_nombre']), 'UTF-8') : null,
+            'primer_apellido' => mb_strtoupper(trim($_POST['primer_apellido'] ?? ''), 'UTF-8'),
+            'segundo_apellido'=> ($_POST['segundo_apellido'] ?? '') !== '' ? mb_strtoupper(trim($_POST['segundo_apellido']), 'UTF-8') : null,
+            'telefono'        => trim($_POST['telefono'] ?? '') ?: null,
+            'id_sede'         => (int)($_POST['id_sede'] ?? 0),
+            'activo'          => 1,
         ];
 
-        $personaModel = new Persona();
-        $resultado = $personaModel->crear($data);
+        $resultado = (new PersonaService())->crear($data);
 
         if ($resultado['success']) {
             Response::success($resultado['data'], $resultado['message']);
@@ -181,12 +181,6 @@ class SolicitudController
         require BASE_PATH . '/app/views/solicitudes/listar.php';
         $content = ob_get_clean();
         require BASE_PATH . '/app/views/layouts/main.php';
-    }
-
-    public function formCrear()
-    {
-        // Redirect to solicitudes with tab
-        Response::redirect('solicitudes?tab=listado');
     }
 
     public function crear()

@@ -88,7 +88,14 @@
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="<?= BASE_URL ?>/logout" class="dropdown-item dropdown-item-logout" id="btn-logout">
+                        <button type="button" class="dropdown-item" id="btn-cambiar-password">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Cambiar contraseña
+                        </button>
+                        <a href="#" class="dropdown-item dropdown-item-logout" id="btn-logout">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                                 <polyline points="16 17 21 12 16 7"/>
@@ -178,17 +185,92 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    var btnPassword = document.getElementById('btn-cambiar-password');
+    if (btnPassword) {
+        btnPassword.addEventListener('click', function () {
+            if (dropdown) dropdown.classList.remove('active');
+            if (typeof Swal === 'undefined') {
+                alert('No se pudo abrir el formulario. Recargue la página.');
+                return;
+            }
+            Swal.fire({
+                title: 'Cambiar contraseña',
+                html:
+                    '<input id="swal-pass-actual" type="password" class="swal2-input" placeholder="Contraseña actual" autocomplete="current-password">' +
+                    '<input id="swal-pass-nueva" type="password" class="swal2-input" placeholder="Nueva (mín. 8 caracteres)" autocomplete="new-password">' +
+                    '<input id="swal-pass-confirm" type="password" class="swal2-input" placeholder="Confirmar nueva" autocomplete="new-password">',
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                showCancelButton: true,
+                confirmButtonColor: '#4A1942',
+                focusConfirm: false,
+                preConfirm: function () {
+                    var actual = document.getElementById('swal-pass-actual').value;
+                    var nueva = document.getElementById('swal-pass-nueva').value;
+                    var confirm = document.getElementById('swal-pass-confirm').value;
+                    if (!actual || !nueva || !confirm) {
+                        Swal.showValidationMessage('Complete todos los campos');
+                        return false;
+                    }
+                    if (nueva.length < 8) {
+                        Swal.showValidationMessage('La nueva contraseña debe tener al menos 8 caracteres');
+                        return false;
+                    }
+                    if (nueva !== confirm) {
+                        Swal.showValidationMessage('La confirmación no coincide');
+                        return false;
+                    }
+                    var fd = new FormData();
+                    fd.append('_csrf_token', <?= json_encode(Session::getCsrfToken()) ?>);
+                    fd.append('password_actual', actual);
+                    fd.append('password_nueva', nueva);
+                    fd.append('password_confirm', confirm);
+                    return fetch(<?= json_encode(BASE_URL . '/perfil/password') ?>, {
+                        method: 'POST',
+                        body: fd,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(function (r) { return r.json(); }).then(function (data) {
+                        if (data && data.csrf_token) {
+                            window.CSRF_TOKEN = data.csrf_token;
+                        }
+                        if (!data || !data.success) {
+                            throw new Error((data && data.message) || 'No se pudo actualizar');
+                        }
+                        return data;
+                    }).catch(function (err) {
+                        Swal.showValidationMessage(err.message || 'Error de conexión');
+                        return false;
+                    });
+                }
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    Swal.fire({ icon: 'success', title: 'Contraseña actualizada', timer: 2000, showConfirmButton: false });
+                }
+            });
+        });
+    }
+
     // Confirmación amigable antes de cerrar sesión
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            const url = this.href;
-            
-            // Close dropdown first
             if (dropdown) {
                 dropdown.classList.remove('active');
             }
             
+            function enviarLogout() {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = <?= json_encode(rtrim(BASE_URL, '/') . '/logout') ?>;
+                var csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_csrf_token';
+                csrf.value = <?= json_encode(Session::getCsrfToken()) ?>;
+                form.appendChild(csrf);
+                document.body.appendChild(form);
+                form.submit();
+            }
+
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     title: 'Cerrar sesión?',
@@ -202,12 +284,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     reverseButtons: true
                 }).then(function(result) {
                     if (result.isConfirmed) {
-                        window.location.href = url;
+                        enviarLogout();
                     }
                 });
             } else {
                 if (confirm('Cerrar sesión?')) {
-                    window.location.href = url;
+                    enviarLogout();
                 }
             }
         });

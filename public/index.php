@@ -1,8 +1,15 @@
 <?php
 // Serve static files when using PHP built-in server
 if (PHP_SAPI === 'cli-server') {
-    $file = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    if (is_file($file)) {
+    $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    $candidate = realpath(__DIR__ . $reqPath);
+    $webRoot = realpath(__DIR__);
+    $webPrefix = $webRoot . DIRECTORY_SEPARATOR;
+    $file = ($candidate && $webRoot && is_file($candidate)
+        && (strpos($candidate, $webPrefix) === 0 || $candidate === $webRoot))
+        ? $candidate
+        : null;
+    if ($file) {
         $ext = pathinfo($file, PATHINFO_EXTENSION);
         $mimeTypes = [
             'css'  => 'text/css',
@@ -60,19 +67,7 @@ set_exception_handler(function ($e) {
     $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
               && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
-    // Mensaje amigable. PDOException 1146 = tabla no existe -> ayuda al usuario.
     $userMsg = 'Ocurrio un error inesperado. Por favor intenta de nuevo o contacta al administrador.';
-    if ($e instanceof PDOException) {
-        if (strpos($e->getMessage(), '1146') !== false) {
-            $userMsg = 'La base de datos no esta inicializada correctamente. Falta crear una o mas tablas. Contacta al administrador del sistema.';
-        } elseif (strpos($e->getMessage(), '1045') !== false) {
-            $userMsg = 'No se pudo conectar a la base de datos. Verifica las credenciales.';
-        } elseif (strpos($e->getMessage(), '2002') !== false) {
-            $userMsg = 'No se pudo conectar al servidor de base de datos. Verifica que MySQL este corriendo.';
-        } else {
-            $userMsg = 'Error al consultar la base de datos. Contacta al administrador.';
-        }
-    }
 
     http_response_code(500);
 
@@ -134,7 +129,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 $publicRoutes = [
     'GET:login',
     'POST:login',
-    'GET:logout',
 ];
 
 // Rutas restringidas a admin
@@ -181,7 +175,8 @@ $routes = [
     // Auth
     'GET:login'                 => ['AuthController', 'loginForm'],
     'POST:login'                => ['AuthController', 'login'],
-    'GET:logout'                => ['AuthController', 'logout'],
+    'POST:logout'               => ['AuthController', 'logout'],
+    'POST:perfil/password'      => ['AuthController', 'cambiarPassword'],
 
     // Dashboard
     'GET:dashboard'             => ['DashboardController', 'index'],
@@ -204,7 +199,6 @@ $routes = [
 
     // Solicitudes
     'GET:solicitudes'                => ['SolicitudController', 'listar'],
-    'GET:solicitudes/crear'          => ['SolicitudController', 'formCrear'],
     'POST:solicitudes/crear'         => ['SolicitudController', 'crear'],
     'GET:solicitudes/nueva'          => ['SolicitudController', 'formTouch'],
     'POST:solicitudes/nueva'         => ['SolicitudController', 'crearTouch'],

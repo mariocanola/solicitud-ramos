@@ -52,55 +52,45 @@ class SolicitudService
             return ['success' => false, 'message' => 'La sede no es válida o no está activa'];
         }
 
-        // Check cupo. Si no viene fecha del formulario, usamos now() con hora real
-        // para que la regla del corte de 6 AM (modo weekly) aplique correctamente.
-        $fecha = !empty($data['fecha_solicitud']) ? $data['fecha_solicitud'] : DateHelper::now();
-        if (!$this->cupoService->verificarDisponibilidad($data['id_sede'], $fecha)) {
-            $tipo = Configuracion::getPeriodoTipo();
-            $mensajePeriodo = $tipo === 'weekly' 
-                ? 'semana' 
-                : 'mes';
-            return [
-                'success' => false,
-                'message' => "Lo sentimos, se han agotado los cupos disponibles para esta sede en esta {$mensajePeriodo}."
-            ];
-        }
-
-        // Check si la persona ya tiene una solicitud en el mismo período
-        // Siempre verificar contra la fecha actual, no contra la fecha de la solicitud
-        // Esto evita que el usuario cambie la fecha para hacer múltiples solicitudes
         $tipo = Configuracion::getPeriodoTipo();
-        $fechaActual = DateHelper::now();
-        if ($this->solicitudModel->tieneSolicitudEnPeriodo($data['persona_id'], $fechaActual, $tipo)) {
-            $mensajePeriodo = $tipo === 'weekly' ? 'semana' : 'mes';
-            return ['success' => false, 'message' => "La persona ya tiene una solicitud registrada en esta {$mensajePeriodo}. Solo se permite un ramo por {$mensajePeriodo} por persona."];
-        }
+        $mensajePeriodo = $tipo === 'weekly' ? 'semana' : 'mes';
 
-        // Check motivo "otro"
         $motivo = $this->motivoModel->getById($data['id_motivo']);
         if ($motivo && $motivo['requiere_detalle'] && empty($data['motivo_otro'])) {
             return ['success' => false, 'message' => 'Debe especificar el motivo cuando selecciona "Otro"'];
         }
 
-        // Transaction
+        // La fecha la pone el servidor. Ignorar cualquier valor del cliente.
+        $fecha = DateHelper::now();
+
         $db = Database::getInstance()->getConnection();
         try {
             $db->beginTransaction();
 
+            if (!$this->cupoService->hayCupoConLock($data['id_sede'], $fecha)) {
+                $db->rollBack();
+                return [
+                    'success' => false,
+                    'message' => "Lo sentimos, se han agotado los cupos disponibles para esta sede en esta {$mensajePeriodo}."
+                ];
+            }
+
+            if ($this->solicitudModel->tieneSolicitudEnPeriodo($data['persona_id'])) {
+                $db->rollBack();
+                return ['success' => false, 'message' => "La persona ya tiene una solicitud registrada en esta {$mensajePeriodo}. Solo se permite un ramo por {$mensajePeriodo} por persona."];
+            }
+
             $data['fecha_solicitud'] = $fecha;
-            // Si es la primera solicitud de la persona, se aprueba automáticamente
             $data['id_estado'] = 2; // 2 = Aprobada
             $id = $this->solicitudModel->create($data);
-
-            // Aseguramos que el registro cupos_sede exista para el periodo.
-            // El conteo "usado" se calcula en tiempo real desde solicitudes.
-            $this->cupoService->asegurarRegistro($data['id_sede'], $fecha);
 
             $db->commit();
 
             return ['success' => true, 'message' => 'Solicitud creada y aprobada exitosamente', 'data' => ['id' => $id]];
         } catch (Exception $e) {
-            $db->rollBack();
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             error_log("SolicitudService::crear - " . $e->getMessage());
             return ['success' => false, 'message' => 'Error al crear la solicitud'];
         }
@@ -148,19 +138,12 @@ class SolicitudService
         if (empty($data['persona_id']) || (int)$data['persona_id'] < 1) {
             $errors[] = 'Debe seleccionar una persona';
         }
-        if (empty($data['id_sede']) || (int)$data['id_sede'] < 1) {
-            $errors[] = 'Debe seleccionar una sede';
-        }
         if (empty($data['nombre_destinatario']) || !Validator::minLength($data['nombre_destinatario'], 2)) {
             $errors[] = 'El nombre del destinatario es requerido (mínimo 2 caracteres)';
         }
         if (empty($data['id_motivo']) || (int)$data['id_motivo'] < 1) {
             $errors[] = 'Debe seleccionar un motivo';
         }
-        if (!empty($data['fecha_solicitud']) && !Validator::date($data['fecha_solicitud'])) {
-            $errors[] = 'Fecha inválida';
-        }
-
         return ['valid' => empty($errors), 'errors' => $errors];
     }
 }

@@ -209,10 +209,17 @@ class PersonaController
 
         $tmp  = $_FILES['archivo']['tmp_name'];
         $name = $_FILES['archivo']['name'];
+        if (!is_uploaded_file($tmp)) {
+            $this->redirectImportError('Debe seleccionar un archivo valido.');
+        }
         $ext  = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
         if (!in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
             $this->redirectImportError('Formato no soportado. Use .xlsx, .xls o .csv.');
+        }
+
+        if (!$this->contenidoExcelValido($tmp, $ext)) {
+            $this->redirectImportError('El archivo no coincide con el formato declarado.');
         }
 
         if ($_FILES['archivo']['size'] > 10 * 1024 * 1024) {
@@ -331,6 +338,30 @@ class PersonaController
             if (is_file($ruta)) @unlink($ruta);
         }
         unset($_SESSION['maestro_preview_token']);
+    }
+
+    private function contenidoExcelValido($ruta, $ext)
+    {
+        $fh = fopen($ruta, 'rb');
+        if (!$fh) {
+            return false;
+        }
+        $magic = fread($fh, 8);
+        fclose($fh);
+        if ($magic === false || $magic === '') {
+            return false;
+        }
+        if ($ext === 'xlsx') {
+            return substr($magic, 0, 2) === 'PK';
+        }
+        if ($ext === 'xls') {
+            return substr($magic, 0, 4) === "\xD0\xCF\x11\xE0";
+        }
+        if ($ext === 'csv') {
+            return substr($magic, 0, 2) !== 'PK'
+                && substr($magic, 0, 4) !== "\xD0\xCF\x11\xE0";
+        }
+        return false;
     }
 
     private function validarActualizar($data)

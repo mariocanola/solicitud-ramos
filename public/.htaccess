@@ -1,3 +1,11 @@
+Options -Indexes
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "(?i)^(\.env.*|composer\.(json|lock))$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
 RewriteEngine On
 
 # All requests to non-existing files/dirs go through index.php
