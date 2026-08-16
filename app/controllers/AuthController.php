@@ -58,6 +58,11 @@ class AuthController
 
     public function cambiarPassword()
     {
+        if (Auth::rol() !== 'admin') {
+            Response::error('No autorizado');
+            return;
+        }
+
         Csrf::validate();
 
         $actual  = (string)($_POST['password_actual'] ?? '');

@@ -88,6 +88,7 @@
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
+                        <?php if ($u['rol'] === 'admin'): ?>
                         <button type="button" class="dropdown-item" id="btn-cambiar-password">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -95,6 +96,7 @@
                             </svg>
                             Cambiar contraseña
                         </button>
+                        <?php endif; ?>
                         <a href="#" class="dropdown-item dropdown-item-logout" id="btn-logout">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
