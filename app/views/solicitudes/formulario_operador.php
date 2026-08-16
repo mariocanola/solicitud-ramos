@@ -1926,6 +1926,9 @@ function buscarManual() {
             btnGuardar.disabled = false;
             btnGuardar.innerHTML = 'Guardar Solicitud';
             btnGuardar.title = 'Solicitar bocket para esta persona';
+        } else if (data.persona_inactiva) {
+            actualizarScannerIndicator('error', 'Persona inactiva');
+            swalError(data.message);
         } else {
             actualizarScannerIndicator('error', data.message || 'Persona no encontrada');
             // Mostrar opción de registrar nueva persona

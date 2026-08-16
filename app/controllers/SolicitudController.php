@@ -43,6 +43,15 @@ class SolicitudController
             return;
         }
 
+        if (!$persona['activo']) {
+            Response::json([
+                'success'          => false,
+                'persona_inactiva' => true,
+                'message'          => 'Esta persona está inactiva en el sistema y no puede realizar solicitudes.',
+            ], 200);
+            return;
+        }
+
         $solicitudModel = new Solicitud();
         $tipo = Configuracion::getPeriodoTipo();
 
