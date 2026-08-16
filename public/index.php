@@ -166,6 +166,7 @@ $adminRoutes = [
     'POST:cupos/actualizar',
     'GET:configuracion',
     'POST:configuracion/guardar',
+    'POST:admin/usuarios/cambiar-password',
 ];
 // Las rutas no listadas en $publicRoutes ni en $adminRoutes solo requieren login
 // (cualquier rol). Esto incluye: solicitudes/nueva, personas/buscar, personas/crear,
@@ -238,6 +239,9 @@ $routes = [
     // Configuración
     'GET:configuracion'         => ['ConfigController', 'index'],
     'POST:configuracion/guardar'=> ['ConfigController', 'guardar'],
+
+    // Admin: cambiar contraseña de cualquier usuario
+    'POST:admin/usuarios/cambiar-password' => ['AuthController', 'cambiarPasswordAdmin'],
 ];
 
 $routeKey = $method . ':' . $route;

@@ -7,12 +7,12 @@
 <div class="alert alert-<?= $flashTipo ?? 'info' ?>"><?= htmlspecialchars($flash) ?></div>
 <?php endif; ?>
 
-<!-- Kiosko de Solicitud de Ramos -->
+<!-- Kiosko de Solicitud de Bockets -->
 <div class="operator-panel">
     <!-- Header -->
     <div class="operator-header">
         <div class="operator-info">
-            <h1 class="operator-title">Solicitud de Ramos Florales</h1>
+            <h1 class="operator-title">Solicitud de Bocket</h1>
             <div class="operator-session">
                 Bienvenido. Identifíquese para registrar su solicitud.
             </div>
@@ -22,7 +22,7 @@
     <!-- Mensaje de Inicio -->
     <div id="welcome_message" class="welcome-message">
         <div class="welcome-icon">i</div>
-        <h2>¿Cómo solicitar un ramo?</h2>
+        <h2>¿Cómo solicitar un bocket?</h2>
         <p>Siga estos tres pasos. Tomará menos de un minuto.</p>
         <div class="welcome-steps">
             <div class="step">
@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <!-- Formulario de Solicitud de Ramo -->
+    <!-- Formulario de Solicitud de Bocket -->
     <div id="form_section" class="card hidden">
         <div class="card-header">
             <h3><span class="step-badge-inline">2</span> Datos de su solicitud</h3>
@@ -1900,7 +1900,7 @@ function buscarManual() {
 
             // Bloqueo 1: ya tiene solicitud activa en el periodo
             if (p.ya_solicito_periodo || p.ya_solicito_mes) {
-                actualizarScannerIndicator('error', 'Ya solicitó ramo ' + periodoLabel);
+                actualizarScannerIndicator('error', 'Ya solicitó bocket ' + periodoLabel);
                 alertarSolicitudExistente(p);
                 return;
             }
@@ -1925,7 +1925,7 @@ function buscarManual() {
             var btnGuardar = document.getElementById('btn_guardar');
             btnGuardar.disabled = false;
             btnGuardar.innerHTML = 'Guardar Solicitud';
-            btnGuardar.title = 'Solicitar ramo para esta persona';
+            btnGuardar.title = 'Solicitar bocket para esta persona';
         } else {
             actualizarScannerIndicator('error', data.message || 'Persona no encontrada');
             // Mostrar opción de registrar nueva persona
@@ -2251,7 +2251,7 @@ function alertarSolicitudExistente(persona) {
         + '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>'
         + '</div>'
         + '<p style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 2px 0">' + escapeHtml(nombre || 'Usuario') + '</p>'
-        + '<p style="font-size:13px;color:#94a3b8;margin:0 0 20px 0">Ya tienes un ramo registrado</p>'
+        + '<p style="font-size:13px;color:#94a3b8;margin:0 0 20px 0">Ya tienes un bocket registrado</p>'
         + '<div style="display:flex;gap:10px;margin-bottom:4px">'
         +   '<div style="flex:1;background:#f8f5f9;border-radius:10px;padding:14px;text-align:left">'
         +     '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Solicitud anterior</div>'
@@ -2352,7 +2352,7 @@ window.onPersonaEncontrada = function(persona) {
     var btnGuardar = document.getElementById('btn_guardar');
     btnGuardar.disabled = false;
     btnGuardar.innerHTML = 'Guardar Solicitud';
-    btnGuardar.title = 'Solicitar ramo para esta persona';
+    btnGuardar.title = 'Solicitar bocket para esta persona';
 };
 
 // Override de cerrar modal para el panel operador

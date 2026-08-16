@@ -55,6 +55,14 @@ class Usuario
         return $this->db->lastInsertId();
     }
 
+    public function getAll()
+    {
+        $stmt = $this->db->query(
+            "SELECT id, username, nombre, rol, activo, ultimo_login FROM usuarios ORDER BY rol, username"
+        );
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function actualizarPassword($id, $password)
     {
         $stmt = $this->db->prepare("UPDATE usuarios SET password_hash = ? WHERE id = ?");

@@ -96,6 +96,40 @@ class AuthController
         Response::success(null, 'Contrasena actualizada');
     }
 
+    public function cambiarPasswordAdmin()
+    {
+        Csrf::validate();
+
+        $userId  = (int)($_POST['user_id'] ?? 0);
+        $nueva   = (string)($_POST['password_nueva'] ?? '');
+        $confirm = (string)($_POST['password_confirm'] ?? '');
+
+        if ($userId <= 0) {
+            Response::error('Usuario invalido');
+            return;
+        }
+
+        if (strlen($nueva) < 8) {
+            Response::error('La nueva contrasena debe tener al menos 8 caracteres');
+            return;
+        }
+
+        if ($nueva !== $confirm) {
+            Response::error('La confirmacion no coincide');
+            return;
+        }
+
+        $userModel = new Usuario();
+        $user = $userModel->getById($userId);
+        if (!$user) {
+            Response::error('Usuario no encontrado');
+            return;
+        }
+
+        $userModel->actualizarPassword($userId, $nueva);
+        Response::success(null, 'Contrasena actualizada para ' . $user['nombre']);
+    }
+
     public function logout()
     {
         Csrf::validate();

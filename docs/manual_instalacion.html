@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Solicitud de Bockets — Manual de Instalación</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+  :root { --font-main: 'Arial Narrow','Arimo',Arial,sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-main); font-size: 11pt; color: #000; background: #fff; line-height: 1.5; }
+  .page { width: 21cm; min-height: 29.7cm; margin: 0 auto 2cm auto; padding: 2.54cm; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.18); position: relative; page-break-after: always; }
+  @media print { body { background: #fff; } .page { box-shadow: none; margin: 0; } }
+  .running-header { font-size: 9pt; text-align: left; text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-bottom: 14pt; }
+  .page-number { font-size: 9pt; text-align: right; position: absolute; bottom: 1.8cm; right: 2.54cm; }
+  .cover { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25cm; text-align: center; gap: 0; }
+  .cover-title { font-size: 18pt; font-weight: bold; text-transform: uppercase; margin-top: 3cm; margin-bottom: 0.4cm; max-width: 14cm; }
+  .cover-subtitle { font-size: 14pt; margin-bottom: 3cm; }
+  .cover-meta { font-size: 12pt; line-height: 2.2; margin-top: auto; }
+  .cover-org { font-size: 12pt; font-weight: bold; margin-bottom: 0.3cm; }
+  h1 { font-size: 16pt; font-weight: bold; text-transform: uppercase; margin-top: 24pt; margin-bottom: 12pt; page-break-after: avoid; }
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; page-break-after: avoid; }
+  h3 { font-size: 12pt; font-weight: bold; font-style: italic; margin-top: 14pt; margin-bottom: 5pt; page-break-after: avoid; }
+  p { text-align: justify; margin-bottom: 6pt; font-size: 11pt; }
+  p + p { text-indent: 1.27cm; }
+  h1 + p, h2 + p, h3 + p, .no-indent { text-indent: 0; }
+  .table-wrapper { margin: 10pt 0 14pt 0; }
+  .table-label { font-weight: bold; font-size: 11pt; margin-bottom: 1pt; }
+  .table-title { font-style: italic; font-size: 11pt; margin-bottom: 4pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+  thead tr th { border-top: 1.5px solid #000; border-bottom: 1px solid #000; padding: 4pt 6pt; text-align: left; font-weight: bold; background: #f5f5f5; }
+  tbody tr td { padding: 3.5pt 6pt; vertical-align: top; border: none; }
+  tbody tr:last-child td { border-bottom: 1.5px solid #000; }
+  .table-note { font-size: 9pt; font-style: italic; margin-top: 3pt; }
+  pre, code { font-family: 'Courier New', monospace; font-size: 10pt; background: #f0f0f0; padding: 2pt 4pt; border-radius: 2px; }
+  pre { display: block; padding: 8pt 12pt; margin: 8pt 0 10pt 0; white-space: pre-wrap; border-left: 3px solid #4A1942; }
+  ul, ol { margin: 6pt 0 8pt 1.27cm; }
+  li { margin-bottom: 3pt; }
+  .step-box { background: #f9f6f9; border-left: 4px solid #4A1942; padding: 8pt 12pt; margin: 8pt 0 10pt 0; }
+  .warn-box { background: #fff8e1; border-left: 4px solid #f9a825; padding: 8pt 12pt; margin: 8pt 0 10pt 0; }
+  .ok-box { background: #f1f8e9; border-left: 4px solid #558b2f; padding: 8pt 12pt; margin: 8pt 0 10pt 0; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="page">
+  <div class="cover">
+    <div class="cover-title">Sistema de Solicitud de Bockets<br>Flores el Tandil</div>
+    <div class="cover-subtitle">Manual de Instalación</div>
+    <div class="cover-meta">
+      <div class="cover-org">Flores el Tandil</div>
+      Elaborado por: Mario Alexander Cañola Cano<br>
+      Versión: 1.0<br>
+      Fecha: 2026
+    </div>
+  </div>
+</div>
+
+<!-- PÁGINA 1 -->
+<div class="page">
+  <div class="running-header">MANUAL DE INSTALACIÓN — SISTEMA DE BOCKETS</div>
+
+  <h1>1. Introducción</h1>
+  <p>Este manual describe el procedimiento para instalar y poner en marcha el Sistema de Solicitud de Bockets de Flores el Tandil en un equipo con sistema operativo Windows. El sistema opera en red local y no requiere conexión a internet para su funcionamiento.</p>
+  <p>El proceso de instalación comprende cuatro etapas: preparación del entorno (Laragon), configuración de la base de datos, configuración del archivo de entorno y verificación del inicio del sistema.</p>
+
+  <h2>1.1 Requisitos del Sistema</h2>
+  <p>Antes de iniciar la instalación, verifique que el equipo servidor cumple con los siguientes requisitos.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 1</div>
+    <div class="table-title">Requisitos mínimos del equipo servidor</div>
+    <table>
+      <thead><tr><th>Componente</th><th>Requisito mínimo</th><th>Recomendado</th></tr></thead>
+      <tbody>
+        <tr><td>Sistema operativo</td><td>Windows 8.1 de 64 bits</td><td>Windows 10/11 de 64 bits</td></tr>
+        <tr><td>Procesador</td><td>Dual-core 2.0 GHz</td><td>Quad-core 2.5 GHz o superior</td></tr>
+        <tr><td>Memoria RAM</td><td>4 GB</td><td>8 GB</td></tr>
+        <tr><td>Almacenamiento</td><td>500 MB libres</td><td>2 GB libres</td></tr>
+        <tr><td>Red</td><td>Red local (LAN) activa</td><td>Red local gigabit</td></tr>
+        <tr><td>Navegador (clientes)</td><td>Google Chrome 100+ o Firefox 100+</td><td>Google Chrome última versión</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>1.2 Software Necesario</h2>
+  <p>El sistema requiere los siguientes componentes de software, todos incluidos en la distribución de Laragon.</p>
+  <ul>
+    <li><strong>Laragon</strong> (versión Full o Lite con PHP y MySQL): gestor de entorno de desarrollo local para Windows</li>
+    <li><strong>PHP 8.0 o superior</strong>: lenguaje de servidor del sistema</li>
+    <li><strong>MySQL 5.7 o superior</strong> (o MariaDB equivalente): motor de base de datos</li>
+    <li><strong>Apache HTTP Server</strong>: servidor web incluido en Laragon</li>
+    <li><strong>Composer</strong> (opcional): si se requiere reinstalar dependencias PHP</li>
+  </ul>
+
+  <div class="warn-box">
+    <strong>Advertencia:</strong> No instale versiones de PHP inferiores a 8.0. El sistema usa funciones y extensiones que no están disponibles en versiones anteriores.
+  </div>
+
+  <h1>2. Instalación de Laragon</h1>
+  <p>Laragon es el entorno que provee Apache, PHP y MySQL en un paquete único para Windows. Si Laragon ya está instalado y funcionando en el equipo, avance directamente a la sección 3.</p>
+
+  <h2>2.1 Descarga e Instalación</h2>
+  <div class="step-box">
+    <strong>Paso 1.</strong> Descargue el instalador de Laragon Full desde el sitio oficial: <code>https://laragon.org/download/</code>. Seleccione la versión «Full» que incluye PHP, MySQL y Apache.
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> Ejecute el instalador como administrador. Acepte la ruta de instalación predeterminada (<code>C:\laragon</code>). Cambie la ruta solo si tiene una razón específica; en ese caso, ajuste las rutas en los scripts de inicio del sistema.
+  </div>
+  <div class="step-box">
+    <strong>Paso 3.</strong> Al finalizar la instalación, abra Laragon desde el escritorio o el menú de inicio. Haga clic en <strong>Start All</strong> para iniciar Apache y MySQL. Verifique que ambos indicadores muestren verde.
+  </div>
+  <div class="step-box">
+    <strong>Paso 4.</strong> Abra un navegador y acceda a <code>http://localhost</code>. Si aparece la pantalla de bienvenida de Laragon, la instalación fue exitosa.
+  </div>
+
+  <div class="page-number">1</div>
+</div>
+
+<!-- PÁGINA 2 -->
+<div class="page">
+  <div class="running-header">MANUAL DE INSTALACIÓN — SISTEMA DE BOCKETS</div>
+
+  <h1>3. Instalación del Sistema</h1>
+
+  <h2>3.1 Copiar los Archivos</h2>
+  <p>El sistema debe ubicarse en la carpeta <code>www</code> de Laragon para que Apache lo sirva correctamente.</p>
+
+  <div class="step-box">
+    <strong>Paso 1.</strong> Abra el Explorador de Windows y navegue hasta <code>C:\laragon\www\</code>.
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> Copie la carpeta completa del sistema (<code>flores</code>) dentro de <code>C:\laragon\www\</code>. La estructura resultante debe verse así:
+    <pre>C:\laragon\www\flores\
+    ├── app\
+    ├── docs\
+    ├── public\
+    ├── storage\
+    ├── vendor\
+    ├── iniciar.bat
+    ├── iniciar_kiosco.bat
+    └── .env.example</pre>
+  </div>
+  <div class="step-box">
+    <strong>Paso 3.</strong> Verifique que la carpeta <code>vendor\</code> existe y contiene archivos. Si está vacía o no existe, abra una terminal en la carpeta del sistema y ejecute:
+    <pre>composer install --no-dev</pre>
+  </div>
+
+  <h2>3.2 Crear la Base de Datos</h2>
+  <div class="step-box">
+    <strong>Paso 1.</strong> Abra phpMyAdmin desde Laragon (menú <strong>Database → phpMyAdmin</strong>) o acceda desde el navegador a <code>http://localhost/phpmyadmin</code>.
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> Cree una nueva base de datos con el nombre <code>flores_db</code> y cotejamiento <code>utf8mb4_unicode_ci</code>.
+  </div>
+  <div class="step-box">
+    <strong>Paso 3.</strong> Seleccione la base de datos recién creada. En la pestaña <strong>SQL</strong>, importe el script de estructura ubicado en:
+    <pre>C:\laragon\www\flores\database\flores_db.sql</pre>
+    Haga clic en <strong>Importar</strong>, seleccione el archivo y confirme. El script crea todas las tablas y los datos iniciales (incluyendo el usuario administrador por defecto).
+  </div>
+
+  <div class="ok-box">
+    <strong>Credenciales por defecto del administrador:</strong><br>
+    Usuario: <code>admin</code><br>
+    Contraseña: <code>admin1234</code><br>
+    <em>Cambie la contraseña inmediatamente después del primer acceso desde el menú de usuario en la esquina superior derecha.</em>
+  </div>
+
+  <h2>3.3 Configurar el Archivo de Entorno</h2>
+  <p>El sistema lee su configuración de conexión desde un archivo <code>.env</code> ubicado en la raíz del proyecto.</p>
+
+  <div class="step-box">
+    <strong>Paso 1.</strong> Navegue hasta <code>C:\laragon\www\flores\</code> y copie el archivo <code>.env.example</code> con el nombre <code>.env</code>:
+    <pre>Copiar .env.example  →  .env</pre>
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> Abra el archivo <code>.env</code> con un editor de texto (Notepad, VS Code, etc.) y ajuste los siguientes valores:
+    <pre>DB_HOST=localhost
+DB_NAME=flores_db
+DB_USER=root
+DB_PASS=
+APP_DEBUG=false</pre>
+    Si MySQL tiene contraseña configurada en su instalación, colóquela en <code>DB_PASS</code>. En instalaciones estándar de Laragon, la contraseña del usuario root está vacía.
+  </div>
+  <div class="step-box">
+    <strong>Paso 3.</strong> Guarde el archivo. Nunca comparta ni publique el archivo <code>.env</code> ya que contiene credenciales de acceso.
+  </div>
+
+  <h2>3.4 Verificar Permisos de Escritura</h2>
+  <p>El sistema escribe archivos PDF y logs en la carpeta <code>storage\</code>. Esta carpeta debe tener permisos de escritura para el proceso de Apache.</p>
+
+  <div class="step-box">
+    <strong>Paso 1.</strong> En el Explorador de Windows, haga clic derecho sobre <code>C:\laragon\www\flores\storage\</code>.
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> Seleccione <strong>Propiedades → Seguridad → Editar</strong> y asegúrese de que el usuario bajo el cual corre Apache (generalmente <code>SYSTEM</code> o el usuario actual) tenga permiso de escritura. En la mayoría de instalaciones de Laragon en modo desarrollo esto es automático.
+  </div>
+
+  <div class="page-number">2</div>
+</div>
+
+<!-- PÁGINA 3 -->
+<div class="page">
+  <div class="running-header">MANUAL DE INSTALACIÓN — SISTEMA DE BOCKETS</div>
+
+  <h1>4. Inicio del Sistema</h1>
+
+  <h2>4.1 Usando los Scripts de Inicio</h2>
+  <p>El sistema incluye dos scripts de inicio en la raíz del proyecto que automatizan la verificación de servicios y la apertura del navegador.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 2</div>
+    <div class="table-title">Scripts de inicio disponibles</div>
+    <table>
+      <thead><tr><th>Archivo</th><th>Uso</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>iniciar.bat</code></td><td>Uso general / administrativo</td><td>Verifica Apache y MySQL, inicia Laragon si es necesario y abre el navegador en el panel principal del sistema</td></tr>
+        <tr><td><code>iniciar_kiosco.bat</code></td><td>PC de autoatención (kiosco)</td><td>Igual que el anterior, pero abre el navegador en modo pantalla completa (kiosco) directamente en el panel del operador para que el empleado pueda ingresar su cédula</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="step-box">
+    <strong>Para iniciar:</strong> Haga doble clic sobre el archivo <code>iniciar.bat</code> o <code>iniciar_kiosco.bat</code> según corresponda. El script verifica los servicios y abre el navegador automáticamente. Si Laragon no está iniciado, el script lo inicia y espera a que los servicios levanten.
+  </div>
+
+  <div class="warn-box">
+    <strong>Nota:</strong> Si la ruta de Laragon en su equipo es diferente a <code>C:\laragon\</code>, abra el archivo <code>.bat</code> con un editor de texto y ajuste la variable <code>LARAGON</code> al principio del archivo.
+  </div>
+
+  <h2>4.2 Inicio Manual</h2>
+  <p>Si prefiere iniciar los servicios manualmente sin usar los scripts:</p>
+  <ol>
+    <li>Abra <strong>Laragon</strong> desde el escritorio y haga clic en <strong>Start All</strong>.</li>
+    <li>Espere a que Apache y MySQL muestren estado verde.</li>
+    <li>Abra el navegador y acceda a: <code>http://localhost:8001</code> (o la URL configurada en su instalación de Laragon).</li>
+    <li>Ingrese con las credenciales de administrador.</li>
+  </ol>
+
+  <h1>5. Configuración Inicial Post-Instalación</h1>
+  <p>Tras la primera instalación, realice las siguientes configuraciones antes de poner el sistema en operación.</p>
+
+  <div class="step-box">
+    <strong>1. Cambiar la contraseña del administrador.</strong> Inicie sesión con las credenciales por defecto, haga clic en el nombre de usuario (esquina superior derecha) y seleccione <em>Cambiar contraseña</em>. Elija una contraseña segura de al menos 8 caracteres.
+  </div>
+  <div class="step-box">
+    <strong>2. Configurar la organización.</strong> En el menú <em>Configuración → General</em>, ingrese el nombre oficial de la organización y los datos del destinatario para los PDF.
+  </div>
+  <div class="step-box">
+    <strong>3. Crear sedes.</strong> En <em>Configuración → Gestión de Sedes</em>, registre las sedes activas. Cada sede debe tener nombre, código corto (ej. TN, PM) y estado Activa.
+  </div>
+  <div class="step-box">
+    <strong>4. Configurar cupos.</strong> En <em>Configuración → Control de Cupos</em>, establezca el número máximo de solicitudes por sede para el período actual.
+  </div>
+  <div class="step-box">
+    <strong>5. Importar beneficiarios.</strong> En el menú <em>Personas → Cargar maestro</em>, importe el archivo Excel con el listado de personas activas. El sistema acepta el formato Tandil y el formato Creos, detectando automáticamente la estructura del archivo.
+  </div>
+  <div class="step-box">
+    <strong>6. Crear usuario operador</strong> (si aplica). El operador del kiosco necesita una cuenta con rol <em>Operador</em>. Desde <em>Configuración → Usuarios</em> puede gestionar las cuentas y contraseñas. Para crear un nuevo usuario, actualmente se hace directamente en la base de datos o mediante el script SQL de creación de usuarios incluido en <code>database/</code>.
+  </div>
+
+  <h1>6. Verificación Final</h1>
+  <p>Antes de entregar el sistema en producción, verifique que los siguientes puntos funcionan correctamente.</p>
+  <ul>
+    <li>El administrador puede iniciar sesión y acceder al dashboard.</li>
+    <li>El operador puede iniciar sesión y ver el panel de autoatención.</li>
+    <li>Al ingresar la cédula de un beneficiario en el panel táctil, el sistema lo identifica y permite registrar una solicitud.</li>
+    <li>La generación del reporte PDF produce un archivo descargable sin errores.</li>
+    <li>La importación de un archivo Excel de prueba se procesa correctamente.</li>
+  </ul>
+
+  <div class="ok-box">
+    <strong>El sistema está listo para operar</strong> cuando todos los puntos anteriores responden sin error. Para soporte técnico, contacte al desarrollador: Mario Alexander Cañola Cano.
+  </div>
+
+  <div class="page-number">3</div>
+</div>
+
+</body>
+</html>

@@ -9,6 +9,7 @@
     <button class="tab-btn <?= $tabActiva === 'sedes' ? 'active' : '' ?>" onclick="cambiarTab('sedes')">Gestion de Sedes</button>
     <button class="tab-btn <?= $tabActiva === 'motivos' ? 'active' : '' ?>" onclick="cambiarTab('motivos')">Motivos de Ramo</button>
     <button class="tab-btn <?= $tabActiva === 'estados' ? 'active' : '' ?>" onclick="cambiarTab('estados')">Estados de Solicitud</button>
+    <button class="tab-btn <?= $tabActiva === 'usuarios' ? 'active' : '' ?>" onclick="cambiarTab('usuarios')">Usuarios</button>
 </div>
 
 <!-- ==================== TAB: GENERAL ==================== -->
@@ -440,6 +441,64 @@
     </div>
 </div>
 
+<!-- ==================== TAB: USUARIOS ==================== -->
+<div class="tab-content <?= $tabActiva === 'usuarios' ? 'active' : '' ?>" id="tab_usuarios">
+    <div class="card">
+        <div class="card-header">
+            <span>Usuarios del Sistema</span>
+        </div>
+        <div class="card-body">
+            <?php if (empty($usuarios)): ?>
+                <p class="text-muted text-center" style="padding:20px">No hay usuarios registrados.</p>
+            <?php else: ?>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Ultimo acceso</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php $i = 1; foreach ($usuarios as $u): ?>
+                    <tr>
+                        <td><?= $i++ ?></td>
+                        <td><strong><?= htmlspecialchars($u['username']) ?></strong></td>
+                        <td><?= htmlspecialchars($u['nombre']) ?></td>
+                        <td>
+                            <span class="badge" style="background:<?= $u['rol'] === 'admin' ? 'var(--primary)' : 'var(--info)' ?>">
+                                <?= $u['rol'] === 'admin' ? 'Administrador' : 'Operador' ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?php if ($u['activo']): ?>
+                                <span class="badge" style="background:var(--success)">Activo</span>
+                            <?php else: ?>
+                                <span class="badge" style="background:var(--danger)">Inactivo</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= $u['ultimo_login'] ? date('d/m/Y H:i', strtotime($u['ultimo_login'])) : 'Nunca' ?></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                    onclick="cambiarPasswordUsuario(<?= (int)$u['id'] ?>, '<?= htmlspecialchars(addslashes($u['nombre']), ENT_QUOTES) ?>')">
+                                Cambiar contrasena
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
 <script>
 var BASE_URL = '<?= BASE_URL ?>';
 var CSRF_TOKEN = '<?= Session::getCsrfToken() ?>';
@@ -450,9 +509,56 @@ function cambiarTab(tab) {
     document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
     document.getElementById('tab_' + tab).classList.add('active');
     var btns = document.querySelectorAll('.tab-btn');
-    var tabNames = ['general', 'cupos', 'sedes', 'motivos', 'estados'];
+    var tabNames = ['general', 'cupos', 'sedes', 'motivos', 'estados', 'usuarios'];
     var idx = tabNames.indexOf(tab);
     if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+}
+
+// === CAMBIAR PASSWORD DE USUARIO (admin) ===
+function cambiarPasswordUsuario(userId, nombre) {
+    if (typeof Swal === 'undefined') { alert('Recargue la pagina.'); return; }
+    Swal.fire({
+        title: 'Cambiar contrasena',
+        html: '<p style="margin:0 0 12px;color:#555">Usuario: <strong>' + nombre + '</strong></p>'
+            + '<input id="swal-u-nueva" type="password" class="swal2-input" placeholder="Nueva contrasena (min. 8 caracteres)" autocomplete="new-password">'
+            + '<input id="swal-u-confirm" type="password" class="swal2-input" placeholder="Confirmar contrasena" autocomplete="new-password">',
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        showCancelButton: true,
+        confirmButtonColor: '#4A1942',
+        focusConfirm: false,
+        preConfirm: function() {
+            var nueva = document.getElementById('swal-u-nueva').value;
+            var confirm = document.getElementById('swal-u-confirm').value;
+            if (!nueva || !confirm) { Swal.showValidationMessage('Complete ambos campos'); return false; }
+            if (nueva.length < 8) { Swal.showValidationMessage('Minimo 8 caracteres'); return false; }
+            if (nueva !== confirm) { Swal.showValidationMessage('Las contrasenas no coinciden'); return false; }
+            var fd = new FormData();
+            fd.append('_csrf_token', CSRF_TOKEN);
+            fd.append('user_id', userId);
+            fd.append('password_nueva', nueva);
+            fd.append('password_confirm', confirm);
+            return fetch(BASE_URL + '/admin/usuarios/cambiar-password', {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data && data.csrf_token) { CSRF_TOKEN = data.csrf_token; }
+                if (!data || !data.success) {
+                    Swal.showValidationMessage(data.message || 'Error al actualizar');
+                    return false;
+                }
+                return data;
+            }).catch(function() {
+                Swal.showValidationMessage('Error de conexion. Intente de nuevo.');
+                return false;
+            });
+        }
+    }).then(function(result) {
+        if (result.isConfirmed && result.value) {
+            Toast.fire({ icon: 'success', title: result.value.message || 'Contrasena actualizada' });
+        }
+    });
 }
 
 // === MODAL SEDE ===

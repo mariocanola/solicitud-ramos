@@ -61,7 +61,7 @@ class MaestroImportService
 
     private function cargarSedes()
     {
-        $stmt = $this->db->query("SELECT id, nombre, codigo FROM sedes");
+        $stmt = $this->db->query("SELECT id, nombre, codigo, activo FROM sedes");
         foreach ($stmt->fetchAll() as $s) {
             if (!empty($s['codigo']) && !empty($s['activo'])) {
                 $this->sedesPorCodigo[strtoupper(trim($s['codigo']))] = $s;

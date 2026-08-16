@@ -7,6 +7,7 @@ require_once BASE_PATH . '/app/models/EstadoSolicitud.php';
 require_once BASE_PATH . '/app/services/CupoService.php';
 require_once BASE_PATH . '/app/helpers/DateHelper.php';
 require_once BASE_PATH . '/app/helpers/Validator.php';
+require_once BASE_PATH . '/app/models/Usuario.php';
 
 class ConfigController
 {
@@ -30,6 +31,7 @@ class ConfigController
         $cupos = $cupoService->getResumen();
         $motivos = $motivoModel->getAll();
         $estadosSolicitud = $estadoModel->getAll();
+        $usuarios = (new Usuario())->getAll();
         $tipo = Configuracion::getPeriodoTipo();
         $periodoActual = DateHelper::getCurrentPeriodStart($tipo);
         $periodoTexto = DateHelper::mesAnio($periodoActual);

@@ -1,21 +1,21 @@
 @echo off
 REM ============================================================
-REM Sistema de Solicitud de Ramos Florales - Lanzador
+REM Sistema de Solicitud de Bockets - Lanzador General
 REM ============================================================
 REM Verifica que Apache y MySQL esten corriendo. Si no, los inicia
-REM via Laragon. Luego abre el navegador apuntando al kiosco.
+REM via Laragon. Luego abre el navegador en el panel de admin.
 REM ============================================================
 
 setlocal
-title Sistema de Solicitud de Ramos
+title Sistema de Solicitud de Bockets
 echo.
 echo  ============================================================
-echo   Sistema de Solicitud de Ramos Florales
+echo   Sistema de Solicitud de Bockets - Flores El Tandil
 echo  ============================================================
 echo.
 
 REM Cambia esta URL si el sistema corre en otro puerto.
-set "URL=http://localhost:8001/solicitudes/nueva"
+set "URL=http://localhost:8001"
 set "LARAGON=C:\laragon\laragon.exe"
 
 REM Verifica si Apache esta corriendo
@@ -47,11 +47,11 @@ if errorlevel 1 (
 )
 
 echo.
-echo  Abriendo el kiosco en el navegador...
+echo  Abriendo el sistema en el navegador...
 echo  URL: %URL%
 echo.
 
-REM Abre el navegador por defecto en la URL del kiosco.
+REM Abre el navegador por defecto en la URL del sistema.
 start "" "%URL%"
 
 echo  Listo. Esta ventana se cerrara en 3 segundos.

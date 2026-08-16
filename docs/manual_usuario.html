@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Solicitud de Bockets — Manual de Usuario</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+  :root { --font-main: 'Arial Narrow','Arimo',Arial,sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-main); font-size: 11pt; color: #000; background: #fff; line-height: 1.5; }
+  .page { width: 21cm; min-height: 29.7cm; margin: 0 auto 2cm auto; padding: 2.54cm; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.18); position: relative; page-break-after: always; }
+  @media print { body { background: #fff; } .page { box-shadow: none; margin: 0; } }
+  .running-header { font-size: 9pt; text-align: left; text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-bottom: 14pt; }
+  .page-number { font-size: 9pt; text-align: right; position: absolute; bottom: 1.8cm; right: 2.54cm; }
+  .cover { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 25cm; text-align: center; gap: 0; }
+  .cover-title { font-size: 18pt; font-weight: bold; text-transform: uppercase; margin-top: 3cm; margin-bottom: 0.4cm; max-width: 14cm; }
+  .cover-subtitle { font-size: 14pt; margin-bottom: 3cm; }
+  .cover-meta { font-size: 12pt; line-height: 2.2; margin-top: auto; }
+  .cover-org { font-size: 12pt; font-weight: bold; margin-bottom: 0.3cm; }
+  h1 { font-size: 16pt; font-weight: bold; text-transform: uppercase; margin-top: 24pt; margin-bottom: 12pt; page-break-after: avoid; }
+  h2 { font-size: 13pt; font-weight: bold; margin-top: 18pt; margin-bottom: 6pt; page-break-after: avoid; }
+  h3 { font-size: 12pt; font-weight: bold; font-style: italic; margin-top: 14pt; margin-bottom: 5pt; page-break-after: avoid; }
+  p { text-align: justify; margin-bottom: 6pt; font-size: 11pt; }
+  p + p { text-indent: 1.27cm; }
+  h1 + p, h2 + p, h3 + p, .no-indent { text-indent: 0; }
+  .table-wrapper { margin: 10pt 0 14pt 0; }
+  .table-label { font-weight: bold; font-size: 11pt; margin-bottom: 1pt; }
+  .table-title { font-style: italic; font-size: 11pt; margin-bottom: 4pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+  thead tr th { border-top: 1.5px solid #000; border-bottom: 1px solid #000; padding: 4pt 6pt; text-align: left; font-weight: bold; background: #f5f5f5; }
+  tbody tr td { padding: 3.5pt 6pt; vertical-align: top; border: none; }
+  tbody tr:last-child td { border-bottom: 1.5px solid #000; }
+  .table-note { font-size: 9pt; font-style: italic; margin-top: 3pt; }
+  ul, ol { margin: 6pt 0 8pt 1.27cm; }
+  li { margin-bottom: 3pt; }
+  .step-box { background: #f9f6f9; border-left: 4px solid #4A1942; padding: 8pt 12pt; margin: 8pt 0 10pt 0; }
+  .warn-box { background: #fff8e1; border-left: 4px solid #f9a825; padding: 8pt 12pt; margin: 8pt 0 10pt 0; }
+  .ok-box { background: #f1f8e9; border-left: 4px solid #558b2f; padding: 8pt 12pt; margin: 8pt 0 10pt 0; }
+  .role-tag { display: inline-block; background: #4A1942; color: white; font-size: 9pt; padding: 1pt 6pt; border-radius: 3px; margin-right: 4pt; font-weight: bold; }
+  .role-tag.op { background: #1565C0; }
+  code { font-family: 'Courier New', monospace; font-size: 10pt; background: #f0f0f0; padding: 1pt 4pt; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="page">
+  <div class="cover">
+    <div class="cover-title">Sistema de Solicitud de Bockets<br>Flores el Tandil</div>
+    <div class="cover-subtitle">Manual de Usuario</div>
+    <div class="cover-meta">
+      <div class="cover-org">Flores el Tandil</div>
+      Elaborado por: Mario Alexander Cañola Cano<br>
+      Versión: 1.0<br>
+      Fecha: 2026
+    </div>
+  </div>
+</div>
+
+<!-- PÁGINA 1 -->
+<div class="page">
+  <div class="running-header">MANUAL DE USUARIO — SISTEMA DE BOCKETS</div>
+
+  <h1>1. Introducción</h1>
+  <p>Este manual describe el uso del Sistema de Solicitud de Bockets de Flores el Tandil. El sistema permite a los empleados registrar sus solicitudes de bockets florales de forma autónoma desde un panel táctil de autoatención, y permite al administrador gestionar el ciclo completo de las solicitudes, configurar el sistema y generar reportes.</p>
+
+  <h2>1.1 Roles del Sistema</h2>
+  <p>El sistema tiene dos roles de usuario con interfaces y funciones diferenciadas.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 1</div>
+    <div class="table-title">Roles de usuario del sistema</div>
+    <table>
+      <thead><tr><th>Rol</th><th>Quién lo usa</th><th>Acceso principal</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Empleado (autoatención)</strong></td><td>El propio empleado beneficiario que se acerca al punto de atención</td><td>Panel táctil: ingresa su cédula, verifica sus datos y registra la solicitud de bocket</td></tr>
+        <tr><td><strong>Operador</strong></td><td>Personal de oficina que apoya en el punto de solicitud</td><td>Panel táctil: misma interfaz que el empleado; también puede registrar nuevas personas</td></tr>
+        <tr><td><strong>Administrador</strong></td><td>Responsable del área que gestiona el sistema</td><td>Panel completo: gestión de solicitudes, personas, configuración, cupos y reportes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>1.2 Acceso al Sistema</h2>
+  <p>Para acceder al sistema, abra el navegador (Chrome o Firefox) e ingrese la dirección que le indique el área de sistemas. En el PC del kiosco de autoatención, el sistema se abre automáticamente al hacer doble clic sobre el acceso directo en el escritorio.</p>
+  <p>El panel del operador y del administrador requieren inicio de sesión con usuario y contraseña. El empleado que usa el panel táctil no necesita iniciar sesión: solo ingresa su número de cédula.</p>
+
+  <h1>2. Panel de Autoatención (Empleado / Operador)</h1>
+  <p>El panel táctil está diseñado para operarse con el dedo directamente sobre la pantalla. No requiere teclado ni ratón. Los pasos para solicitar un bocket son tres.</p>
+
+  <h2>2.1 Paso 1 — Ingresar la Cédula</h2>
+  <div class="step-box">
+    <strong>Use el teclado numérico de la pantalla</strong> para ingresar su número de cédula completo. Los dígitos aparecen en el campo de texto superior. Si se equivoca, use la tecla ← para borrar el último dígito, o <em>Limpiar</em> para borrar todo. Al terminar, presione <strong>Continuar</strong>.
+  </div>
+
+  <div class="warn-box">
+    Si el sistema tiene un escáner de código de barras conectado, puede pasar su cédula por el escáner en lugar de digitar manualmente. El sistema reconoce el código automáticamente.
+  </div>
+
+  <h2>2.2 Paso 2 — Verificar Datos</h2>
+  <p>El sistema busca su cédula y muestra una tarjeta con su nombre completo, documento y sede. Verifique que los datos corresponden a los suyos antes de continuar.</p>
+  <p>Si el sistema muestra el mensaje <em>"Persona no encontrada"</em>, es posible que su cédula no esté registrada. En ese caso, solicite al operador de turno que la registre mediante el botón <em>Registrar nueva persona</em> que aparece en pantalla.</p>
+
+  <h3>Mensajes posibles en este paso</h3>
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 2</div>
+    <div class="table-title">Mensajes del sistema al buscar una persona</div>
+    <table>
+      <thead><tr><th>Mensaje</th><th>Significado</th><th>Acción</th></tr></thead>
+      <tbody>
+        <tr><td>Tarjeta verde con nombre</td><td>Persona encontrada y habilitada</td><td>Continuar al paso 3</td></tr>
+        <tr><td>Ya solicitó bocket este período</td><td>Ya registró una solicitud en el período actual</td><td>No es posible registrar otra solicitud hasta el próximo período</td></tr>
+        <tr><td>Sin cupos disponibles</td><td>El cupo de su sede se agotó para este período</td><td>Consultar con el administrador</td></tr>
+        <tr><td>Persona no encontrada</td><td>La cédula no está registrada en el sistema</td><td>Solicitar al operador que registre la persona</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>2.3 Paso 3 — Completar y Enviar la Solicitud</h2>
+  <div class="step-box">
+    <strong>Seleccione el motivo</strong> de la solicitud en el menú desplegable. Si elige la opción <em>Otro</em>, aparece un campo adicional para describir el motivo específico. Si lo desea, puede agregar observaciones en el campo de texto correspondiente. Cuando esté listo, presione <strong>Guardar Solicitud</strong>.
+  </div>
+
+  <div class="ok-box">
+    Si la solicitud se registró correctamente, aparece la pantalla de confirmación con un visto bueno verde y el mensaje <em>«Solicitud registrada con éxito»</em>. Presione <strong>Registrar otra solicitud</strong> para reiniciar el panel.
+  </div>
+
+  <div class="page-number">1</div>
+</div>
+
+<!-- PÁGINA 2 -->
+<div class="page">
+  <div class="running-header">MANUAL DE USUARIO — SISTEMA DE BOCKETS</div>
+
+  <h2>2.4 Registrar una Persona Nueva (Operador)</h2>
+  <p>Si al buscar la cédula el sistema responde <em>"Persona no encontrada"</em>, el operador puede registrar al empleado directamente desde el panel táctil.</p>
+
+  <div class="step-box">
+    <strong>Paso 1.</strong> Presione el botón <strong>Registrar persona</strong> que aparece debajo del mensaje de error. Se abre un formulario modal.
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> Complete los campos requeridos: tipo de documento, número de documento, primer nombre, primer apellido y sede. Los campos segundo nombre y segundo apellido son opcionales.
+  </div>
+  <div class="step-box">
+    <strong>Paso 3.</strong> Presione <strong>Guardar Persona</strong>. El sistema registra a la persona y automáticamente la busca en el panel táctil para continuar con la solicitud.
+  </div>
+
+  <h1>3. Panel del Administrador</h1>
+  <p>El administrador accede al sistema con su usuario y contraseña. El panel completo incluye las siguientes secciones, accesibles desde el menú lateral.</p>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 3</div>
+    <div class="table-title">Secciones del panel de administrador</div>
+    <table>
+      <thead><tr><th>Sección</th><th>Función principal</th></tr></thead>
+      <tbody>
+        <tr><td>Dashboard</td><td>Resumen estadístico, gráficas de solicitudes por sede y control visual de cupos</td></tr>
+        <tr><td>Solicitudes</td><td>Listado completo de solicitudes con filtros, cambio de estado y eliminación</td></tr>
+        <tr><td>Personas</td><td>Gestión del padrón de beneficiarios: búsqueda, edición, habilitación/inhabilitación e importación masiva desde Excel</td></tr>
+        <tr><td>Configuración</td><td>Parámetros generales, cupos por sede, sedes, motivos, estados de solicitud y usuarios del sistema</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>3.1 Dashboard</h2>
+  <p>El dashboard muestra en tiempo real el total de solicitudes, las solicitudes del período actual y el estado de cupos de cada sede. Las gráficas se actualizan automáticamente cada 30 segundos sin necesidad de recargar la página.</p>
+
+  <h2>3.2 Gestión de Solicitudes</h2>
+  <p>En la sección <em>Solicitudes</em> se listan todas las solicitudes registradas. Se pueden aplicar filtros por fecha, sede, estado de solicitud y nombre o documento del beneficiario.</p>
+
+  <h3>Cambiar el estado de una solicitud</h3>
+  <div class="step-box">
+    Haga clic en el ícono de vista (ojo) sobre la solicitud para abrir el detalle. En la parte superior derecha del detalle seleccione el nuevo estado en el menú desplegable y confirme el cambio.
+  </div>
+
+  <h3>Generar reporte PDF</h3>
+  <div class="step-box">
+    En la sección de solicitudes, use el botón <strong>Generar Reporte</strong>. Seleccione el período y la sede (o todas las sedes) y confirme. El sistema genera un PDF con el listado de solicitudes del período seleccionado, listo para enviar al área de elaboración.
+  </div>
+
+  <h2>3.3 Gestión de Personas</h2>
+  <p>La sección <em>Personas</em> permite buscar, editar y gestionar el estado de los beneficiarios registrados en el sistema.</p>
+
+  <h3>Editar una persona</h3>
+  <div class="step-box">
+    Use el campo de búsqueda para localizar a la persona por nombre o documento. Haga clic en el ícono de edición, modifique los campos necesarios y guarde los cambios.
+  </div>
+
+  <h3>Habilitar o inhabilitar</h3>
+  <div class="step-box">
+    Una persona inhabilitada no puede registrar solicitudes en el panel táctil. Use los botones <em>Inhabilitar</em> o <em>Habilitar</em> según el estado actual de la persona.
+  </div>
+
+  <h3>Importar maestro desde Excel</h3>
+  <p>Para cargar o actualizar el padrón completo de beneficiarios desde un archivo Excel:</p>
+  <div class="step-box">
+    <strong>Paso 1.</strong> En <em>Personas → Cargar maestro</em>, haga clic en <strong>Seleccionar archivo</strong> y elija el archivo Excel (.xlsx, .xls) con el padrón. El sistema acepta el formato Tandil y el formato Creos automáticamente.
+  </div>
+  <div class="step-box">
+    <strong>Paso 2.</strong> El sistema analiza el archivo y muestra una vista previa con el resumen de cambios: personas nuevas, a actualizar, a reactivar, sin cambios y con errores. Revise el resumen antes de confirmar.
+  </div>
+  <div class="step-box">
+    <strong>Paso 3.</strong> Presione <strong>Confirmar importación</strong> para aplicar los cambios, o <strong>Cancelar</strong> para descartar el archivo sin modificar datos.
+  </div>
+
+  <div class="page-number">2</div>
+</div>
+
+<!-- PÁGINA 3 -->
+<div class="page">
+  <div class="running-header">MANUAL DE USUARIO — SISTEMA DE BOCKETS</div>
+
+  <h2>3.4 Configuración del Sistema</h2>
+  <p>La sección <em>Configuración</em> agrupa en pestañas todas las opciones de ajuste del sistema.</p>
+
+  <h3>Pestaña General</h3>
+  <p>Permite configurar el nombre de la organización, el tipo de período (mensual o semanal), el cupo por defecto para nuevas sedes, el nombre de la empresa destinataria y el destinatario de las solicitudes que aparece en los PDF.</p>
+
+  <h3>Pestaña Control de Cupos</h3>
+  <p>Muestra el cupo máximo, el cupo utilizado y el disponible por sede para el período actual. Para modificar el cupo de una sede, escriba el nuevo valor en el campo correspondiente y presione <strong>Guardar</strong>.</p>
+
+  <div class="warn-box">
+    El cupo máximo no puede ser inferior al número de solicitudes ya registradas para esa sede en el período activo. Si intenta reducir el cupo por debajo de las solicitudes existentes, el sistema rechazará el cambio.
+  </div>
+
+  <h3>Pestaña Gestión de Sedes</h3>
+  <p>Permite crear, editar y eliminar sedes. Cada sede requiere nombre, código corto y estado. Las sedes inactivas no aparecen en el panel táctil ni en los cupos.</p>
+
+  <h3>Pestaña Motivos de Ramo</h3>
+  <p>Define los motivos disponibles para seleccionar al registrar una solicitud. Los motivos marcados como <em>Requiere detalle</em> activan un campo adicional en el panel táctil para que el empleado especifique el detalle.</p>
+
+  <h3>Pestaña Estados de Solicitud</h3>
+  <p>Permite gestionar los estados del ciclo de vida de una solicitud (por ejemplo: Pendiente, En preparación, Entregado, Cancelado). A cada estado se le asigna un color que aparece en el listado de solicitudes.</p>
+
+  <h3>Pestaña Usuarios</h3>
+  <p>Lista todos los usuarios del sistema con su rol, estado y fecha de último acceso. Desde aquí el administrador puede cambiar la contraseña de cualquier usuario sin necesidad de conocer la contraseña anterior.</p>
+
+  <div class="step-box">
+    <strong>Para cambiar la contraseña de un usuario:</strong> Haga clic en el botón <em>Cambiar contraseña</em> junto al usuario correspondiente. En el formulario que aparece, ingrese la nueva contraseña (mínimo 8 caracteres), confírmela y presione <strong>Guardar</strong>.
+  </div>
+
+  <h2>3.5 Cambiar su Propia Contraseña</h2>
+  <p>Cualquier usuario (administrador u operador) puede cambiar su propia contraseña desde el menú de usuario en la esquina superior derecha de la pantalla.</p>
+
+  <div class="step-box">
+    Haga clic sobre su nombre o avatar en la esquina superior derecha. En el menú desplegable seleccione <strong>Cambiar contraseña</strong>. Ingrese su contraseña actual, la nueva contraseña y la confirmación. Presione <strong>Guardar</strong>.
+  </div>
+
+  <h1>4. Preguntas Frecuentes</h1>
+
+  <div class="table-wrapper">
+    <div class="table-label">Tabla 4</div>
+    <div class="table-title">Preguntas frecuentes y soluciones</div>
+    <table>
+      <thead><tr><th>Situación</th><th>Causa probable</th><th>Solución</th></tr></thead>
+      <tbody>
+        <tr><td>El sistema dice que la cédula no existe, pero el empleado sí está registrado</td><td>La persona puede estar registrada como inactiva</td><td>El administrador puede habilitarla desde <em>Personas</em></td></tr>
+        <tr><td>El empleado dice que ya hizo una solicitud pero el sistema no la muestra</td><td>Posible filtro de fecha activo en el listado</td><td>Limpiar los filtros en <em>Solicitudes</em></td></tr>
+        <tr><td>El cupo de la sede ya se agotó pero el administrador quiere autorizar una solicitud</td><td>El cupo configurado es inferior a la demanda real</td><td>Aumentar el cupo desde <em>Configuración → Control de Cupos</em></td></tr>
+        <tr><td>El PDF generado no incluye todas las solicitudes esperadas</td><td>El rango de fechas o sede del filtro puede estar mal configurado</td><td>Revisar y ampliar el rango en el formulario de generación de reporte</td></tr>
+        <tr><td>El navegador del kiosco muestra una página de error</td><td>Apache o MySQL puede haberse detenido</td><td>Abrir Laragon y verificar que ambos servicios muestran verde; hacer clic en Start All si es necesario</td></tr>
+        <tr><td>Un operador olvidó su contraseña</td><td>N/A</td><td>El administrador cambia la contraseña desde <em>Configuración → Usuarios</em></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h1>5. Recomendaciones de Uso</h1>
+  <ul>
+    <li>Realice una copia de seguridad de la base de datos al menos una vez por semana. El administrador de sistemas puede automatizar este proceso desde el servidor.</li>
+    <li>Cambie las contraseñas del sistema cada tres meses o cuando un usuario deje de tener acceso.</li>
+    <li>Actualice el padrón de beneficiarios al inicio de cada período importando el maestro actualizado desde el área de talento humano.</li>
+    <li>Antes de generar el reporte de entrega al área de elaboración, cambie el estado de las solicitudes del período a <em>En preparación</em> para llevar un control claro del proceso.</li>
+    <li>Si el PC del kiosco queda sin uso prolongado, configure el protector de pantalla del sistema operativo pero no apague el equipo durante el horario de atención.</li>
+  </ul>
+
+  <div class="page-number">3</div>
+</div>
+
+</body>
+</html>

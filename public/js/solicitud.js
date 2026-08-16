@@ -177,14 +177,12 @@ function guardarPersona() {
     }
 
     // Mostrar estado de guardando
-    var btnGuardar = form.parentElement.querySelector('.modal-footer button[onclick="guardarPersona()"]');
-    var originalText = btnGuardar.textContent;
-    btnGuardar.disabled = true;
-    btnGuardar.textContent = 'Guardando...';
+    var btnGuardar = form.closest('.modal').querySelector('.modal-footer button[onclick="guardarPersona()"]');
+    var originalText = btnGuardar ? btnGuardar.textContent : 'Guardar Persona';
+    if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
 
     ajaxPost(BASE_URL + '/personas/crear', formData, function(data) {
-        btnGuardar.disabled = false;
-        btnGuardar.textContent = originalText;
+        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = originalText; }
 
         if (data.success) {
             cerrarModalPersona();
@@ -215,8 +213,7 @@ function guardarPersona() {
             }
         }
     }).catch(function() {
-        btnGuardar.disabled = false;
-        btnGuardar.textContent = originalText;
+        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = originalText; }
     });
 }
 
