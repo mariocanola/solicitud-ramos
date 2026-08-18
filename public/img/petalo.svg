@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#3A0D50"/>
+      <stop offset="100%" stop-color="#12041E"/>
+    </linearGradient>
+    <linearGradient id="pinkPetal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#F472C0"/>
+      <stop offset="100%" stop-color="#B5238C"/>
+    </linearGradient>
+    <linearGradient id="purplePetal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#C084E8"/>
+      <stop offset="100%" stop-color="#7120B8"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="40%" cy="35%" r="60%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0C0F8"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Fondo: cuadrado redondeado estilo app icon -->
+  <rect width="256" height="256" rx="54" ry="54" fill="url(#bg)"/>
+
+  <!-- Borde interior sutil -->
+  <rect x="1" y="1" width="254" height="254" rx="53" ry="53"
+        fill="none" stroke="#7A30A0" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- === PETALOS GEOMETRICOS (kite / diamante) === -->
+  <!-- Forma base apuntando arriba:
+       punta superior: (128, 30)
+       lados al 55% del recorrido: (114, 96) y (142, 96)
+       punta inferior: (128, 158)
+  -->
+
+  <!-- Petalos rosas: 0°, 120°, 240° -->
+  <g transform="rotate(0,   128, 128)">
+    <polygon points="128,30 142,96 128,158 114,96" fill="url(#pinkPetal)"/>
+    <polygon points="128,30 142,96 128,158 114,96" fill="none" stroke="white" stroke-width="1" opacity="0.15"/>
+  </g>
+  <g transform="rotate(120, 128, 128)">
+    <polygon points="128,30 142,96 128,158 114,96" fill="url(#pinkPetal)"/>
+    <polygon points="128,30 142,96 128,158 114,96" fill="none" stroke="white" stroke-width="1" opacity="0.15"/>
+  </g>
+  <g transform="rotate(240, 128, 128)">
+    <polygon points="128,30 142,96 128,158 114,96" fill="url(#pinkPetal)"/>
+    <polygon points="128,30 142,96 128,158 114,96" fill="none" stroke="white" stroke-width="1" opacity="0.15"/>
+  </g>
+
+  <!-- Petalos morados: 60°, 180°, 300° -->
+  <g transform="rotate(60,  128, 128)">
+    <polygon points="128,30 142,96 128,158 114,96" fill="url(#purplePetal)"/>
+    <polygon points="128,30 142,96 128,158 114,96" fill="none" stroke="white" stroke-width="1" opacity="0.15"/>
+  </g>
+  <g transform="rotate(180, 128, 128)">
+    <polygon points="128,30 142,96 128,158 114,96" fill="url(#purplePetal)"/>
+    <polygon points="128,30 142,96 128,158 114,96" fill="none" stroke="white" stroke-width="1" opacity="0.15"/>
+  </g>
+  <g transform="rotate(300, 128, 128)">
+    <polygon points="128,30 142,96 128,158 114,96" fill="url(#purplePetal)"/>
+    <polygon points="128,30 142,96 128,158 114,96" fill="none" stroke="white" stroke-width="1" opacity="0.15"/>
+  </g>
+
+  <!-- Centro: disco oscuro + circulo blanco + reflejo -->
+  <circle cx="128" cy="128" r="28" fill="#12041E"/>
+  <circle cx="128" cy="128" r="20" fill="white" opacity="0.92"/>
+  <circle cx="121" cy="121" r="7"  fill="white" opacity="0.55"/>
+  <circle cx="136" cy="136" r="3"  fill="#C084E8" opacity="0.5"/>
+</svg>
