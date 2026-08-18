@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía de Instalación — Sistema Flores</title>
+<style>
+  @page {
+    margin: 2.2cm 2.4cm 2.2cm 2.4cm;
+    size: A4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fff;
+  }
+
+  /* ── Portada ─────────────────────────────────── */
+  .cover {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 60px 40px;
+    background: #fff;
+  }
+
+  .cover-logo {
+    font-size: 64px;
+    margin-bottom: 24px;
+    line-height: 1;
+  }
+
+  .cover h1 {
+    font-size: 28pt;
+    font-weight: 700;
+    color: #1a7f37;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .cover .subtitle {
+    font-size: 13pt;
+    color: #555;
+    margin-bottom: 40px;
+  }
+
+  .cover-meta {
+    background: #f6faf7;
+    border: 1px solid #d0e8d6;
+    border-radius: 8px;
+    padding: 20px 36px;
+    margin-top: 20px;
+    text-align: left;
+    min-width: 340px;
+  }
+
+  .cover-meta table { width: 100%; border-collapse: collapse; }
+  .cover-meta td { padding: 5px 8px; font-size: 10pt; }
+  .cover-meta td:first-child { color: #666; width: 130px; }
+  .cover-meta td:last-child { font-weight: 600; color: #222; }
+
+  /* ── Índice ──────────────────────────────────── */
+  .toc-page {
+    page-break-after: always;
+    padding-top: 10px;
+  }
+
+  .toc-page h2 {
+    font-size: 16pt;
+    color: #1a7f37;
+    border-bottom: 2px solid #1a7f37;
+    padding-bottom: 6px;
+    margin-bottom: 18px;
+  }
+
+  .toc ol {
+    list-style: none;
+    padding: 0;
+  }
+
+  .toc li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 1px dotted #ccc;
+    font-size: 10.5pt;
+  }
+
+  .toc li .num {
+    font-weight: 700;
+    color: #1a7f37;
+    min-width: 24px;
+    margin-right: 8px;
+  }
+
+  .toc li .title { flex: 1; }
+  .toc li .page { color: #888; font-size: 9.5pt; }
+
+  /* ── Contenido ───────────────────────────────── */
+  h1.section-title {
+    font-size: 22pt;
+    color: #1a7f37;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 2px solid #1a7f37;
+    margin-bottom: 22px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    color: #1a5e28;
+    margin-top: 28px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #b6dbbf;
+  }
+
+  h3 {
+    font-size: 11pt;
+    color: #1a7f37;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  p { margin-bottom: 10px; }
+
+  ul, ol {
+    margin: 8px 0 12px 22px;
+  }
+
+  li { margin-bottom: 5px; }
+
+  /* Bloques de código */
+  pre, code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+  }
+
+  pre {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-left: 3px solid #1a7f37;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 10px 0 14px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  code {
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9pt;
+    color: #c7254e;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: #1a1a1a;
+  }
+
+  /* Tablas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px 0;
+    font-size: 9.5pt;
+  }
+
+  th {
+    background: #1a7f37;
+    color: #fff;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #f8faf8; }
+
+  /* Alertas / notas */
+  .note {
+    background: #fffbe6;
+    border-left: 4px solid #f0ad00;
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+  }
+
+  .note strong { color: #8a6400; }
+
+  .tip {
+    background: #f0f9f2;
+    border-left: 4px solid #1a7f37;
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+  }
+
+  /* Resumen rápido */
+  .summary-box {
+    background: #f0f9f2;
+    border: 1.5px solid #1a7f37;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-top: 24px;
+  }
+
+  .summary-box h3 {
+    margin-top: 0;
+    color: #1a5e28;
+    font-size: 11.5pt;
+    margin-bottom: 10px;
+  }
+
+  .summary-box ol { margin-left: 18px; }
+  .summary-box li { margin-bottom: 4px; font-size: 9.5pt; }
+
+  /* Números de sección */
+  .section-num {
+    display: inline-block;
+    background: #1a7f37;
+    color: #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 12pt;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  /* Saltos de página */
+  .page-break { page-break-before: always; }
+
+  /* Footer */
+  .doc-footer {
+    margin-top: 40px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    text-align: center;
+    font-size: 8.5pt;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════ PORTADA ══════════ -->
+<div class="cover">
+  <div class="cover-logo">&#127804;</div>
+  <h1>Sistema Flores</h1>
+  <div class="subtitle">Guía de Instalación desde Cero</div>
+
+  <div class="cover-meta">
+    <table>
+      <tr><td>Sistema operativo</td><td>Windows 10 / 11</td></tr>
+      <tr><td>Versión PHP</td><td>7.4 o superior</td></tr>
+      <tr><td>Servidor web</td><td>Laragon (Apache + MySQL)</td></tr>
+      <tr><td>Fecha</td><td>Junio 2026</td></tr>
+      <tr><td>Dirigido a</td><td>Administrador de sistemas</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ ÍNDICE ══════════ -->
+<div class="toc-page">
+  <h2>Contenido</h2>
+  <div class="toc">
+    <ol>
+      <li><span class="num">1</span><span class="title">Requisitos del sistema</span></li>
+      <li><span class="num">2</span><span class="title">Instalar Laragon</span></li>
+      <li><span class="num">3</span><span class="title">Instalar Composer</span></li>
+      <li><span class="num">4</span><span class="title">Copiar el código del proyecto</span></li>
+      <li><span class="num">5</span><span class="title">Instalar dependencias PHP</span></li>
+      <li><span class="num">6</span><span class="title">Configurar la base de datos</span></li>
+      <li><span class="num">7</span><span class="title">Configurar el archivo .env</span></li>
+      <li><span class="num">8</span><span class="title">Configurar el servidor web</span></li>
+      <li><span class="num">9</span><span class="title">Verificar la instalación</span></li>
+      <li><span class="num">10</span><span class="title">Instalar clientes (otros equipos)</span></li>
+      <li><span class="num">11</span><span class="title">Arranque automático</span></li>
+      <li><span class="num">12</span><span class="title">Solución de problemas</span></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ══════════ SECCIÓN 1 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">1</span> Requisitos del sistema</h1>
+<hr class="section-divider">
+
+<table>
+  <tr><th>Componente</th><th>Versión mínima</th><th>Notas</th></tr>
+  <tr><td>Windows</td><td>10 / 11</td><td>El servidor debe permanecer encendido durante el uso</td></tr>
+  <tr><td>Laragon</td><td>6.0 o superior</td><td>Incluye Apache, MySQL y PHP en un solo instalador</td></tr>
+  <tr><td>PHP</td><td>7.4 o superior</td><td>Provisto automáticamente por Laragon</td></tr>
+  <tr><td>Composer</td><td>Cualquiera</td><td>Gestor de dependencias PHP</td></tr>
+  <tr><td>Navegador</td><td>Chrome o Edge</td><td>Requerido para el modo Kiosco a pantalla completa</td></tr>
+</table>
+
+<div class="note">
+  <strong>Importante:</strong> El equipo servidor debe tener <strong>IP fija</strong> en la red local para que los equipos clientes siempre lo encuentren en la misma dirección. Esto se configura en el paso 8.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 2 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">2</span> Instalar Laragon</h1>
+<hr class="section-divider">
+
+<p>Laragon es el entorno local que provee Apache, MySQL y PHP en un solo paquete. Es la base sobre la que corre el sistema.</p>
+
+<ol>
+  <li>Descarga <strong>Laragon Full</strong> desde <code>laragon.org/download</code> (incluye PHP, MySQL y Apache).</li>
+  <li>Ejecuta el instalador como <strong>Administrador</strong> (clic derecho → <em>Ejecutar como administrador</em>).</li>
+  <li>Acepta la ruta de instalación por defecto: <code>C:\laragon</code></li>
+  <li>Al finalizar, Laragon aparece en la barra del sistema (ícono junto al reloj).</li>
+  <li>Haz clic en <strong>Start All</strong> para iniciar Apache y MySQL.</li>
+</ol>
+
+<h3>Verificar que funciona</h3>
+<p>Abre el navegador y entra a <code>http://localhost</code>. Debe aparecer la página de bienvenida de Laragon.</p>
+
+<div class="tip">
+  Los indicadores de <strong>Apache</strong> y <strong>MySQL</strong> deben estar en <strong>verde</strong> en la ventana principal de Laragon.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 3 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">3</span> Instalar Composer</h1>
+<hr class="section-divider">
+
+<p>Composer es el gestor de dependencias de PHP. El sistema lo necesita para instalar la librería de exportación Excel.</p>
+
+<ol>
+  <li>Descarga el instalador desde <code>getcomposer.org/Composer-Setup.exe</code></li>
+  <li>Ejecuta <code>Composer-Setup.exe</code>.</li>
+  <li>Cuando solicite la ruta de PHP, selecciona:<br>
+    <pre>C:\laragon\bin\php\php-[versión]\php.exe</pre>
+    (Laragon coloca la versión activa dentro de <code>C:\laragon\bin\php\</code>)
+  </li>
+  <li>Completa la instalación con las opciones por defecto.</li>
+</ol>
+
+<h3>Verificar la instalación</h3>
+<p>Abre una terminal nueva (<strong>Win + R</strong> → escribe <code>cmd</code> → Enter) y ejecuta:</p>
+<pre>composer --version</pre>
+<p>Debe mostrar algo como <code>Composer version 2.x.x</code>.</p>
+
+<div class="note">
+  <strong>Nota:</strong> Si el comando no se reconoce, cierra y vuelve a abrir la terminal. La instalación de Composer actualiza las variables de entorno de Windows y la terminal anterior no las ve.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 4 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">4</span> Copiar el código del proyecto</h1>
+<hr class="section-divider">
+
+<p>El proyecto debe quedar ubicado en la carpeta <code>C:\laragon\www\flores\</code>.</p>
+
+<h2>Opción A — Desde un ZIP entregado</h2>
+<ol>
+  <li>Copia el archivo <code>flores-instalador.zip</code> al equipo servidor.</li>
+  <li>Extrae el contenido en <code>C:\laragon\www\flores\</code></li>
+</ol>
+
+<h2>Opción B — Desde el repositorio Git</h2>
+<ol>
+  <li>Abre la terminal de Laragon (ícono de Laragon → <em>Terminal</em>) o cualquier <code>cmd</code>.</li>
+  <li>Navega a la carpeta www de Laragon:
+    <pre>cd C:\laragon\www</pre>
+  </li>
+  <li>Clona el repositorio:
+    <pre>git clone [URL_DEL_REPOSITORIO] flores</pre>
+  </li>
+</ol>
+
+<h3>Estructura esperada</h3>
+<p>Después de copiar, la carpeta debe verse así:</p>
+<pre>C:\laragon\www\flores\
+├── app\
+│   ├── controllers\
+│   ├── models\
+│   ├── views\
+│   └── services\
+├── public\
+│   ├── index.php
+│   └── js\
+├── installer\
+│   ├── sql\
+│   ├── instalar_cliente.bat
+│   └── LEEME.txt
+├── composer.json
+└── .env.example</pre>
+</div>
+
+<!-- ══════════ SECCIÓN 5 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">5</span> Instalar dependencias PHP</h1>
+<hr class="section-divider">
+
+<p>El proyecto utiliza la librería <code>phpoffice/phpspreadsheet</code> para generar reportes Excel. Composer la descarga e instala automáticamente.</p>
+
+<ol>
+  <li>Abre <code>cmd</code> o la terminal de Laragon.</li>
+  <li>Navega a la carpeta del proyecto:
+    <pre>cd C:\laragon\www\flores</pre>
+  </li>
+  <li>Ejecuta el comando de instalación:
+    <pre>composer install --no-dev --optimize-autoloader</pre>
+  </li>
+  <li>Espera a que finalice la descarga. Se crea la carpeta <code>vendor\</code> con todas las librerías.</li>
+</ol>
+
+<div class="note">
+  <strong>Si ves un error "PHP not found":</strong> Reinicia el <code>cmd</code> luego de instalar Laragon, o agrega la ruta de PHP de Laragon (<code>C:\laragon\bin\php\php-[versión]</code>) a las variables de entorno PATH de Windows.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 6 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">6</span> Configurar la base de datos</h1>
+<hr class="section-divider">
+
+<h2>6.1 Crear la base de datos</h2>
+
+<ol>
+  <li>Asegúrate de que Laragon esté corriendo (Apache y MySQL en verde).</li>
+  <li>Abre <code>cmd</code> e ingresa a MySQL:
+    <pre>mysql -u root -p</pre>
+    En Laragon, la contraseña de root por defecto es <strong>vacía</strong>: solo presiona Enter.
+  </li>
+  <li>Crea la base de datos:
+    <pre>CREATE DATABASE flores_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;</pre>
+  </li>
+</ol>
+
+<h2>6.2 Importar los scripts SQL</h2>
+
+<p>Desde <code>cmd</code>, dentro de la carpeta del proyecto, ejecuta los tres scripts <strong>en este orden</strong>:</p>
+
+<pre>cd C:\laragon\www\flores
+
+mysql -u root flores_db &lt; installer\sql\01_schema.sql
+mysql -u root flores_db &lt; installer\sql\02_seed.sql
+mysql -u root flores_db &lt; installer\sql\03_eventos.sql</pre>
+
+<div class="tip">
+  Si MySQL tiene contraseña, agrega <code>-p</code> después de <code>root</code> en cada comando.
+</div>
+
+<table>
+  <tr><th>Script</th><th>Descripción</th></tr>
+  <tr><td><code>01_schema.sql</code></td><td>Crea todas las tablas (configuración, sedes, personas, solicitudes, etc.)</td></tr>
+  <tr><td><code>02_seed.sql</code></td><td>Inserta los datos iniciales (motivos, estados, configuración base)</td></tr>
+  <tr><td><code>03_eventos.sql</code></td><td>Programa el reinicio automático semanal de cupos de solicitudes</td></tr>
+</table>
+
+<h2>6.3 Crear el usuario administrador</h2>
+
+<p>Conéctate a MySQL y ejecuta la siguiente instrucción, reemplazando los valores según corresponda:</p>
+
+<pre>USE flores_db;
+
+INSERT INTO usuarios (nombre, email, password, rol)
+VALUES (
+    'Nombre Administrador',
+    'admin@ejemplo.com',
+    SHA2('contraseña_segura', 256),
+    'admin'
+);</pre>
+
+<div class="note">
+  <strong>Importante:</strong> Anota las credenciales que ingreses. Las necesitarás para el primer acceso al sistema.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 7 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">7</span> Configurar el archivo .env</h1>
+<hr class="section-divider">
+
+<p>El archivo <code>.env</code> contiene la configuración de conexión a la base de datos. Se crea a partir del archivo de ejemplo incluido en el proyecto.</p>
+
+<ol>
+  <li>Abre <code>cmd</code> y navega al proyecto:
+    <pre>cd C:\laragon\www\flores</pre>
+  </li>
+  <li>Copia el archivo de ejemplo:
+    <pre>copy .env.example .env</pre>
+  </li>
+  <li>Abre el archivo con el Bloc de notas:
+    <pre>notepad .env</pre>
+  </li>
+  <li>Ajusta los valores según tu configuración:</li>
+</ol>
+
+<pre># Base de datos
+DB_HOST=localhost
+DB_NAME=flores_db
+DB_USER=root
+DB_PASS=
+DB_CHARSET=utf8mb4
+
+# Aplicación
+APP_DEBUG=false</pre>
+
+<div class="tip">
+  <code>DB_PASS</code> queda en blanco si usas la contraseña por defecto de Laragon. Si la cambiaste en algún momento, ingrésala aquí.
+</div>
+
+<p>Guarda el archivo y cierra el Bloc de notas.</p>
+</div>
+
+<!-- ══════════ SECCIÓN 8 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">8</span> Configurar el servidor web</h1>
+<hr class="section-divider">
+
+<h2>8.1 Virtual host de Laragon</h2>
+
+<p>Laragon detecta automáticamente las carpetas dentro de <code>C:\laragon\www\</code> y crea un dominio local por cada una. El proyecto queda disponible en:</p>
+
+<pre>http://flores.test</pre>
+
+<p>Para acceso desde la red local también se puede usar la IP directamente (ver sección 8.2).</p>
+
+<h2>8.2 Conocer la IP del servidor</h2>
+
+<p>Averigua la IP local del equipo servidor:</p>
+
+<pre>ipconfig</pre>
+
+<p>Busca la línea <code>Dirección IPv4</code> bajo el adaptador de red activo. Ejemplo: <code>10.10.90.104</code></p>
+
+<p>El sistema queda accesible desde cualquier equipo de la red en:</p>
+
+<pre>http://10.10.90.104/flores/public</pre>
+
+<h2>8.3 Configurar IP fija en Windows</h2>
+
+<p>Para evitar que la IP del servidor cambie al reiniciar:</p>
+
+<ol>
+  <li>Abre <strong>Panel de control</strong> → <strong>Centro de redes y recursos compartidos</strong> → <strong>Cambiar configuración del adaptador</strong>.</li>
+  <li>Clic derecho en tu adaptador de red → <strong>Propiedades</strong>.</li>
+  <li>Selecciona <strong>Protocolo de Internet versión 4 (TCP/IPv4)</strong> → <strong>Propiedades</strong>.</li>
+  <li>Marca <strong>Usar la siguiente dirección IP</strong> e ingresa:
+    <ul>
+      <li><strong>Dirección IP:</strong> la IP que obtuviste con <code>ipconfig</code></li>
+      <li><strong>Máscara de subred:</strong> <code>255.255.255.0</code></li>
+      <li><strong>Puerta de enlace:</strong> la IP del router (generalmente termina en <code>.1</code>)</li>
+    </ul>
+  </li>
+  <li>Haz clic en <strong>Aceptar</strong> para guardar.</li>
+</ol>
+
+<h2>8.4 Abrir el puerto en el Firewall de Windows</h2>
+
+<p>Ejecuta este comando en <code>cmd</code> como Administrador:</p>
+
+<pre>netsh advfirewall firewall add rule name="Flores Sistema" dir=in action=allow protocol=TCP localport=80</pre>
+
+<div class="tip">
+  Si usas un puerto diferente al 80 (por ejemplo 8001), cambia <code>localport=80</code> por <code>localport=8001</code>.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 9 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">9</span> Verificar la instalación</h1>
+<hr class="section-divider">
+
+<p>Antes de distribuir el acceso a otros equipos, verifica que todo funciona correctamente en el servidor.</p>
+
+<ol>
+  <li>Confirma que Laragon está corriendo: Apache y MySQL en <strong>verde</strong>.</li>
+  <li>Abre el navegador en el mismo equipo servidor y entra a:
+    <pre>http://localhost/flores/public</pre>
+    o bien:
+    <pre>http://flores.test</pre>
+    Debe aparecer la pantalla de inicio del sistema.
+  </li>
+  <li>Ingresa con el usuario administrador creado en el paso 6.3.</li>
+  <li>Desde otro equipo de la misma red, abre:
+    <pre>http://[IP_SERVIDOR]/flores/public</pre>
+    y verifica que carga correctamente.
+  </li>
+</ol>
+
+<div class="tip">
+  Si el sistema carga en el servidor pero no desde otros equipos, revisa la configuración del Firewall (paso 8.4) y verifica que todos los equipos estén en la misma red local.
+</div>
+
+<h3>Lista de verificación</h3>
+<table>
+  <tr><th>Verificación</th><th>Resultado esperado</th></tr>
+  <tr><td>Laragon activo</td><td>Apache y MySQL en verde</td></tr>
+  <tr><td>Carpeta del proyecto</td><td><code>C:\laragon\www\flores\</code> existe con contenido</td></tr>
+  <tr><td>Carpeta vendor</td><td><code>vendor\</code> existe dentro del proyecto</td></tr>
+  <tr><td>Archivo .env</td><td>Existe y tiene las credenciales correctas</td></tr>
+  <tr><td>Base de datos</td><td><code>flores_db</code> con tablas creadas</td></tr>
+  <tr><td>Acceso local</td><td>El sistema abre en el navegador del servidor</td></tr>
+  <tr><td>Acceso en red</td><td>El sistema abre desde otro equipo de la red</td></tr>
+</table>
+</div>
+
+<!-- ══════════ SECCIÓN 10 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">10</span> Instalar clientes (otros equipos)</h1>
+<hr class="section-divider">
+
+<p>Los equipos clientes no necesitan instalar PHP, Laragon ni ningún componente técnico. Solo requieren un acceso directo configurado con la URL del servidor.</p>
+
+<h2>Usando el script instalador (recomendado)</h2>
+
+<ol>
+  <li>Copia el archivo <code>installer\instalar_cliente.bat</code> al equipo cliente (por USB, red compartida, etc.).</li>
+  <li>Doble clic en <code>instalar_cliente.bat</code>.</li>
+  <li>Ingresa los datos cuando se soliciten:
+    <ul>
+      <li><strong>IP del servidor:</strong> la IP fija configurada (ej. <code>10.10.90.104</code>)</li>
+      <li><strong>Puerto:</strong> <code>80</code> (o el que esté en uso)</li>
+      <li><strong>Tipo de cliente:</strong>
+        <ul>
+          <li><code>1</code> — <strong>Kiosco:</strong> pantalla de solicitudes a pantalla completa (para el panel táctil de autoatención del empleado)</li>
+          <li><code>2</code> — <strong>Admin:</strong> dashboard administrativo normal</li>
+          <li><code>3</code> — <strong>Ambos</strong></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Se crean accesos directos en el escritorio:
+    <ul>
+      <li><strong>Flores Kiosco</strong> → abre <code>/solicitudes/nueva</code> en pantalla completa</li>
+      <li><strong>Flores Admin</strong> → abre el dashboard administrativo</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="note">
+  <strong>El modo Kiosco requiere Chrome o Edge instalado</strong> en el equipo cliente. Sin uno de estos navegadores, el sistema abrirá en ventana normal sin pantalla completa.
+</div>
+
+<h2>Creación manual del acceso directo (alternativa)</h2>
+
+<p>Si no puedes ejecutar el script, crea un acceso directo al navegador con el siguiente destino:</p>
+
+<p>Para <strong>Kiosco</strong>:</p>
+<pre>"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --new-window "http://[IP]/flores/public/solicitudes/nueva"</pre>
+
+<p>Para <strong>Administrador</strong>:</p>
+<pre>"C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://[IP]/flores/public/dashboard"</pre>
+</div>
+
+<!-- ══════════ SECCIÓN 11 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">11</span> Arranque automático</h1>
+<hr class="section-divider">
+
+<p>Para que el sistema esté disponible desde el momento en que el servidor enciende, sin necesidad de abrir Laragon manualmente:</p>
+
+<ol>
+  <li>Abre Laragon.</li>
+  <li>Haz clic en el ícono de engranaje (<strong>Settings</strong>).</li>
+  <li>Activa las siguientes opciones:
+    <ul>
+      <li><strong>Auto start</strong></li>
+      <li><strong>Start Laragon when Windows starts</strong></li>
+      <li><strong>Run as service</strong> <em>(opcional — permite que funcione incluso sin usuario conectado)</em></li>
+    </ul>
+  </li>
+  <li>Cierra la configuración y reinicia el equipo para confirmar que Laragon inicia solo.</li>
+</ol>
+
+<div class="tip">
+  Con <strong>Run as service</strong> activo, el servidor responde incluso si nadie ha iniciado sesión en Windows. Esto es recomendable si el equipo servidor no tiene monitor o usuario permanente.
+</div>
+</div>
+
+<!-- ══════════ SECCIÓN 12 ══════════ -->
+<div class="page-break">
+<h1 class="section-title"><span class="section-num">12</span> Solución de problemas</h1>
+<hr class="section-divider">
+
+<table>
+  <tr><th>Problema</th><th>Causa probable</th><th>Solución</th></tr>
+  <tr>
+    <td>"No se pudo conectar a MySQL"</td>
+    <td>MySQL no está corriendo</td>
+    <td>Abre Laragon → Start All. Verifica que MySQL esté en verde.</td>
+  </tr>
+  <tr>
+    <td>La página no carga en el servidor</td>
+    <td>Apache no está corriendo</td>
+    <td>Verifica que Apache esté en verde en Laragon.</td>
+  </tr>
+  <tr>
+    <td>La página no carga desde otro equipo</td>
+    <td>Firewall bloqueando el puerto</td>
+    <td>Ejecuta el comando <code>netsh</code> del paso 8.4 como Administrador.</td>
+  </tr>
+  <tr>
+    <td>La página no carga desde otro equipo</td>
+    <td>IP incorrecta en el cliente</td>
+    <td>Re-ejecuta <code>instalar_cliente.bat</code> con la IP correcta del servidor.</td>
+  </tr>
+  <tr>
+    <td>Errores de clase o librería no encontrada</td>
+    <td>La carpeta <code>vendor\</code> no existe</td>
+    <td>Ejecuta <code>composer install</code> desde la carpeta del proyecto.</td>
+  </tr>
+  <tr>
+    <td>Error ".env no encontrado"</td>
+    <td>El archivo no fue creado</td>
+    <td>Ejecuta <code>copy .env.example .env</code> y edita las credenciales.</td>
+  </tr>
+  <tr>
+    <td>"Flores Kiosco" abre en ventana normal</td>
+    <td>Chrome o Edge no instalado</td>
+    <td>Instala Chrome o Edge en el equipo cliente.</td>
+  </tr>
+  <tr>
+    <td>La IP del servidor cambió</td>
+    <td>IP dinámica (DHCP)</td>
+    <td>Configura IP fija en Windows (paso 8.3) y reinstala los clientes con la nueva IP.</td>
+  </tr>
+  <tr>
+    <td>Error al importar SQL</td>
+    <td>Orden incorrecto o BD inexistente</td>
+    <td>Verifica que <code>flores_db</code> exista antes de importar. Importa en orden: 01 → 02 → 03.</td>
+  </tr>
+  <tr>
+    <td>Contraseña admin incorrecta</td>
+    <td>Hash incorrecto en el INSERT</td>
+    <td>Ejecuta de nuevo el INSERT del paso 6.3 con la contraseña correcta.</td>
+  </tr>
+</table>
+
+<!-- ══════════ RESUMEN RÁPIDO ══════════ -->
+<div class="summary-box" style="margin-top:30px;">
+  <h3>Resumen rápido para instaladores con experiencia</h3>
+  <ol>
+    <li>Instalar Laragon + presionar <strong>Start All</strong></li>
+    <li>Instalar <strong>Composer</strong></li>
+    <li>Copiar proyecto a <code>C:\laragon\www\flores\</code></li>
+    <li>Ejecutar <code>composer install --no-dev --optimize-autoloader</code></li>
+    <li>Crear BD <code>flores_db</code> e importar <code>01_schema.sql</code> → <code>02_seed.sql</code> → <code>03_eventos.sql</code></li>
+    <li>Copiar <code>.env.example</code> a <code>.env</code> y ajustar credenciales</li>
+    <li>Crear usuario administrador con INSERT en MySQL</li>
+    <li>Configurar IP fija y abrir puerto en el Firewall</li>
+    <li>Verificar en <code>http://localhost/flores/public</code></li>
+    <li>En cada cliente: ejecutar <code>instalar_cliente.bat</code></li>
+  </ol>
+</div>
+
+<div class="doc-footer" style="margin-top:30px;">
+  Sistema Flores — Flores el Tandil &nbsp;|&nbsp; Documento de uso interno &nbsp;|&nbsp; Junio 2026
+</div>
+</div>
+
+</body>
+</html>
