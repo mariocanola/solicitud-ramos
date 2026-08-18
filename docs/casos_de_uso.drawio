@@ -1,0 +1,149 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Casos de Uso">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1240" pageHeight="980" math="0" shadow="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Título -->
+        <mxCell id="title" value="Diagrama de Casos de Uso — Sistema de Gestión de Solicitudes de Ramos Florales"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="80" y="10" width="1060" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Sistema boundary -->
+        <mxCell id="boundary" value="&lt;b&gt;Sistema de Gestión de Solicitudes de Ramos Florales&lt;/b&gt;"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#333333;strokeWidth=2;fontSize=12;verticalAlign=top;spacingTop=6;"
+          vertex="1" parent="1">
+          <mxGeometry x="160" y="50" width="880" height="900" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== ACTORES ===== -->
+
+        <!-- Actor: Empleado -->
+        <mxCell id="actor1" value=""
+          style="shape=umlActor;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="40" y="370" width="50" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="actor1_lbl" value="Empleado&#xa;(Beneficiario)"
+          style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="20" y="460" width="90" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Actor: Administrador -->
+        <mxCell id="actor2" value=""
+          style="shape=umlActor;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="1130" y="370" width="50" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="actor2_lbl" value="Administrador"
+          style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="1115" y="460" width="90" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== CASOS DE USO — EMPLEADO ===== -->
+
+        <mxCell id="uc1" value="Acceder al panel de autoatención"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="190" y="270" width="230" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc2" value="Registrar solicitud de ramo"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="190" y="400" width="230" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== CASOS DE USO — ADMINISTRADOR ===== -->
+
+        <mxCell id="uc3" value="Gestionar beneficiarios"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="90" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc4" value="Gestionar sedes"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="210" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc5" value="Configurar cupos por sede"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="330" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc6" value="Gestionar solicitudes"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="450" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc7" value="Generar reporte PDF"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="570" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc8" value="Importar beneficiarios desde Excel"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="690" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="uc9" value="Configurar sistema"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+          vertex="1" parent="1">
+          <mxGeometry x="800" y="810" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== ASOCIACIONES — EMPLEADO ===== -->
+
+        <mxCell id="a1" style="endArrow=none;html=1;" edge="1" source="actor1" target="uc1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a2" style="endArrow=none;html=1;" edge="1" source="actor1" target="uc2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== ASOCIACIONES — ADMINISTRADOR ===== -->
+
+        <mxCell id="a3" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a4" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a5" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc5" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a6" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc6" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a7" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc7" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a8" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc8" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a9" style="endArrow=none;html=1;" edge="1" source="actor2" target="uc9" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

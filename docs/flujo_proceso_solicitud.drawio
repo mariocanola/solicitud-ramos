@@ -1,0 +1,221 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Flujo Proceso Solicitud">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="1280" math="0" shadow="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Título -->
+        <mxCell id="title" value="Flujo del Proceso — Solicitud de Ramo de Flores"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="140" y="20" width="640" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- INICIO -->
+        <mxCell id="s1" value="INICIO"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- P1 -->
+        <mxCell id="p1" value="Empleado accede al panel de autoatención"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="360" y="160" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- P2 -->
+        <mxCell id="p2" value="Digita su número de cédula"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="360" y="260" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- D1 -->
+        <mxCell id="d1" value="¿Persona registrada en el sistema?"
+          style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;"
+          vertex="1" parent="1">
+          <mxGeometry x="350" y="360" width="260" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Error 1 -->
+        <mxCell id="err1" value="Muestra error: Persona no encontrada en el sistema"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;"
+          vertex="1" parent="1">
+          <mxGeometry x="700" y="370" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- End1 -->
+        <mxCell id="end1" value="Fin"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="750" y="460" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- D2 -->
+        <mxCell id="d2" value="¿Ya realizó solicitud en el periodo activo?"
+          style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;"
+          vertex="1" parent="1">
+          <mxGeometry x="350" y="480" width="260" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Error 2 -->
+        <mxCell id="err2" value="Muestra solicitud existente con fecha y estado actual"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;"
+          vertex="1" parent="1">
+          <mxGeometry x="700" y="490" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- End2 -->
+        <mxCell id="end2" value="Fin"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="750" y="580" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- D3 -->
+        <mxCell id="d3" value="¿Cupo disponible en la sede asignada?"
+          style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;"
+          vertex="1" parent="1">
+          <mxGeometry x="350" y="600" width="260" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Error 3 -->
+        <mxCell id="err3" value="Muestra mensaje: Sede sin cupo disponible en el periodo"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;"
+          vertex="1" parent="1">
+          <mxGeometry x="700" y="610" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- End3 -->
+        <mxCell id="end3" value="Fin"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="750" y="700" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- P3 -->
+        <mxCell id="p3" value="Empleado selecciona motivo del ramo y nombre del destinatario"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="360" y="720" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- P4 -->
+        <mxCell id="p4" value="Confirma la solicitud"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="360" y="820" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- P5 -->
+        <mxCell id="p5" value="Sistema registra la solicitud en la base de datos"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+          vertex="1" parent="1">
+          <mxGeometry x="360" y="920" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- P6 -->
+        <mxCell id="p6" value="Muestra confirmación exitosa al empleado"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;"
+          vertex="1" parent="1">
+          <mxGeometry x="360" y="1020" width="240" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- FIN -->
+        <mxCell id="s2" value="FIN"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="420" y="1120" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== EDGES ===== -->
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="s1" target="p1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="p1" target="p2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="p2" target="d1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- D1 → err1 : No -->
+        <mxCell id="e4" value="No"
+          style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontStyle=1;fontSize=11;"
+          edge="1" source="d1" target="err1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- D1 → d2 : Sí -->
+        <mxCell id="e5" value="Sí"
+          style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontStyle=1;fontSize=11;"
+          edge="1" source="d1" target="d2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="err1" target="end1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- D2 → err2 : Sí -->
+        <mxCell id="e7" value="Sí"
+          style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontStyle=1;fontSize=11;"
+          edge="1" source="d2" target="err2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- D2 → d3 : No -->
+        <mxCell id="e8" value="No"
+          style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontStyle=1;fontSize=11;"
+          edge="1" source="d2" target="d3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="err2" target="end2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- D3 → err3 : No -->
+        <mxCell id="e10" value="No"
+          style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontStyle=1;fontSize=11;"
+          edge="1" source="d3" target="err3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- D3 → p3 : Sí -->
+        <mxCell id="e11" value="Sí"
+          style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontStyle=1;fontSize=11;"
+          edge="1" source="d3" target="p3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="err3" target="end3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="p3" target="p4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="p4" target="p5" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="p5" target="p6" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="p6" target="s2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
